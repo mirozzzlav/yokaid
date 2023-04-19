@@ -26,7 +26,7 @@ export default function useApiCall() {
         state: callStates.loading,
         calledEndPoint: endPoint,
       });
-      fetch(`${config.api.url}/${endPoint}`, {
+      fetch(`${config.api.url}/${endPoint.path}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -46,6 +46,7 @@ export default function useApiCall() {
             ...prevResponse,
             state: _response.error ? callStates.error : callStates.ready,
             data: _response.data || null,
+            refreshToken: _response.refresh_token || null,
             error: _response.error || null,
           }));
         })

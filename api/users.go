@@ -5,12 +5,11 @@ import (
 
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/db"
 	"rental-app/api/utils"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 // type DbUser struct {
@@ -69,11 +68,15 @@ func newUserResponse(user db.User) userResponse {
 	}
 }
 
-func (server *Server) loginUser(ctx *gin.Context) {
+// code error data
+func LoginUser(server *Server, ctx *gin.Context) utils.Response {
 	var req loginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
-		return
+		return utils.Response{
+			Error:    err,
+			Data:     nil,
+			HttpCode: http.StatusBadRequest,
+		}
 	}
 	user, err := server.store.GetAUser(ctx, req.Username)
 
@@ -82,11 +85,11 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		ctx.JSON(
-			http.StatusUnauthorized,
-			utils.ErrorResponse(fmt.Errorf("user %s cannot be logged-in", req.Username)),
-		)
-		return
+		return utils.Response{
+			Error:    fmt.Errorf("user %s cannot be logged-in", req.Username),
+			Data:     nil,
+			HttpCode: http.StatusUnauthorized,
+		}
 	}
 
 	accessToken, err := server.tokenMaker.CreateToken(
@@ -94,16 +97,20 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		server.config.AccessTokenDuration,
 	)
 	if err != nil {
-		ctx.JSON(
-			http.StatusInternalServerError,
-			utils.ErrorResponse(errors.New("server issue has occured")),
-		)
-		return
+		return utils.Response{
+			Error:    errors.New("server issue has occurred"),
+			Data:     nil,
+			HttpCode: http.StatusInternalServerError,
+		}
 	}
 	userResponse := loginUserResponse{
 		AccessToken: accessToken,
 		User:        newUserResponse(user),
 	}
 
-	ctx.JSON(http.StatusOK, utils.OkResponse(userResponse))
+	return utils.Response{
+		Error:    nil,
+		Data:     userResponse,
+		HttpCode: http.StatusOK,
+	}
 }

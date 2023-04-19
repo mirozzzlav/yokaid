@@ -47,16 +47,22 @@ export default function AuthProvider({
 
   useEffect(() => {
     if (
-      response.isReady &&
-      response.calledEndPoint === config.api.endPoints.loginUser
+      response.isReady
     ) {
-      const accessToken =
-        response.data && response.data.access_token
-          ? response.data.access_token
-          : null;
+      let accessToken = '';
+      if (response.calledEndPoint.path === config.api.endPoints.loginUser.path) {
+        accessToken =
+          response.data && response.data.access_token
+            ? response.data.access_token
+            : null;
+      }
 
+      if (response.calledEndPoint.isPrivate) {
+        accessToken = response.refreshToken;
+      }
       setToken(accessToken);
     }
+
     if (response.isError && response.httpResponseCode === 401) {
       setToken(null);
     }

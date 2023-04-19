@@ -16,7 +16,7 @@ var (
 type Maker interface {
 	CreateToken(username string, tokenDuration time.Duration) (string, error)
 	VerifyToken(token string, tokenDuration time.Duration) (*Payload, error)
-	GetPayload(token string) (*Payload, error)
+	GetTokenPayload(token string) (*Payload, error)
 }
 
 type PasetoMaker struct {
@@ -35,7 +35,7 @@ func (maker *PasetoMaker) CreateToken(username string, tokenDuration time.Durati
 
 func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration) (*Payload, error) {
 
-	payload, err := maker.GetPayload(token)
+	payload, err := maker.GetTokenPayload(token)
 	if err != nil {
 		return nil, ErrInvalidToken
 	}
@@ -48,7 +48,7 @@ func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration)
 	return payload, nil
 }
 
-func (maker *PasetoMaker) GetPayload(token string) (*Payload, error) {
+func (maker *PasetoMaker) GetTokenPayload(token string) (*Payload, error) {
 	payload := &Payload{}
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
 	return payload, err

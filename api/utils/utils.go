@@ -2,11 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
+	"time"
 )
 
 func RandomString(length int) string {
@@ -35,10 +34,20 @@ func CheckPassword(password string, hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
+type Response struct {
+	Error    error
+	Data     interface{}
+	HttpCode int
+}
+
 func ErrorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
+	return gin.H{"error": err.Error(), "data": nil}
 }
 
 func OkResponse(data interface{}) gin.H {
 	return gin.H{"error": nil, "data": data}
+}
+
+func OKResponse(data interface{}, refreshToken string) gin.H {
+	return gin.H{"error": nil, "data": data, "refresh_token": refreshToken}
 }

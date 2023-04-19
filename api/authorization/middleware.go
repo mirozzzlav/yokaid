@@ -1,39 +1,42 @@
 package authorization
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/utils"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
-	authorizationHeaderKey  = "authorization"
-	authorizationTypeBearer = "bearer"
-	AuthorizationPayloadKey = "authorization_payload"
+	HeaderKey  = "authorization"
+	TypeBearer = "bearer"
+	PayloadKey = "authorization_payload"
 )
+
+func GetRequestToken(ctx *gin.Context) (string, error) {
+
+	authorizationHeader := ctx.GetHeader(HeaderKey)
+	fields := strings.Fields(authorizationHeader)
+	if len(fields) < 2 {
+		return "", ErrInvalidToken
+	}
+	authorizationType := strings.ToLower(fields[0])
+
+	if len(authorizationHeader) == 0 || len(fields) < 2 || authorizationType != TypeBearer {
+		return "", ErrInvalidToken
+	}
+
+	return fields[1], nil
+}
 
 // AuthMiddleware creates a gin middleware for authorization
 func AuthMiddleware(tokenMaker Maker, tokenDuration time.Duration) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
-		fields := strings.Fields(authorizationHeader)
-
-		if len(fields) < 2 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(ErrInvalidToken))
-			return
+		accessToken, error := GetRequestToken(ctx)
+		if error != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(error))
 		}
-
-		authorizationType := strings.ToLower(fields[0])
-
-		if len(authorizationHeader) == 0 || len(fields) < 2 || authorizationType != authorizationTypeBearer {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse(ErrInvalidToken))
-			return
-		}
-
-		accessToken := fields[1]
 		payload, err := tokenMaker.VerifyToken(accessToken, tokenDuration)
 
 		if err != nil {
@@ -41,7 +44,7 @@ func AuthMiddleware(tokenMaker Maker, tokenDuration time.Duration) gin.HandlerFu
 			return
 		}
 
-		ctx.Set(AuthorizationPayloadKey, payload)
+		ctx.Set(PayloadKey, payload)
 		ctx.Next()
 	}
 }

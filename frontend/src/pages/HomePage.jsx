@@ -6,12 +6,12 @@ export default function HomePage() {
   const { response, isAuthorized, authorizedCall } = useContext(AuthContext);
 
   useEffect(() => {
-    authorizedCall('books');
+    authorizedCall(config.api.endPoints.books);
   }, []);
 
   if (
     response.isReady &&
-    response.calledEndPoint === config.api.endPoints.books &&
+    response.calledEndPoint.path === config.api.endPoints.books.path &&
     isAuthorized
   ) {
     return response.data.map((book) => (

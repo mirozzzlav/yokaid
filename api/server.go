@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/authorization"
-	"rental-app/api/resources"
 	"rental-app/api/utils"
 	// "github.com/gin-gonic/gin/binding"
 	//"github.com/go-playground/validator/v10"
@@ -38,30 +37,31 @@ func NewServer(config Config, store db.Store) (*Server, error) {
 	return server, nil
 }
 
+func (server *Server) initRoutes(group gin.IRoutes, routes []Route) {
+	for _, route := range routes {
+		group.Handle(route.method, route.path, route.handler)
+	}
+}
+
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	router.POST("/users/login", server.loginUser)
+	// public routes
+	server.initRoutes(router, PrepareRoutes(server, false))
 
-	server.setupAuthorizedRouter(router)
+	// authorized routes
+	authRoutesGroup := router.Group("/").Use(
+		authorization.AuthMiddleware(server.tokenMaker, server.config.AccessTokenDuration),
+	)
+	server.initRoutes(authRoutesGroup, PrepareRoutes(server, true))
 
+	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(errors.New("route not found")))
 		},
 	)
 	server.router = router
-}
-
-func (server *Server) setupAuthorizedRouter(router *gin.Engine) {
-	authRoutes := router.Group("/").Use(
-		authorization.AuthMiddleware(server.tokenMaker, server.config.AccessTokenDuration),
-	)
-
-	authRoutes.GET("/books", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, utils.OkResponse(resources.MockedBooks))
-	})
-
 }
 
 // Start runs the HTTP server on a specific address.
