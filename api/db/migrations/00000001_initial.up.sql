@@ -1,13 +1,17 @@
-CREATE TABLE users (
-    "id" serial NOT NULL,
-    "username" character varying(32) NOT NULL,
-    "fullname" character varying(32) NOT NULL,
-    "email" character varying(64) NOT NULL,
-    "hashed_password" character varying(256) NOT NULL,
-    "password_changed_at" timestamp NULL,
-    "created_at" timestamp DEFAULT NOW() NOT NULL,
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+CREATE TABLE roles (
+    "id"    serial NOT NULL PRIMARY KEY,
+    "name"  varchar(32) NOT NULL
 );
 
-INSERT INTO "users" ("username", "fullname", "email", "hashed_password")
-VALUES ('miro', 'miro furo', 'miro@slav.sk', '$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e');
+INSERT INTO roles ("name") VALUES ('admin');
+
+CREATE TABLE users (
+    "id" serial NOT NULL PRIMARY KEY,
+    "username" varchar(32) NOT NULL,
+    "fullname" varchar(32) NOT NULL,
+    "email" varchar(64) NOT NULL,
+    "hashed_password" varchar(256) NOT NULL,
+    "password_changed_at" timestamp NULL,
+    "created_at" timestamp DEFAULT NOW() NOT NULL,
+    "role_id" integer NOT NULL REFERENCES roles("id")
+);

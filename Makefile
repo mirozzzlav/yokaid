@@ -44,4 +44,4 @@ sqlc:
 	cd ./api/db && sqlc generate
 
 server:
-	go run main.go
+	go run main.go config.go

@@ -11,11 +11,12 @@ SELECT * FROM users
 ORDER BY created_at DESC;
 
 -- name: CreateUser :one
-INSERT INTO users ("username", "fullname", "email", "hashed_password") VALUES (
-  $1, $2, $3, $4
+INSERT INTO users (
+   "username", "fullname", "email", "hashed_password", "role_id"
+) VALUES (
+  $1, $2, $3, $4, $5
 )
 RETURNING *;
 
--- name: DeleteAuthor :exec
-DELETE FROM users
-WHERE id = $1;
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1;

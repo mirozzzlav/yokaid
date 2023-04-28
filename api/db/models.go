@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+type Role struct {
+	ID   int32
+	Name string
+}
+
 type User struct {
 	ID                int32
 	Username          string
@@ -17,4 +22,5 @@ type User struct {
 	HashedPassword    string
 	PasswordChangedAt sql.NullTime
 	CreatedAt         time.Time
+	RoleID            int32
 }
