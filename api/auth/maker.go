@@ -1,10 +1,12 @@
-package authorization
+package auth
 
 import (
 	"errors"
 	"fmt"
 	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
+	IS "rental-app/api/common/interfaces"
+	"rental-app/api/common/types"
 	"time"
 )
 
@@ -13,18 +15,12 @@ var (
 	ErrExpiredToken = errors.New("token has expired")
 )
 
-type Maker interface {
-	CreateToken(username string, tokenDuration time.Duration) (string, error)
-	VerifyToken(token string, tokenDuration time.Duration) (*Payload, error)
-	GetTokenPayload(token string) (*Payload, error)
-}
-
 type PasetoMaker struct {
 	paseto       *paseto.V2
 	symmetricKey []byte
 }
 
-func (maker *PasetoMaker) CreateToken(username string, tokenDuration time.Duration) (string, error) {
+func (maker *PasetoMaker) CreateToken(username string) (string, error) {
 	payload, err := NewPayload(username)
 	if err != nil {
 		return "", err
@@ -33,14 +29,15 @@ func (maker *PasetoMaker) CreateToken(username string, tokenDuration time.Durati
 	return maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
 }
 
-func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration) (*Payload, error) {
+func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration) (*types.AuthPayload, error) {
 
-	payload, err := maker.GetTokenPayload(token)
+	payload, err := maker.ParseToken(token)
+
 	if err != nil {
 		return nil, ErrInvalidToken
 	}
 
-	err = payload.Valid(tokenDuration)
+	err = ValidPayload(payload, tokenDuration)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +45,13 @@ func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration)
 	return payload, nil
 }
 
-func (maker *PasetoMaker) GetTokenPayload(token string) (*Payload, error) {
-	payload := &Payload{}
+func (maker *PasetoMaker) ParseToken(token string) (*types.AuthPayload, error) {
+	payload := &types.AuthPayload{}
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
 	return payload, err
 }
 
-func NewPasetoMaker(symmetricKey string) (Maker, error) {
+func NewPasetoMaker(symmetricKey string) (IS.Maker, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
 	}

@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
+	"rental-app/api/common"
 	"rental-app/api/db"
+	serverPackage "rental-app/api/server"
 )
 
 func main() {
-	config, err := LoadConfig(".env")
+	config, err := common.LoadConfig(".env")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
@@ -19,7 +21,7 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
-	server, err := NewServer(config, store)
+	server, err := serverPackage.InitServer(config, store)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

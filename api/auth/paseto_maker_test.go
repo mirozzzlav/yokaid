@@ -1,20 +1,20 @@
-package authorization
+package auth
 
 import (
 	"github.com/stretchr/testify/require"
-	"rental-app/api/utils"
+	"rental-app/api/common/helpers"
 	"testing"
 	"time"
 )
 
 func TestPasetoMaker(t *testing.T) {
-	maker, err := NewPasetoMaker(utils.RandomString(32))
+	maker, err := NewPasetoMaker(helpers.RandomString(32))
 	require.NoError(t, err)
 
-	username := utils.RandomString(12)
+	username := helpers.RandomString(12)
 
 	durationConfig := time.Minute
-	token, err := maker.CreateToken(username, durationConfig)
+	token, err := maker.CreateToken(username)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

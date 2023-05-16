@@ -1,0 +1,82 @@
+package server
+
+import (
+	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"rental-app/api/auth"
+	"rental-app/api/common"
+	"rental-app/api/common/helpers"
+	"rental-app/api/common/interfaces"
+	"rental-app/api/db"
+)
+
+type Server struct {
+	config     common.Config
+	Store      db.Store
+	TokenMaker interfaces.Maker
+	router     *gin.Engine
+}
+
+func InitServer(config common.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	server := Server{
+		config:     config,
+		Store:      store,
+		TokenMaker: tokenMaker,
+	}
+
+	server.initRouter()
+	return &server, nil
+}
+
+func (server *Server) initHandlers(
+	handle func(string, string, ...gin.HandlerFunc) gin.IRoutes,
+	handlePrivate func(string, string, ...gin.HandlerFunc) gin.IRoutes,
+) {
+	for _, route := range Routes {
+		if route.IsPrivate {
+			handlePrivate(route.Method, route.Path, route.HandlerGetter(server))
+			return
+		}
+		handle(route.Method, route.Path, route.HandlerGetter(server))
+	}
+}
+
+func (server *Server) initRouter() {
+	router := gin.Default()
+	authRoutesGroup := router.Group("/").Use(
+		auth.AuthTokenMiddleware(server.TokenMaker, server.config.AccessTokenDuration),
+		JSONResponseTokenAppender(server),
+		auth.PolicyMiddleware(server, server.config.Policy),
+	)
+
+	server.initHandlers(router.Handle, authRoutesGroup.Handle)
+
+	err := errors.New("route not found")
+	// 404
+	router.NoRoute(
+		func(ctx *gin.Context) {
+			helpers.SetErrorJSONResponse(ctx, http.StatusNotFound, err)
+		},
+	)
+
+	server.router = router
+}
+
+// Start runs the HTTP server on a specific address.
+func (server *Server) Start(address string) error {
+	return server.router.Run(address)
+}
+
+func (server *Server) GetStore() db.Store {
+	return server.Store
+}
+func (server *Server) GetTokenMaker() interfaces.Maker {
+	return server.TokenMaker
+}
