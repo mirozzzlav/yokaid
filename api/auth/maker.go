@@ -20,8 +20,8 @@ type PasetoMaker struct {
 	symmetricKey []byte
 }
 
-func (maker *PasetoMaker) CreateToken(username string) (string, error) {
-	payload, err := NewPayload(username)
+func (maker *PasetoMaker) CreateToken(user types.AuthUser) (string, error) {
+	payload, err := NewPayload(user)
 	if err != nil {
 		return "", err
 	}

@@ -11,11 +11,11 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-   "username", "fullname", "email", "hashed_password", "role_id"
+   "username", "fullname", "email", "hashed_password", "role"
 ) VALUES (
   $1, $2, $3, $4, $5
 )
-RETURNING id, username, fullname, email, hashed_password, password_changed_at, created_at, role_id
+RETURNING id, username, fullname, email, hashed_password, password_changed_at, created_at, role
 `
 
 type CreateUserParams struct {
@@ -23,7 +23,7 @@ type CreateUserParams struct {
 	Fullname       string
 	Email          string
 	HashedPassword string
-	RoleID         int32
+	Role           string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -32,7 +32,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Fullname,
 		arg.Email,
 		arg.HashedPassword,
-		arg.RoleID,
+		arg.Role,
 	)
 	var i User
 	err := row.Scan(
@@ -43,7 +43,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
-		&i.RoleID,
+		&i.Role,
 	)
 	return i, err
 }
@@ -58,7 +58,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 }
 
 const getAUser = `-- name: GetAUser :one
-SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role_id FROM users
+SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role FROM users
 WHERE username = $1 LIMIT 1
 `
 
@@ -73,13 +73,13 @@ func (q *Queries) GetAUser(ctx context.Context, username string) (User, error) {
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
-		&i.RoleID,
+		&i.Role,
 	)
 	return i, err
 }
 
 const getAUserById = `-- name: GetAUserById :one
-SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role_id FROM users
+SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -94,13 +94,46 @@ func (q *Queries) GetAUserById(ctx context.Context, id int32) (User, error) {
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
-		&i.RoleID,
+		&i.Role,
 	)
 	return i, err
 }
 
+const listPolicies = `-- name: ListPolicies :many
+SELECT subject, action, resource FROM policies
+`
+
+type ListPoliciesRow struct {
+	Subject  string
+	Action   string
+	Resource string
+}
+
+func (q *Queries) ListPolicies(ctx context.Context) ([]ListPoliciesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPolicies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPoliciesRow
+	for rows.Next() {
+		var i ListPoliciesRow
+		if err := rows.Scan(&i.Subject, &i.Action, &i.Resource); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role_id FROM users
+SELECT id, username, fullname, email, hashed_password, password_changed_at, created_at, role FROM users
 ORDER BY created_at DESC
 `
 
@@ -121,7 +154,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.HashedPassword,
 			&i.PasswordChangedAt,
 			&i.CreatedAt,
-			&i.RoleID,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}

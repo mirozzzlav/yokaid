@@ -9,8 +9,23 @@ import (
 	"time"
 )
 
+type Action struct {
+	Name string
+}
+
+type Policy struct {
+	ID       int32
+	Subject  string
+	Action   string
+	Resource string
+}
+
+type Resource struct {
+	Name     string
+	Endpoint string
+}
+
 type Role struct {
-	ID   int32
 	Name string
 }
 
@@ -22,5 +37,5 @@ type User struct {
 	HashedPassword    string
 	PasswordChangedAt sql.NullTime
 	CreatedAt         time.Time
-	RoleID            int32
+	Role              string
 }

@@ -13,7 +13,7 @@ func ValidPayload(p *types.AuthPayload, tokenDuration time.Duration) error {
 	return nil
 }
 
-func NewPayload(username string) (*types.AuthPayload, error) {
+func NewPayload(user types.AuthUser) (*types.AuthPayload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func NewPayload(username string) (*types.AuthPayload, error) {
 
 	payload := &types.AuthPayload{
 		ID:       tokenID,
-		Username: username,
+		User:     user,
 		IssuedAt: time.Now(),
 	}
 	return payload, nil

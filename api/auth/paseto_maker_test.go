@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/stretchr/testify/require"
 	"rental-app/api/common/helpers"
+	"rental-app/api/common/types"
 	"testing"
 	"time"
 )
@@ -11,10 +12,13 @@ func TestPasetoMaker(t *testing.T) {
 	maker, err := NewPasetoMaker(helpers.RandomString(32))
 	require.NoError(t, err)
 
-	username := helpers.RandomString(12)
+	authUser := types.AuthUser{
+		Username: helpers.RandomString(12),
+		Role:     "admin",
+	}
 
 	durationConfig := time.Minute
-	token, err := maker.CreateToken(username)
+	token, err := maker.CreateToken(authUser)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -23,7 +27,7 @@ func TestPasetoMaker(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	require.NotZero(t, payload.ID)
-	require.Equal(t, username, payload.Username)
+	require.Equal(t, authUser.Username, payload.User.Username)
 	require.WithinDuration(t, time.Now(), payload.IssuedAt, time.Second)
 	require.WithinDuration(t, time.Now(), payload.IssuedAt.Add(durationConfig), durationConfig)
 }

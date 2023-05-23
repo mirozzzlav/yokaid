@@ -50,12 +50,13 @@ func (server *Server) initHandlers(
 
 func (server *Server) initRouter() {
 	router := gin.Default()
-	authRoutesGroup := router.Group("/").Use(
-		auth.AuthTokenMiddleware(server.TokenMaker, server.config.AccessTokenDuration),
-		JSONResponseTokenAppender(server),
-		auth.PolicyMiddleware(server, server.config.Policy),
-	)
+	authRoutesGroup := router.Group("/")
 
+	authRoutesGroup.Use(
+		auth.TokenMiddleware(server),
+		auth.PolicyMiddleware(server, server.config.Policy),
+		TokenAppenderMiddleware(server),
+	)
 	server.initHandlers(router.Handle, authRoutesGroup.Handle)
 
 	err := errors.New("route not found")
@@ -79,4 +80,8 @@ func (server *Server) GetStore() db.Store {
 }
 func (server *Server) GetTokenMaker() interfaces.Maker {
 	return server.TokenMaker
+}
+
+func (server *Server) GetConfig() common.Config {
+	return server.config
 }

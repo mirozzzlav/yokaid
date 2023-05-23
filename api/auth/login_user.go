@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
+	"rental-app/api/common/types"
 	"time"
 )
 
@@ -54,8 +55,11 @@ func LoginUser(ctx *gin.Context, server interfaces.Server) {
 	if err != nil {
 		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 	}
-
-	accessToken, err := server.GetTokenMaker().CreateToken(user.Username)
+	authUser := types.AuthUser{
+		Username: user.Username,
+		Role:     user.Role,
+	}
+	accessToken, err := server.GetTokenMaker().CreateToken(authUser)
 	if err != nil {
 		helpers.SetErrorJSONResponse(
 			ctx, http.StatusInternalServerError, errors.New("server issue has occurred"))

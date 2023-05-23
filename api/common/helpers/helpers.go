@@ -39,3 +39,24 @@ func SetOKJSONResponse(ctx *gin.Context, data any) {
 func SetErrorJSONResponse(ctx *gin.Context, httpCode int, err error) {
 	ctx.AbortWithStatusJSON(httpCode, GetJSONResponse(err, nil))
 }
+
+type HttpError struct {
+	HttpCode int
+	Error    error
+}
+
+func CheckErrAndPanic(err error, httpCode int) {
+	if err != nil {
+		panic(HttpError{httpCode, err})
+	}
+}
+
+func OnPanic(ctx *gin.Context, errorSetter func(ctx *gin.Context, httpCode int, err error)) {
+	r := recover()
+	if r == nil {
+		return
+	}
+	if err, castingOk := r.(HttpError); castingOk {
+		errorSetter(ctx, err.HttpCode, err.Error)
+	}
+}

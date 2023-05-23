@@ -13,6 +13,7 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id int32) error
 	GetAUser(ctx context.Context, username string) (User, error)
 	GetAUserById(ctx context.Context, id int32) (User, error)
+	ListPolicies(ctx context.Context) ([]ListPoliciesRow, error)
 	ListUsers(ctx context.Context) ([]User, error)
 }
 

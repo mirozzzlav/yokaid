@@ -23,20 +23,24 @@ func CheckPassword(password string, hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func GetAuthPayload(ctx *gin.Context) (*types.AuthPayload, error) {
+func GetAuthenticatedUser(ctx *gin.Context) (*types.AuthUser, error) {
 	payloadRaw, exists := ctx.Get(PayloadKey)
 	if !exists {
 		return nil, errors.New("user is not authenticated")
 	}
 	payload := payloadRaw.(*types.AuthPayload)
-	return payload, nil
+	return &payload.User, nil
 }
 
 func GetFreshToken(ctx *gin.Context, server interfaces.Server) (string, error) {
-	payload, _ := GetAuthPayload(ctx)
-	refreshToken, err := server.GetTokenMaker().CreateToken(payload.Username)
+	genericError := errors.New("problem with refresh token creation")
+	authUser, err := GetAuthenticatedUser(ctx)
 	if err != nil {
-		return "", errors.New("problem with refresh token creation")
+		return "", genericError
+	}
+	refreshToken, err := server.GetTokenMaker().CreateToken(*authUser)
+	if err != nil {
+		return "", genericError
 	}
 	return refreshToken, nil
 

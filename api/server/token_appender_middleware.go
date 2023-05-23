@@ -20,13 +20,13 @@ func (r *ResponseCapturer) Write(b []byte) (int, error) {
 	return r.ResponseWriter.Write(b)
 }
 
-func JSONResponseTokenAppender(server interfaces.Server) gin.HandlerFunc {
+func TokenAppenderMiddleware(server interfaces.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
 		// Create a ResponseCapturer instance that wraps the original ResponseWriter
 		capturer := &ResponseCapturer{ResponseWriter: ctx.Writer}
 		// Replace the original ResponseWriter with the ResponseCapturer
 		ctx.Writer = capturer
+		ctx.Next()
 
 		// Check if the response is JSON and if the response body was captured
 		contentType := ctx.Writer.Header().Get("Content-Type")
@@ -61,6 +61,5 @@ func JSONResponseTokenAppender(server interfaces.Server) gin.HandlerFunc {
 		// Set the modified response body
 		ctx.Writer.Write(newBody)
 		// Execute the remaining middleware chain
-		ctx.Next()
 	}
 }

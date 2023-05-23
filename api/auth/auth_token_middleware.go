@@ -6,7 +6,6 @@ import (
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
 	"strings"
-	"time"
 )
 
 const (
@@ -26,15 +25,14 @@ func GetRequestToken(ctx *gin.Context) (string, error) {
 	return fields[1], nil
 }
 
-// AuthTokenMiddleware creates a gin middleware for auth
-func AuthTokenMiddleware(tokenMaker interfaces.Maker, tokenDuration time.Duration) gin.HandlerFunc {
+func TokenMiddleware(server interfaces.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		accessToken, error := GetRequestToken(ctx)
 		if error != nil {
 			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, error)
 			return
 		}
-		payload, error := tokenMaker.VerifyToken(accessToken, tokenDuration)
+		payload, error := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
 
 		if error != nil {
 			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, error)
