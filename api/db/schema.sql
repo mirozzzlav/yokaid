@@ -6,11 +6,6 @@ CREATE TABLE actions (
     "name" varchar(32) NOT NULL primary key
 );
 
-CREATE TABLE resources (
-    "name" varchar(32) NOT NULL primary key,
-    "endpoint" varchar(64) NOT NULL
-);
-
 CREATE TABLE users (
     "id" serial NOT NULL PRIMARY KEY,
     "username" varchar(32) NOT NULL UNIQUE,
@@ -23,8 +18,38 @@ CREATE TABLE users (
 );
 
 CREATE TABLE policies (
-      "id" serial NOT NULL PRIMARY KEY,
-      "subject" varchar(32) NOT NULL, -- user role or user name
-      "action" varchar(64) NOT NULL REFERENCES actions("name"), -- read, write, delete, update
-      "resource" varchar(32) NOT NULL -- API endpoint (for example /books)
+    "id" serial NOT NULL PRIMARY KEY,
+    "subject" varchar(32) NOT NULL, -- user role or user name
+    "action" varchar(64) NOT NULL REFERENCES actions("name"), -- read, write, delete, update
+    "resource" varchar(32) NOT NULL -- API endpoint
+);
+
+CREATE TABLE professionals (
+    "id" serial NOT NULL,
+    "user" integer NOT NULL REFERENCES users("id"),
+    "rating" integer NOT NULL,
+    CONSTRAINT "professionals_pk" PRIMARY KEY ("id")
+);
+
+CREATE TABLE rentals (
+    "id" serial NOT NULL,
+    "rented_from" TIMESTAMP NOT NULL,
+    "rented_to" TIMESTAMP NOT NULL,
+    "status" varchar NOT NULL,
+    "professional" integer NOT NULL references professionals("id"),
+    "renter" integer NOT NULL references users("id"),
+    CONSTRAINT "rentals_pk" PRIMARY KEY ("id")
+);
+
+
+CREATE TABLE services (
+    "name" varchar(64) NOT NULL,
+    "desc" TEXT NOT NULL,
+    CONSTRAINT "services_pk" PRIMARY KEY ("name")
+);
+
+CREATE TABLE professionals_services (
+    "professional" integer NOT NULL references professionals("id"),
+    "service" varchar(64) NOT NULL references services("name"),
+    CONSTRAINT "professionals_services_pk" PRIMARY KEY ("professional","service")
 );

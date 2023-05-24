@@ -1,5 +1,1 @@
-DROP TABLE "policies";
-DROP TABLE "users";
-
-DROP TABLE "roles";
-DROP TABLE "actions";
+DROP table professionals_services, services, rentals, professionals, policies, users, actions, roles;
