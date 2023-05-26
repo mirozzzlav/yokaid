@@ -3,63 +3,58 @@ package server
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"rental-app/api/auth"
-	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
+	"strconv"
 	"strings"
 )
 
-type ResponseCapturer struct {
+type BufferWriter struct {
+	buffer []byte
 	gin.ResponseWriter
-	Body []byte
+	WriteToResponse bool
 }
 
-func (r *ResponseCapturer) Write(b []byte) (int, error) {
-	r.Body = b
-	return r.ResponseWriter.Write(b)
+func (w *BufferWriter) Write(b []byte) (int, error) {
+	w.buffer = b
+	return 0, nil
+}
+
+func (w *BufferWriter) AppendJSON(jsonToAppend map[string]interface{}) (int, error) {
+	if w.buffer == nil || len(w.buffer) == 0 {
+		return 0, nil
+	}
+
+	var jsonMap map[string]interface{}
+	json.Unmarshal(w.buffer, &jsonMap)
+	for k, val := range jsonToAppend {
+		jsonMap[k] = val
+	}
+
+	jsonBytes, err := json.Marshal(jsonMap)
+	if err != nil {
+		return 0, err
+	}
+	w.Header().Set("Content-Length", strconv.Itoa(len(jsonBytes)))
+	return w.ResponseWriter.Write(jsonBytes)
+
 }
 
 func TokenAppenderMiddleware(server interfaces.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Create a ResponseCapturer instance that wraps the original ResponseWriter
-		capturer := &ResponseCapturer{ResponseWriter: ctx.Writer}
+		writer := &BufferWriter{ResponseWriter: ctx.Writer}
+
 		// Replace the original ResponseWriter with the ResponseCapturer
-		ctx.Writer = capturer
+		ctx.Writer = writer
 		ctx.Next()
 
-		// Check if the response is JSON and if the response body was captured
-		contentType := ctx.Writer.Header().Get("Content-Type")
-		if !strings.HasPrefix(contentType, "application/json") || capturer.Body == nil {
+		if !strings.HasPrefix(ctx.Writer.Header().Get("Content-Type"), "application/json") {
 			return
 		}
-		// Parse the captured response body into a map or struct
-		var jsonResponse map[string]interface{}
-		err := json.Unmarshal(capturer.Body, &jsonResponse)
-		if err != nil {
-			ctx.AbortWithStatusJSON(
-				http.StatusInternalServerError,
-				helpers.GetJSONResponse(err, nil),
-			)
-			return
-		}
-
 		refreshToken, _ := auth.GetFreshToken(ctx, server)
-		// Modify the response data
-		jsonResponse["refreshToken"] = refreshToken
 
-		// Convert the modified data back to JSON
-		newBody, err := json.Marshal(jsonResponse)
-		if err != nil {
-			ctx.AbortWithStatusJSON(
-				http.StatusInternalServerError,
-				helpers.GetJSONResponse(err, nil),
-			)
-			return
-		}
-
-		// Set the modified response body
-		ctx.Writer.Write(newBody)
-		// Execute the remaining middleware chain
+		writer.AppendJSON(map[string]interface{}{"refreshToken": refreshToken})
 	}
+
 }
