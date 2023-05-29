@@ -27,7 +27,7 @@ func GetJSONResponse(err error, data any) gin.H {
 		}
 	}
 	return gin.H{
-		"error": "",
+		"error": nil,
 		"data":  data,
 	}
 }

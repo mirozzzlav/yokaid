@@ -23,3 +23,7 @@ DELETE FROM users WHERE id = $1;
 
 -- name: ListPolicies :many
 SELECT subject, action, resource FROM policies;
+
+-- name: ListProfessionals :many
+SELECT pro.*, u.*, ps.*, s.* FROM professionals pro, users u, professionals_services ps, services s
+WHERE pro.user = u.id AND ps.professional = pro.id and ps.service = s.name;

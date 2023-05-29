@@ -45,10 +45,10 @@ func LoginUser(ctx *gin.Context, server interfaces.Server) {
 	if err != nil {
 		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(nil))
 	}
-	user, err := server.GetStore().GetAUser(ctx, req.Username)
+	user, err := server.GetStore().GetAUser(req.Username)
 
 	if err != nil {
-		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(nil))
+		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 	}
 
 	err = CheckPassword(req.Password, user.HashedPassword)

@@ -6,7 +6,6 @@ import (
 	"rental-app/api/auth"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
-	"rental-app/api/resources"
 )
 
 type HandlerGetter func(server interfaces.Server) gin.HandlerFunc
@@ -30,12 +29,13 @@ var Routes = []Route{
 		},
 	},
 	{
-		Path:      "/books",
+		Path:      "/professionals",
 		IsPrivate: true,
 		Method:    http.MethodGet,
 		HandlerGetter: func(server interfaces.Server) gin.HandlerFunc {
 			return func(ctx *gin.Context) {
-				helpers.SetOKJSONResponse(ctx, resources.MockedBooks)
+				pros, _ := server.GetStore().ListProfessionals()
+				helpers.SetOKJSONResponse(ctx, pros)
 			}
 		},
 	},

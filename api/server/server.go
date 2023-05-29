@@ -9,17 +9,17 @@ import (
 	"rental-app/api/common"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
-	"rental-app/api/db"
+	"rental-app/api/store"
 )
 
 type Server struct {
 	config     common.Config
-	Store      db.Store
+	Store      store.IStore
 	TokenMaker interfaces.Maker
 	router     *gin.Engine
 }
 
-func InitServer(config common.Config, store db.Store) (*Server, error) {
+func InitServer(config common.Config, store store.IStore) (*Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -75,7 +75,7 @@ func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
 
-func (server *Server) GetStore() db.Store {
+func (server *Server) GetStore() store.IStore {
 	return server.Store
 }
 func (server *Server) GetTokenMaker() interfaces.Maker {

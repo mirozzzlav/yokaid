@@ -10,17 +10,7 @@ import (
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
 	"rental-app/api/common/types"
-	"rental-app/api/db"
 )
-
-func getPoliciesMapped(policies []db.ListPoliciesRow) [][]string {
-	var ret [][]string
-	for _, policy := range policies {
-		policySlice := []string{policy.Subject, policy.Action, policy.Resource}
-		ret = append(ret, policySlice)
-	}
-	return ret
-}
 
 func getRequestForAuthorization(ctx *gin.Context, user *types.AuthUser) ([]string, error) {
 	actionsMap := map[string]string{
@@ -54,10 +44,10 @@ func PolicyMiddleware(server interfaces.Server, config types.AuthPolicyConfig) g
 		authUser, err := GetAuthenticatedUser(ctx)
 		helpers.CheckErrAndPanic(err, http.StatusUnauthorized)
 
-		policies, err := server.GetStore().ListPolicies(ctx)
+		policies, err := server.GetStore().ListPoliciesAsStringArray()
 		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
 
-		_, err = enforcer.AddPoliciesEx(getPoliciesMapped(policies))
+		_, err = enforcer.AddPoliciesEx(policies)
 		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		request, err := getRequestForAuthorization(ctx, authUser)

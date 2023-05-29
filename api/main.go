@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
@@ -20,7 +21,8 @@ func main() {
 		log.Fatal("cannot connect to db:", err)
 	}
 
-	store := db.NewStore(conn)
+	ctx := context.Background()
+	store := db.NewStore(conn, ctx)
 	server, err := serverPackage.InitServer(config, store)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
