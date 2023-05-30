@@ -6,6 +6,7 @@ import (
 	"rental-app/api/auth"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
+	"rental-app/api/server/handlers/test"
 )
 
 type HandlerGetter func(server interfaces.Server) gin.HandlerFunc
@@ -38,5 +39,11 @@ var Routes = []Route{
 				helpers.SetOKJSONResponse(ctx, pros)
 			}
 		},
+	},
+	{
+		Path:          "/test",
+		IsPrivate:     false,
+		Method:        http.MethodGet,
+		HandlerGetter: test.MyHandler,
 	},
 }

@@ -42,7 +42,7 @@ func (server *Server) initHandlers(
 	for _, route := range Routes {
 		if route.IsPrivate {
 			handlePrivate(route.Method, route.Path, route.HandlerGetter(server))
-			return
+			continue
 		}
 		handle(route.Method, route.Path, route.HandlerGetter(server))
 	}
