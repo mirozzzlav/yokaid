@@ -20,8 +20,8 @@ type Config struct {
 
 func LoadConfig(envFilePath string) (config Config, err error) {
 
-	error := godotenv.Load(envFilePath)
-	if error != nil {
+	err = godotenv.Load(envFilePath)
+	if err != nil {
 		log.Fatalf("cannot find or parse config file: %s", envFilePath)
 	}
 

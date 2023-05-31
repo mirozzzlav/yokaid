@@ -1,10 +1,11 @@
-package auth
+package system
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"rental-app/api/auth"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
 	"rental-app/api/common/types"
@@ -51,7 +52,7 @@ func LoginUser(ctx *gin.Context, server interfaces.Server) {
 		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 	}
 
-	err = CheckPassword(req.Password, user.HashedPassword)
+	err = auth.CheckPassword(req.Password, user.HashedPassword)
 	if err != nil {
 		helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 	}

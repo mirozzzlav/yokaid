@@ -26,7 +26,10 @@ func (w *BufferWriter) AppendJSON(jsonToAppend map[string]interface{}) (int, err
 	}
 
 	var jsonMap map[string]interface{}
-	json.Unmarshal(w.buffer, &jsonMap)
+	err := json.Unmarshal(w.buffer, &jsonMap)
+	if err != nil {
+		return 0, err
+	}
 	for k, val := range jsonToAppend {
 		jsonMap[k] = val
 	}
@@ -54,7 +57,10 @@ func TokenAppenderMiddleware(server interfaces.Server) gin.HandlerFunc {
 		}
 		refreshToken, _ := auth.GetFreshToken(ctx, server)
 
-		writer.AppendJSON(map[string]interface{}{"refreshToken": refreshToken})
+		_, err := writer.AppendJSON(map[string]interface{}{"refreshToken": refreshToken})
+		if err != nil {
+			return
+		}
 	}
 
 }

@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
+	"rental-app/api/application"
 	"rental-app/api/common"
 	"rental-app/api/db"
-	serverPackage "rental-app/api/server"
+	"rental-app/api/server"
 )
 
 func main() {
@@ -23,12 +24,22 @@ func main() {
 
 	ctx := context.Background()
 	store := db.NewStore(conn, ctx)
-	server, err := serverPackage.InitServer(config, store)
+
+	// creating new server instance
+	serverPackage, err := server.NewServer(config, store)
+	defer serverPackage.Close()
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
+	// getting all registered packages
+	packages := application.PackageHandlers()
+	for _, fn := range packages {
+		fn.(func(server2 *server.Server))(serverPackage)
+	}
+	// initializing the router
+	serverPackage.InitRouter()
 
-	err = server.Start(config.Url)
+	err = serverPackage.Start(config.Url)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}

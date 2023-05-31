@@ -7,7 +7,7 @@ import (
 
 type AuthUser struct {
 	Username string `json:"username"`
-	Role     string `json:"role`
+	Role     string `json:"role"`
 }
 
 type AuthPayload struct {

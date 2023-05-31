@@ -63,5 +63,11 @@ VALUES (
     '$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e', 'admin'
 );
 
+INSERT INTO "users" ("username", "fullname", "email", "hashed_password", "role")
+VALUES (
+    'martin', 'Martin', 'martinbenadik@gmail.com',
+	'$2a$10$bb6vDY03lS5D7wVkrxxrW.eAQegD2ErtH/irlNdWA/4Y.TCb4e.T6', 'admin'
+);
+
 INSERT INTO "policies" ("subject", "action", "resource") VALUES ('miro', 'read', '/books');
 */

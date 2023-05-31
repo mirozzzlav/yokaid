@@ -27,15 +27,15 @@ func GetRequestToken(ctx *gin.Context) (string, error) {
 
 func TokenMiddleware(server interfaces.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		accessToken, error := GetRequestToken(ctx)
-		if error != nil {
-			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, error)
+		accessToken, err := GetRequestToken(ctx)
+		if err != nil {
+			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, err)
 			return
 		}
-		payload, error := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
+		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
 
-		if error != nil {
-			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, error)
+		if err != nil {
+			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, err)
 			return
 		}
 		ctx.Set(PayloadKey, payload)
