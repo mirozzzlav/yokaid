@@ -9,28 +9,19 @@ import (
 	"rental-app/api/common"
 	"rental-app/api/common/helpers"
 	"rental-app/api/common/interfaces"
-	"rental-app/api/store"
+	"rental-app/api/common/types"
+	"rental-app/api/routes"
 )
-
-type HandlerGetter func(ctx *gin.Context, server interfaces.Server)
-
-type Route struct {
-	Path          string
-	IsPrivate     bool
-	Method        string
-	HandlerGetter HandlerGetter
-}
-
-var Routes []Route
 
 type Server struct {
 	config     common.Config
-	Store      store.IStore
+	Store      interfaces.Store
 	TokenMaker interfaces.Maker
 	router     *gin.Engine
+	Routes     []types.Route
 }
 
-func NewServer(config common.Config, store store.IStore) (*Server, error) {
+func NewServer(config common.Config, store interfaces.Store) (*Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -47,37 +38,13 @@ func (server *Server) initHandlers(
 	handle func(string, string, ...gin.HandlerFunc) gin.IRoutes,
 	handlePrivate func(string, string, ...gin.HandlerFunc) gin.IRoutes,
 ) {
-
-	for _, route := range Routes {
-		// fn - since function in the golang represents a go routine, it is necessary to store the value of the added func in a new variable otherwise, it will not be transferred into func(ctx *gin.Context)
-		fn := route.HandlerGetter
+	routes := routes.GetRoutes(server)
+	for _, route := range routes {
 		if route.IsPrivate {
-			handlePrivate(route.Method, route.Path, func(ctx *gin.Context) {
-				fn(ctx, server)
-			})
+			handlePrivate(route.Method, route.Path, route.Handler)
 			continue
 		}
-		handle(route.Method, route.Path, func(ctx *gin.Context) {
-			fn(ctx, server)
-		})
-	}
-}
-
-func (server *Server) Handle(Path string, IsPrivate bool, Method string, HandlerGetter HandlerGetter) {
-
-	parameters := []Route{
-		{
-			Path:          Path,
-			IsPrivate:     IsPrivate,
-			Method:        Method,
-			HandlerGetter: HandlerGetter,
-		},
-	}
-
-	if Routes != nil {
-		Routes = append(Routes, parameters...)
-	} else {
-		Routes = parameters
+		handle(route.Method, route.Path, route.Handler)
 	}
 }
 
@@ -108,7 +75,7 @@ func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
 
-func (server *Server) GetStore() store.IStore {
+func (server *Server) GetStore() interfaces.Store {
 	return server.Store
 }
 func (server *Server) GetTokenMaker() interfaces.Maker {

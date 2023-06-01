@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
-	"rental-app/api/application"
 	"rental-app/api/common"
 	"rental-app/api/db"
 	"rental-app/api/server"
@@ -31,11 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
-	// getting all registered packages
-	packages := application.PackageHandlers()
-	for _, fn := range packages {
-		fn.(func(server2 *server.Server))(serverPackage)
-	}
+
 	// initializing the router
 	serverPackage.InitRouter()
 

@@ -3,7 +3,6 @@ package interfaces
 import (
 	"rental-app/api/common"
 	"rental-app/api/common/types"
-	"rental-app/api/store"
 	"time"
 )
 
@@ -14,7 +13,7 @@ type Maker interface {
 }
 
 type Server interface {
-	GetStore() store.IStore
+	GetStore() Store
 	GetTokenMaker() Maker
 	GetConfig() common.Config
 }

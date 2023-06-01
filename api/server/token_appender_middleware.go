@@ -52,7 +52,7 @@ func TokenAppenderMiddleware(server interfaces.Server) gin.HandlerFunc {
 		ctx.Writer = writer
 		ctx.Next()
 
-		if !strings.HasPrefix(ctx.Writer.Header().Get("Content-Type"), "application/json") {
+		if !strings.HasPrefix(ctx.Writer.Header().Get("Content-Type"), "routes/json") {
 			return
 		}
 		refreshToken, _ := auth.GetFreshToken(ctx, server)

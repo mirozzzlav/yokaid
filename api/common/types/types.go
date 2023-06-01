@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"time"
 )
@@ -22,4 +23,11 @@ type AuthPolicyConfig struct {
 
 type UserPayload struct {
 	UserName string
+}
+
+type Route struct {
+	Path      string
+	IsPrivate bool
+	Method    string
+	Handler   gin.HandlerFunc
 }
