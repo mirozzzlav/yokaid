@@ -92,7 +92,7 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	return policies, nil
 }
 
-func (store SQLStore) ListProfessionals(filter string) ([]storePkg.Professional, error) {
+func (store SQLStore) ListProfessionals(filter string) ([]types.Professional, error) {
 	sql := "SELECT * FROM (" +
 		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
 		"FROM professionals p, users u, professionals_services ps, services s " +
@@ -104,7 +104,7 @@ func (store SQLStore) ListProfessionals(filter string) ([]storePkg.Professional,
 	if err != nil {
 		return nil, err
 	}
-	var pros []storePkg.Professional
+	var pros []types.Professional
 	for rows.Next() {
 		var pro types.Professional
 		var servicesStr string

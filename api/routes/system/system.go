@@ -9,6 +9,6 @@ import (
 func GetRoutes(server interfaces.Server) []types.Route {
 
 	return []types.Route{
-		types.NewRoute("/users/login", false, http.MethodPost, LoginUser(server)),
+		{"/users/login", false, http.MethodPost, LoginUser(server)},
 	}
 }
