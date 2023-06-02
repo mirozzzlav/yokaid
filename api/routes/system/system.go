@@ -8,6 +8,6 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/users/login", false, http.MethodPost, LoginUser(server)},
+		{"/login", false, http.MethodPost, LoginUser(server)},
 	}
 }
