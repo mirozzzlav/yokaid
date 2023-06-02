@@ -6,5 +6,5 @@ type Store interface {
 	GetAUser(username string) (types.User, error)
 	ListPolicies() ([]types.Policy, error)
 	ListPoliciesAsStringArray() ([][]string, error)
-	ListProfessionals() ([]types.Professional, error)
+	ListProfessionals(filter string) ([]types.Professional, error)
 }

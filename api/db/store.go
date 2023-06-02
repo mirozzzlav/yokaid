@@ -92,20 +92,19 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	return policies, nil
 }
 
-func (store SQLStore) ListProfessionals() ([]types.Professional, error) {
-	const query = `SELECT u.fullname, p.rating, 
-			json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services
-			FROM professionals p, users u, professionals_services ps, services s 
-			WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name
-			GROUP BY u.username, u.fullname, p.rating ORDER BY u.fullname`
+func (store SQLStore) ListProfessionals(filter string) ([]storePkg.Professional, error) {
+	sql := "SELECT * FROM (" +
+		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
+		"FROM professionals p, users u, professionals_services ps, services s " +
+		"WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name " +
+		"GROUP BY u.username, u.fullname, p.rating" +
+		") AS pros"
 
-	rows, err := store.db.QueryContext(store.ctx, query)
+	rows, err := store.ListData(sql, filter)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var pros []types.Professional
-
+	var pros []storePkg.Professional
 	for rows.Next() {
 		var pro types.Professional
 		var servicesStr string
@@ -118,15 +117,12 @@ func (store SQLStore) ListProfessionals() ([]types.Professional, error) {
 		json.Unmarshal([]byte(servicesStr), &services)
 		pro.Services = services
 		pros = append(pros, pro)
+	}
 
-	}
-	log.Printf("%v", pros)
-	if err := rows.Close(); err != nil {
+	err = CloseRows(rows)
+	if err != nil {
 		return nil, err
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
+
 	return pros, nil
-
 }
