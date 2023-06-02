@@ -1,6 +1,8 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 func (store SQLStore) ListData(sql string, filter string) (*sql.Rows, error) {
 	var params []any
@@ -13,7 +15,6 @@ func (store SQLStore) ListData(sql string, filter string) (*sql.Rows, error) {
 		sql = sql + " WHERE " + filterSQL
 		params = append(params, filterParams...)
 	}
-
 	rows, err := store.db.QueryContext(store.ctx, sql, params...)
 
 	if err != nil {

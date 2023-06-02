@@ -2,8 +2,7 @@ package auth
 
 import (
 	"github.com/stretchr/testify/require"
-	"rental-app/api/common/types"
-	"rental-app/api/helpers"
+	"rental-app/api/common"
 	"testing"
 	"time"
 )

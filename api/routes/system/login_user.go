@@ -7,16 +7,7 @@ import (
 	"net/http"
 	"rental-app/api/auth"
 	"rental-app/api/common"
-	"time"
 )
-
-type userResponse struct {
-	Username          string    `json:"username"`
-	FullName          string    `json:"full_name"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"password_changed_at"` // can be null
-	CreatedAt         time.Time `json:"created_at"`
-}
 
 type loginUserRequest struct {
 	Username string `json:"username" binding:"required,alphanum"`
@@ -24,9 +15,8 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken          string       `json:"access_token"`
-	AccessTokenExpiresAt time.Time    `json:"access_token_expires_at"`
-	User                 userResponse `json:"user"`
+	AccessToken string          `json:"access_token"`
+	User        common.AuthUser `json:"user"`
 }
 
 func LoginUser(server common.Server) func(ctx *gin.Context) {
@@ -70,12 +60,9 @@ func LoginUser(server common.Server) func(ctx *gin.Context) {
 			ctx,
 			loginUserResponse{
 				AccessToken: accessToken,
-				User: userResponse{
-					Username:          user.Username,
-					FullName:          user.Fullname,
-					Email:             user.Email,
-					PasswordChangedAt: time.Now(),
-					CreatedAt:         user.CreatedAt,
+				User: common.AuthUser{
+					Username: user.Username,
+					Role:     user.Role,
 				},
 			},
 		)

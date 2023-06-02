@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"rental-app/api/common"
 )
@@ -57,10 +58,8 @@ func (store SQLStore) ListPolicies() ([]common.Policy, error) {
 		}
 		policies = append(policies, policy)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
+	err = CloseRows(rows)
+	if err != nil {
 		return nil, err
 	}
 	return policies, nil
@@ -82,16 +81,15 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 		}
 		policies = append(policies, []string{policy.Subject, policy.Action, policy.Resource})
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
+	err = CloseRows(rows)
+	if err != nil {
 		return nil, err
 	}
 	return policies, nil
 }
 
 func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, error) {
+	genericErr := errors.New("given request is not supported")
 	sql := "SELECT * FROM (" +
 		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
 		"FROM professionals p, users u, professionals_services ps, services s " +
@@ -101,7 +99,7 @@ func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, e
 
 	rows, err := store.ListData(sql, filter)
 	if err != nil {
-		return nil, err
+		return nil, genericErr
 	}
 	var pros []common.Professional
 	for rows.Next() {
@@ -110,7 +108,7 @@ func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, e
 
 		if err := rows.Scan(&pro.User.Fullname, &pro.Rating, &servicesStr); err != nil {
 			log.Printf("ERRRR: %v", err)
-			return nil, err
+			return nil, genericErr
 		}
 		var services []common.Service
 		json.Unmarshal([]byte(servicesStr), &services)
@@ -120,7 +118,7 @@ func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, e
 
 	err = CloseRows(rows)
 	if err != nil {
-		return nil, err
+		return nil, genericErr
 	}
 
 	return pros, nil

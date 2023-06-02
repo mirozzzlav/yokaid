@@ -51,7 +51,7 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 			params = append(params, interface{}(v))
 
 		}
-		return fKey, "IN", res, params, nil
+		return fKey, "IN", "(" + res + ")", params, nil
 	}
 
 	if strings.Contains(fValue, "%") {
