@@ -2,18 +2,18 @@ package auth
 
 import (
 	"github.com/stretchr/testify/require"
-	"rental-app/api/common/helpers"
 	"rental-app/api/common/types"
+	"rental-app/api/helpers"
 	"testing"
 	"time"
 )
 
 func TestPasetoMaker(t *testing.T) {
-	maker, err := NewPasetoMaker(helpers.RandomString(32))
+	maker, err := NewPasetoMaker(common.RandomString(32))
 	require.NoError(t, err)
 
-	authUser := types.AuthUser{
-		Username: helpers.RandomString(12),
+	authUser := common.AuthUser{
+		Username: common.RandomString(12),
 		Role:     "admin",
 	}
 

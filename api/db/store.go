@@ -5,8 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 )
 
 // SQLStore provides all functions to execute SQL queries and transactions
@@ -16,18 +15,18 @@ type SQLStore struct {
 }
 
 // NewStore creates a new store
-func NewStore(db *sql.DB, ctx context.Context) interfaces.Store {
+func NewStore(db *sql.DB, ctx context.Context) common.Store {
 	return SQLStore{
 		db:  db,
 		ctx: ctx,
 	}
 }
 
-func (store SQLStore) GetAUser(username string) (types.User, error) {
+func (store SQLStore) GetAUser(username string) (common.User, error) {
 	const query = `select * from users where username = $1`
 	row := store.db.QueryRowContext(store.ctx, query, username)
 
-	var user types.User
+	var user common.User
 	err := row.Scan(
 		&user.ID,
 		&user.Username,
@@ -42,7 +41,7 @@ func (store SQLStore) GetAUser(username string) (types.User, error) {
 	return user, err
 }
 
-func (store SQLStore) ListPolicies() ([]types.Policy, error) {
+func (store SQLStore) ListPolicies() ([]common.Policy, error) {
 	const query = `select * from policies`
 
 	rows, err := store.db.QueryContext(store.ctx, query)
@@ -50,9 +49,9 @@ func (store SQLStore) ListPolicies() ([]types.Policy, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var policies []types.Policy
+	var policies []common.Policy
 	for rows.Next() {
-		var policy types.Policy
+		var policy common.Policy
 		if err := rows.Scan(&policy.Subject, &policy.Action, &policy.Resource); err != nil {
 			return nil, err
 		}
@@ -77,7 +76,7 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	defer rows.Close()
 	var policies [][]string
 	for rows.Next() {
-		var policy types.Policy
+		var policy common.Policy
 		if err := rows.Scan(&policy.Subject, &policy.Action, &policy.Resource); err != nil {
 			return nil, err
 		}
@@ -92,7 +91,7 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	return policies, nil
 }
 
-func (store SQLStore) ListProfessionals(filter string) ([]types.Professional, error) {
+func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, error) {
 	sql := "SELECT * FROM (" +
 		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
 		"FROM professionals p, users u, professionals_services ps, services s " +
@@ -104,16 +103,16 @@ func (store SQLStore) ListProfessionals(filter string) ([]types.Professional, er
 	if err != nil {
 		return nil, err
 	}
-	var pros []types.Professional
+	var pros []common.Professional
 	for rows.Next() {
-		var pro types.Professional
+		var pro common.Professional
 		var servicesStr string
 
 		if err := rows.Scan(&pro.User.Fullname, &pro.Rating, &servicesStr); err != nil {
 			log.Printf("ERRRR: %v", err)
 			return nil, err
 		}
-		var services []types.Service
+		var services []common.Service
 		json.Unmarshal([]byte(servicesStr), &services)
 		pro.Services = services
 		pros = append(pros, pro)

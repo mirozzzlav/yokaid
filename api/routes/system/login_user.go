@@ -6,9 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/auth"
-	"rental-app/api/common/helpers"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 	"time"
 )
 
@@ -31,7 +29,7 @@ type loginUserResponse struct {
 	User                 userResponse `json:"user"`
 }
 
-func LoginUser(server interfaces.Server) func(ctx *gin.Context) {
+func LoginUser(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
 		var req loginUserRequest
@@ -46,29 +44,29 @@ func LoginUser(server interfaces.Server) func(ctx *gin.Context) {
 
 		err := ctx.ShouldBindJSON(&req)
 		if err != nil {
-			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(nil))
+			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(nil))
 		}
 		user, err := server.GetStore().GetAUser(req.Username)
 
 		if err != nil {
-			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
+			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 		}
 
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
 		if err != nil {
-			helpers.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
+			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
 		}
-		authUser := types.AuthUser{
+		authUser := common.AuthUser{
 			Username: user.Username,
 			Role:     user.Role,
 		}
 		accessToken, err := server.GetTokenMaker().CreateToken(authUser)
 		if err != nil {
-			helpers.SetErrorJSONResponse(
+			common.SetErrorJSONResponse(
 				ctx, http.StatusInternalServerError, errors.New("server issue has occurred"))
 		}
 
-		helpers.SetOKJSONResponse(
+		common.SetOKJSONResponse(
 			ctx,
 			loginUserResponse{
 				AccessToken: accessToken,

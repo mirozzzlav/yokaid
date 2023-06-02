@@ -2,24 +2,24 @@ package auth
 
 import (
 	uuid "github.com/google/uuid"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 	"time"
 )
 
-func ValidPayload(p *types.AuthPayload, tokenDuration time.Duration) error {
+func ValidPayload(p *common.AuthPayload, tokenDuration time.Duration) error {
 	if time.Now().After(p.IssuedAt.Add(tokenDuration)) {
 		return ErrExpiredToken
 	}
 	return nil
 }
 
-func NewPayload(user types.AuthUser) (*types.AuthPayload, error) {
+func NewPayload(user common.AuthUser) (*common.AuthPayload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
 	}
 
-	payload := &types.AuthPayload{
+	payload := &common.AuthPayload{
 		ID:       tokenID,
 		User:     user,
 		IssuedAt: time.Now(),

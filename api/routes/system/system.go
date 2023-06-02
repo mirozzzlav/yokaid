@@ -2,13 +2,12 @@ package system
 
 import (
 	"net/http"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 )
 
-func GetRoutes(server interfaces.Server) []types.Route {
+func GetRoutes(server common.Server) []common.Route {
 
-	return []types.Route{
+	return []common.Route{
 		{"/users/login", false, http.MethodPost, LoginUser(server)},
 	}
 }

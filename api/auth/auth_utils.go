@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 )
 
 // HashPassword returns the bcrypt hash of the password
@@ -23,16 +22,16 @@ func CheckPassword(password string, hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func GetAuthenticatedUser(ctx *gin.Context) (*types.AuthUser, error) {
+func GetAuthenticatedUser(ctx *gin.Context) (*common.AuthUser, error) {
 	payloadRaw, exists := ctx.Get(PayloadKey)
 	if !exists {
 		return nil, errors.New("user is not authenticated")
 	}
-	payload := payloadRaw.(*types.AuthPayload)
+	payload := payloadRaw.(*common.AuthPayload)
 	return &payload.User, nil
 }
 
-func GetFreshToken(ctx *gin.Context, server interfaces.Server) (string, error) {
+func GetFreshToken(ctx *gin.Context, server common.Server) (string, error) {
 	genericError := errors.New("problem with refresh token creation")
 	authUser, err := GetAuthenticatedUser(ctx)
 	if err != nil {

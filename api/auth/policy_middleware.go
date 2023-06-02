@@ -7,12 +7,10 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common/helpers"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 )
 
-func getRequestForAuthorization(ctx *gin.Context, user *types.AuthUser) ([]string, error) {
+func getRequestForAuthorization(ctx *gin.Context, user *common.AuthUser) ([]string, error) {
 	actionsMap := map[string]string{
 		http.MethodGet:    "read",
 		http.MethodPost:   "create",
@@ -28,37 +26,37 @@ func getRequestForAuthorization(ctx *gin.Context, user *types.AuthUser) ([]strin
 
 }
 
-func PolicyMiddleware(server interfaces.Server, config types.AuthPolicyConfig) gin.HandlerFunc {
+func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		defer helpers.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
+		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
 			resultErr := errors.New(fmt.Sprintf("Problem during authorization: %s", err.Error()))
-			helpers.SetErrorJSONResponse(ctx, httpCode, resultErr)
+			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
 		})
 
 		m, err := model.NewModelFromString(config.Model)
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		enforcer, err := casbin.NewEnforcer(m)
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		authUser, err := GetAuthenticatedUser(ctx)
-		helpers.CheckErrAndPanic(err, http.StatusUnauthorized)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized)
 
 		policies, err := server.GetStore().ListPoliciesAsStringArray()
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		_, err = enforcer.AddPoliciesEx(policies)
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		request, err := getRequestForAuthorization(ctx, authUser)
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		authorized, err := enforcer.Enforce(request[0], request[1], request[2], request[3])
-		helpers.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		if !authorized {
 			panic(
-				helpers.HttpError{
+				common.HttpError{
 					Error:    errors.New("user is not authorized to proceed with the given request"),
 					HttpCode: http.StatusUnauthorized,
 				})

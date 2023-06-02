@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"rental-app/api/auth"
-	"rental-app/api/common/interfaces"
+	"rental-app/api/common"
 	"strconv"
 	"strings"
 )
@@ -43,7 +43,7 @@ func (w *BufferWriter) AppendJSON(jsonToAppend map[string]interface{}) (int, err
 
 }
 
-func TokenAppenderMiddleware(server interfaces.Server) gin.HandlerFunc {
+func TokenAppenderMiddleware(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Create a ResponseCapturer instance that wraps the original ResponseWriter
 		writer := &BufferWriter{ResponseWriter: ctx.Writer}

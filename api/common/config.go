@@ -4,7 +4,6 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"rental-app/api/common/types"
 	"strconv"
 	"time"
 )
@@ -15,7 +14,7 @@ type Config struct {
 	TokenSymmetricKey   string
 	AccessTokenDuration time.Duration
 	Url                 string
-	Policy              types.AuthPolicyConfig
+	Policy              AuthPolicyConfig
 }
 
 func LoadConfig(envFilePath string) (config Config, err error) {
@@ -33,7 +32,7 @@ func LoadConfig(envFilePath string) (config Config, err error) {
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
 		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
-		Policy: types.AuthPolicyConfig{
+		Policy: AuthPolicyConfig{
 			Model: `
 				[request_definition]
 				r = sub, group, act, resource

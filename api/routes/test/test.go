@@ -2,13 +2,12 @@ package test
 
 import (
 	"net/http"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 )
 
-func GetRoutes(server interfaces.Server) []types.Route {
+func GetRoutes(server common.Server) []common.Route {
 
-	return []types.Route{
+	return []common.Route{
 		{"/test1", false, http.MethodGet, HandlerGetter1(server)},
 		{"/test2", false, http.MethodGet, HandlerGetter2(server)},
 	}

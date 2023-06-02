@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
-	IS "rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
+	"rental-app/api/common"
 	"time"
 )
 
@@ -20,7 +19,7 @@ type PasetoMaker struct {
 	symmetricKey []byte
 }
 
-func (maker *PasetoMaker) CreateToken(user types.AuthUser) (string, error) {
+func (maker *PasetoMaker) CreateToken(user common.AuthUser) (string, error) {
 	payload, err := NewPayload(user)
 	if err != nil {
 		return "", err
@@ -29,7 +28,7 @@ func (maker *PasetoMaker) CreateToken(user types.AuthUser) (string, error) {
 	return maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
 }
 
-func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration) (*types.AuthPayload, error) {
+func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration) (*common.AuthPayload, error) {
 
 	payload, err := maker.ParseToken(token)
 
@@ -45,13 +44,13 @@ func (maker *PasetoMaker) VerifyToken(token string, tokenDuration time.Duration)
 	return payload, nil
 }
 
-func (maker *PasetoMaker) ParseToken(token string) (*types.AuthPayload, error) {
-	payload := &types.AuthPayload{}
+func (maker *PasetoMaker) ParseToken(token string) (*common.AuthPayload, error) {
+	payload := &common.AuthPayload{}
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
 	return payload, err
 }
 
-func NewPasetoMaker(symmetricKey string) (IS.Maker, error) {
+func NewPasetoMaker(symmetricKey string) (common.Maker, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
 	}

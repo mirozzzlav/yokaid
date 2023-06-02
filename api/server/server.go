@@ -7,21 +7,18 @@ import (
 	"net/http"
 	"rental-app/api/auth"
 	"rental-app/api/common"
-	"rental-app/api/common/helpers"
-	"rental-app/api/common/interfaces"
-	"rental-app/api/common/types"
 	"rental-app/api/routes"
 )
 
 type Server struct {
 	config     common.Config
-	Store      interfaces.Store
-	TokenMaker interfaces.Maker
+	Store      common.Store
+	TokenMaker common.Maker
 	router     *gin.Engine
-	Routes     []types.Route
+	Routes     []common.Route
 }
 
-func NewServer(config common.Config, store interfaces.Store) (*Server, error) {
+func NewServer(config common.Config, store common.Store) (*Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -63,7 +60,7 @@ func (server *Server) InitRouter() {
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			helpers.SetErrorJSONResponse(ctx, http.StatusNotFound, err)
+			common.SetErrorJSONResponse(ctx, http.StatusNotFound, err)
 		},
 	)
 
@@ -75,10 +72,10 @@ func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
 
-func (server *Server) GetStore() interfaces.Store {
+func (server *Server) GetStore() common.Store {
 	return server.Store
 }
-func (server *Server) GetTokenMaker() interfaces.Maker {
+func (server *Server) GetTokenMaker() common.Maker {
 	return server.TokenMaker
 }
 
