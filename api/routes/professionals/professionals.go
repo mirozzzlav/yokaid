@@ -10,5 +10,6 @@ func GetRoutes(server interfaces.Server) []types.Route {
 
 	return []types.Route{
 		{"/professionals", false, http.MethodGet, ListProfessionals(server)},
+		{"/professionals/:filter", false, http.MethodGet, ListProfessionals(server)},
 	}
 }
