@@ -2,10 +2,10 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"rental-app/api/common"
 )
@@ -27,9 +27,14 @@ func getRequestForAuthorization(ctx *gin.Context, user *common.AuthUser) ([]stri
 }
 
 func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.HandlerFunc {
+	authErr := errors.New("user is not authorized to proceed with the given request")
 	return func(ctx *gin.Context) {
 		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
-			resultErr := errors.New(fmt.Sprintf("Problem during authorization: %s", err.Error()))
+			resultErr := authErr
+			log.Printf("Err: %v", err)
+			if httpCode == http.StatusInternalServerError {
+				resultErr = errors.New("internal error while authorizing user")
+			}
 			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
 		})
 
@@ -57,7 +62,7 @@ func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.
 		if !authorized {
 			panic(
 				common.HttpError{
-					Error:    errors.New("user is not authorized to proceed with the given request"),
+					Error:    authErr,
 					HttpCode: http.StatusUnauthorized,
 				})
 		}

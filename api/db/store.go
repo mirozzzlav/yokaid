@@ -65,7 +65,7 @@ func (store SQLStore) ListPolicies() ([]common.Policy, error) {
 }
 
 func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
-	const query = `select * from policies`
+	const query = `select subject, action, resource from policies`
 
 	rows, err := store.db.QueryContext(store.ctx, query)
 	if err != nil {
