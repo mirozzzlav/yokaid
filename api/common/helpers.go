@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -59,4 +60,14 @@ func OnPanic(ctx *gin.Context, errorSetter func(ctx *gin.Context, httpCode int, 
 	if err, castingOk := r.(HttpError); castingOk {
 		errorSetter(ctx, err.HttpCode, err.Error)
 	}
+}
+
+func StripTags(text string) string {
+
+	r, err := regexp.Compile("<[^>]*>")
+	if err != nil {
+		panic(err)
+	}
+
+	return r.ReplaceAllString(text, "")
 }
