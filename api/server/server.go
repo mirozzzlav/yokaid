@@ -46,7 +46,16 @@ func (server *Server) initHandlers(
 }
 
 func (server *Server) InitRouter() {
-	router := gin.Default()
+
+	var router *gin.Engine
+
+	if server.config.Environment == "development" {
+		router = gin.Default()
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+		router = gin.New()
+	}
+
 	authRoutesGroup := router.Group("/")
 
 	authRoutesGroup.Use(

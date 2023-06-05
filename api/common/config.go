@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Environment         string
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
@@ -27,6 +28,7 @@ func LoadConfig(envFilePath string) (config Config, err error) {
 	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
 
 	return Config{
+		Environment:         os.Getenv("ENV"),
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),

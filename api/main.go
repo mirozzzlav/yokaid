@@ -26,10 +26,10 @@ func main() {
 
 	// creating new server instance
 	serverPackage, err := server.NewServer(config, store)
-	defer serverPackage.Close()
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
+	defer serverPackage.Close()
 
 	// initializing the router
 	serverPackage.InitRouter()
