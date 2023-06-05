@@ -8,20 +8,20 @@ import (
 	"rental-app/api/common"
 )
 
-func ListProfessionals(server common.Server) gin.HandlerFunc {
+func list(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
 			resultErr := errors.New(fmt.Sprintf("Problem handling route: %s", err.Error()))
 			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
 		})
 
-		var pros []common.Professional
+		var pros []common.ProfessionalResponse
 		var err error
 		if filter, filterExists := ctx.Params.Get("filter"); filterExists {
 			common.CheckErrAndPanic(err, http.StatusInternalServerError)
-			pros, err = server.GetStore().ListProfessionals(filter)
+			pros, err = server.GetStore().ListProfessionalsForResponse(filter)
 		} else {
-			pros, err = server.GetStore().ListProfessionals("")
+			pros, err = server.GetStore().ListProfessionalsForResponse("")
 		}
 		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 		common.SetOKJSONResponse(ctx, pros)

@@ -31,3 +31,13 @@ type Route struct {
 	Method    string
 	Handler   gin.HandlerFunc
 }
+
+type ServiceResposne struct {
+	Name string
+	Desc string
+}
+type ProfessionalResponse struct {
+	Fullname string
+	Rating   int
+	Services []ServiceResposne
+}

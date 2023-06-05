@@ -49,7 +49,6 @@ func (store SQLStore) ListPolicies() ([]common.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	var policies []common.Policy
 	for rows.Next() {
 		var policy common.Policy
@@ -72,7 +71,6 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	var policies [][]string
 	for rows.Next() {
 		var policy common.Policy
@@ -88,7 +86,7 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 	return policies, nil
 }
 
-func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, error) {
+func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.ProfessionalResponse, error) {
 	genericErr := errors.New("given request is not supported")
 	sql := "SELECT * FROM (" +
 		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
@@ -101,16 +99,16 @@ func (store SQLStore) ListProfessionals(filter string) ([]common.Professional, e
 	if err != nil {
 		return nil, genericErr
 	}
-	var pros []common.Professional
+	var pros []common.ProfessionalResponse
 	for rows.Next() {
-		var pro common.Professional
+		var pro common.ProfessionalResponse
 		var servicesStr string
 
-		if err := rows.Scan(&pro.User.Fullname, &pro.Rating, &servicesStr); err != nil {
+		if err := rows.Scan(&pro.Fullname, &pro.Rating, &servicesStr); err != nil {
 			log.Printf("ERRRR: %v", err)
 			return nil, genericErr
 		}
-		var services []common.Service
+		var services []common.ServiceResposne
 		json.Unmarshal([]byte(servicesStr), &services)
 		pro.Services = services
 		pros = append(pros, pro)

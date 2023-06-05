@@ -8,7 +8,7 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/professionals", false, http.MethodGet, ListProfessionals(server)},
-		{"/professionals/:filter", false, http.MethodGet, ListProfessionals(server)},
+		{"/professionals/list", false, http.MethodGet, list(server)},
+		{"/professionals/list/:filter", false, http.MethodGet, list(server)},
 	}
 }

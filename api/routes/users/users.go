@@ -1,4 +1,4 @@
-package system
+package users
 
 import (
 	"net/http"
@@ -8,6 +8,6 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/login", false, http.MethodPost, LoginUser(server)},
+		{"/users/login", false, http.MethodPost, login(server)},
 	}
 }

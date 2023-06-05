@@ -1,8 +1,7 @@
-package system
+package users
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/auth"
@@ -19,42 +18,34 @@ type loginUserResponse struct {
 	User        common.AuthUser `json:"user"`
 }
 
-func LoginUser(server common.Server) func(ctx *gin.Context) {
+func login(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
+
+		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
+			resultErr := errors.New("login failed, check your credentials")
+			if httpCode == http.StatusInternalServerError {
+				resultErr = errors.New("server issue has occurred")
+			}
+			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
+		})
 
 		var req loginUserRequest
 
-		getLoginError := func(userName *string) error {
-			message := "login failed"
-			if userName != nil {
-				message = fmt.Sprintf("user %s cannot be logged-in", *userName)
-			}
-			return errors.New(message)
-		}
-
 		err := ctx.ShouldBindJSON(&req)
-		if err != nil {
-			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(nil))
-		}
-		user, err := server.GetStore().GetAUser(req.Username)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized)
 
-		if err != nil {
-			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
-		}
+		user, err := server.GetStore().GetAUser(req.Username)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized)
 
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
-		if err != nil {
-			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, getLoginError(&req.Username))
-		}
+		common.CheckErrAndPanic(err, http.StatusUnauthorized)
+
 		authUser := common.AuthUser{
 			Username: user.Username,
 			Role:     user.Role,
 		}
 		accessToken, err := server.GetTokenMaker().CreateToken(authUser)
-		if err != nil {
-			common.SetErrorJSONResponse(
-				ctx, http.StatusInternalServerError, errors.New("server issue has occurred"))
-		}
+		common.CheckErrAndPanic(err, http.StatusInternalServerError)
 
 		common.SetOKJSONResponse(
 			ctx,

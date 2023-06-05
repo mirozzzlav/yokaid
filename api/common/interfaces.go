@@ -20,5 +20,5 @@ type Store interface {
 	GetAUser(username string) (User, error)
 	ListPolicies() ([]Policy, error)
 	ListPoliciesAsStringArray() ([][]string, error)
-	ListProfessionals(filter string) ([]Professional, error)
+	ListProfessionalsForResponse(filter string) ([]ProfessionalResponse, error)
 }
