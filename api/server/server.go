@@ -48,7 +48,7 @@ func (s *server) initRouter() {
 
 	router.Use(
 		bufferWriterMiddleware(), // this has to be first, as it turns on buffering on response for token appending
-		panicMiddleware(),
+		panicMiddleware(s),
 		auth.TokenMiddleware(s),
 		auth.PolicyMiddleware(s, s.config.Policy),
 	)
