@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/common"
@@ -8,17 +10,18 @@ import (
 )
 
 const (
-	HeaderKey  = "auth"
-	TypeBearer = "bearer"
-	PayloadKey = "authentication_payload"
+	headerKey  = "auth"
+	typeBearer = "bearer"
 )
 
-func GetRequestToken(ctx *gin.Context) (string, error) {
+var tokenError = errors.New("auth token problem has occurred")
 
-	authHeader := ctx.GetHeader(HeaderKey)
+func getRequestToken(ctx *gin.Context) (string, error) {
+
+	authHeader := ctx.GetHeader(headerKey)
 	fields := strings.Fields(authHeader)
-	if len(fields) < 2 || strings.ToLower(fields[0]) != TypeBearer {
-		return "", ErrInvalidToken
+	if len(fields) < 2 || strings.ToLower(fields[0]) != typeBearer {
+		return "", errors.New("token has wrong format")
 	}
 
 	return fields[1], nil
@@ -26,18 +29,19 @@ func GetRequestToken(ctx *gin.Context) (string, error) {
 
 func TokenMiddleware(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		accessToken, err := GetRequestToken(ctx)
-		if err != nil {
-			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, err)
+		if !server.IsPrivateRoute(ctx.FullPath()) {
+			ctx.Next()
 			return
 		}
+		accessToken, err := getRequestToken(ctx)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
 		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
 
-		if err != nil {
-			common.SetErrorJSONResponse(ctx, http.StatusUnauthorized, err)
-			return
-		}
-		ctx.Set(PayloadKey, payload)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
+		server.SetAuthUser(payload.User)
+		tokenBytes, err := json.Marshal(map[string]any{"refresh_token": accessToken})
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
+		ctx.Writer.Write(tokenBytes)
 		ctx.Next()
 	}
 }

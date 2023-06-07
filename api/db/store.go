@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
-	"log"
 	"rental-app/api/common"
 )
 
@@ -87,7 +85,6 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 }
 
 func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.ProfessionalResponse, error) {
-	genericErr := errors.New("given request is not supported")
 	sql := "SELECT * FROM (" +
 		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
 		"FROM professionals p, users u, professionals_services ps, services s " +
@@ -97,7 +94,7 @@ func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.Prof
 
 	rows, err := store.ListData(sql, filter)
 	if err != nil {
-		return nil, genericErr
+		return nil, err
 	}
 	var pros []common.ProfessionalResponse
 	for rows.Next() {
@@ -105,8 +102,7 @@ func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.Prof
 		var servicesStr string
 
 		if err := rows.Scan(&pro.Fullname, &pro.Rating, &servicesStr); err != nil {
-			log.Printf("ERRRR: %v", err)
-			return nil, genericErr
+			return nil, err
 		}
 		var services []common.ServiceResposne
 		json.Unmarshal([]byte(servicesStr), &services)
@@ -116,8 +112,12 @@ func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.Prof
 
 	err = CloseRows(rows)
 	if err != nil {
-		return nil, genericErr
+		return nil, err
 	}
 
 	return pros, nil
+}
+
+func (store SQLStore) CreateRental(rental common.Rental) (common.Rental, error) {
+	return common.Rental{}, nil
 }

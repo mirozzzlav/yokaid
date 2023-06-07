@@ -7,7 +7,7 @@ import (
 	"log"
 	"rental-app/api/common"
 	"rental-app/api/db"
-	"rental-app/api/server"
+	serverPkg "rental-app/api/server"
 )
 
 func main() {
@@ -25,16 +25,13 @@ func main() {
 	store := db.NewStore(conn, ctx)
 
 	// creating new server instance
-	serverPackage, err := server.NewServer(config, store)
+	server, err := serverPkg.NewServer(config, store)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
-	defer serverPackage.Close()
+	defer server.Close()
 
-	// initializing the router
-	serverPackage.InitRouter()
-
-	err = serverPackage.Start(config.Url)
+	err = server.Start()
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}

@@ -19,33 +19,25 @@ type loginUserResponse struct {
 }
 
 func login(server common.Server) func(ctx *gin.Context) {
+	loginErr := errors.New("login failed, check your credentials")
 	return func(ctx *gin.Context) {
-
-		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
-			resultErr := errors.New("login failed, check your credentials")
-			if httpCode == http.StatusInternalServerError {
-				resultErr = errors.New("server issue has occurred")
-			}
-			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
-		})
-
 		var req loginUserRequest
 
 		err := ctx.ShouldBindJSON(&req)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
 		user, err := server.GetStore().GetAUser(req.Username)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
 		authUser := common.AuthUser{
 			Username: user.Username,
 			Role:     user.Role,
 		}
 		accessToken, err := server.GetTokenMaker().CreateToken(authUser)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, errors.New("internal error on login"))
 
 		common.SetOKJSONResponse(
 			ctx,

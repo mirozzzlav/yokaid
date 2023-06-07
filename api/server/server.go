@@ -10,88 +10,99 @@ import (
 	"rental-app/api/routes"
 )
 
-type Server struct {
+type server struct {
 	config     common.Config
 	Store      common.Store
 	TokenMaker common.Maker
 	router     *gin.Engine
 	Routes     []common.Route
+	authUser   *common.AuthUser
 }
 
-func NewServer(config common.Config, store common.Store) (*Server, error) {
+func NewServer(config common.Config, store common.Store) (common.Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
-	return &Server{
+	server := &server{
 		config:     config,
 		Store:      store,
 		TokenMaker: tokenMaker,
-	}, nil
-}
-
-func (server *Server) initHandlers(
-	handle func(string, string, ...gin.HandlerFunc) gin.IRoutes,
-	handlePrivate func(string, string, ...gin.HandlerFunc) gin.IRoutes,
-) {
-	routes := routes.GetRoutes(server)
-	for _, route := range routes {
-		if route.IsPrivate {
-			handlePrivate(route.Method, route.Path, route.Handler)
-			continue
-		}
-		handle(route.Method, route.Path, route.Handler)
 	}
+	server.initRouter()
+	return server, nil
+
 }
 
-func (server *Server) InitRouter() {
+func (s *server) initRouter() {
 
 	var router *gin.Engine
 
-	if server.config.Environment == "development" {
+	if s.config.Environment == "development" {
 		router = gin.Default()
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 		router = gin.New()
 	}
 
-	authRoutesGroup := router.Group("/")
-
-	authRoutesGroup.Use(
-		auth.TokenMiddleware(server),
-		auth.PolicyMiddleware(server, server.config.Policy),
-		TokenAppenderMiddleware(server),
+	router.Use(
+		bufferWriterMiddleware(), // this has to be first, as it turns on buffering on response for token appending
+		panicMiddleware(),
+		auth.TokenMiddleware(s),
+		auth.PolicyMiddleware(s, s.config.Policy),
 	)
-	server.initHandlers(router.Handle, authRoutesGroup.Handle)
 
-	err := errors.New("route not found")
+	s.Routes = routes.GetRoutes(s)
+	for _, route := range s.Routes {
+		router.Handle(route.Method, route.Path, route.Handler)
+	}
+
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			common.SetErrorJSONResponse(ctx, http.StatusNotFound, err)
+			common.SetErrorJSONResponse(ctx, http.StatusNotFound, errors.New("route not found"))
 		},
 	)
 
-	server.router = router
+	s.router = router
 }
 
-// Start runs the HTTP server on a specific address.
-func (server *Server) Start(address string) error {
-	return server.router.Run(address)
+func (s *server) Start() error {
+	return s.router.Run(s.config.Url)
 }
 
-func (server *Server) GetStore() common.Store {
-	return server.Store
+func (s *server) GetStore() common.Store {
+	return s.Store
 }
-func (server *Server) GetTokenMaker() common.Maker {
-	return server.TokenMaker
-}
-
-func (server *Server) GetConfig() common.Config {
-	return server.config
+func (s *server) GetTokenMaker() common.Maker {
+	return s.TokenMaker
 }
 
-func (server *Server) Close() {
-	*server = Server{}
+func (s *server) GetConfig() common.Config {
+	return s.config
+}
+
+func (s *server) SetAuthUser(u common.AuthUser) {
+	s.authUser = &u
+}
+
+func (s *server) GetAuthUser() (common.AuthUser, error) {
+	if s.authUser == nil {
+		return common.AuthUser{}, errors.New("unauthenticated user")
+	}
+	return *s.authUser, nil
+}
+
+func (s *server) IsPrivateRoute(path string) bool {
+	for _, route := range s.Routes {
+		if route.Path == path && route.IsPrivate {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *server) Close() {
+	*s = server{}
 }

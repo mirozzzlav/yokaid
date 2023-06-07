@@ -4,6 +4,7 @@ import (
 	"rental-app/api/common"
 	"rental-app/api/routes/examples"
 	"rental-app/api/routes/professionals"
+	"rental-app/api/routes/rentals"
 	"rental-app/api/routes/users"
 )
 
@@ -13,5 +14,6 @@ func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, examples.GetRoutes(server)...)
 	routes = append(routes, users.GetRoutes(server)...)
 	routes = append(routes, professionals.GetRoutes(server)...)
+	routes = append(routes, rentals.GetRoutes(server)...)
 	return routes
 }

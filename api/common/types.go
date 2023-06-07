@@ -41,3 +41,9 @@ type ProfessionalResponse struct {
 	Rating   int
 	Services []ServiceResposne
 }
+
+type HttpError struct {
+	HttpCode    int
+	Error       error
+	OutputError error
+}

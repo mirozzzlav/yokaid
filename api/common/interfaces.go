@@ -14,6 +14,11 @@ type Server interface {
 	GetStore() Store
 	GetTokenMaker() Maker
 	GetConfig() Config
+	SetAuthUser(u AuthUser)
+	GetAuthUser() (AuthUser, error)
+	IsPrivateRoute(path string) bool
+	Start() error
+	Close()
 }
 
 type Store interface {
@@ -21,4 +26,5 @@ type Store interface {
 	ListPolicies() ([]Policy, error)
 	ListPoliciesAsStringArray() ([][]string, error)
 	ListProfessionalsForResponse(filter string) ([]ProfessionalResponse, error)
+	CreateRental(rental Rental) (Rental, error)
 }

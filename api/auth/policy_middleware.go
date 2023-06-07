@@ -5,12 +5,11 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"rental-app/api/common"
 )
 
-func getRequestForAuthorization(ctx *gin.Context, user *common.AuthUser) ([]string, error) {
+func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]string, error) {
 	actionsMap := map[string]string{
 		http.MethodGet:    "read",
 		http.MethodPost:   "create",
@@ -28,42 +27,40 @@ func getRequestForAuthorization(ctx *gin.Context, user *common.AuthUser) ([]stri
 
 func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.HandlerFunc {
 	authErr := errors.New("user is not authorized to proceed with the given request")
+	internalErr := errors.New("internal error while authorizing user")
 	return func(ctx *gin.Context) {
-		defer common.OnPanic(ctx, func(ctx *gin.Context, httpCode int, err error) {
-			resultErr := authErr
-			log.Printf("Err: %v", err)
-			if httpCode == http.StatusInternalServerError {
-				resultErr = errors.New("internal error while authorizing user")
-			}
-			common.SetErrorJSONResponse(ctx, httpCode, resultErr)
-		})
+		if !server.IsPrivateRoute(ctx.FullPath()) {
+			ctx.Next()
+			return
+		}
 
 		m, err := model.NewModelFromString(config.Model)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		enforcer, err := casbin.NewEnforcer(m)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
-		authUser, err := GetAuthenticatedUser(ctx)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized)
+		authUser, err := server.GetAuthUser()
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, authErr)
 
 		policies, err := server.GetStore().ListPoliciesAsStringArray()
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		_, err = enforcer.AddPoliciesEx(policies)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		request, err := getRequestForAuthorization(ctx, authUser)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		authorized, err := enforcer.Enforce(request[0], request[1], request[2], request[3])
-		common.CheckErrAndPanic(err, http.StatusInternalServerError)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		if !authorized {
 			panic(
 				common.HttpError{
-					Error:    authErr,
-					HttpCode: http.StatusUnauthorized,
+					Error:       authErr,
+					HttpCode:    http.StatusUnauthorized,
+					OutputError: authErr,
 				})
 		}
 
