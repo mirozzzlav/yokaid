@@ -6,7 +6,7 @@ import (
 	"rental-app/api/common"
 )
 
-func submitEmail(server common.Server) func(ctx *gin.Context) {
+func submitEmail(_ common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		statusCode := common.SubmitMail(ctx, common.Mail{
