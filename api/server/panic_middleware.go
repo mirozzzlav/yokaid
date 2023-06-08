@@ -38,7 +38,7 @@ func getPanicsFromStackTrace() string {
 	regex := regexp.MustCompile(`([[:print:]]+\(.+?\))\s+(/[^:]+:\d+)`)
 	matches := regex.FindAllStringSubmatch(string(stackTrace[:stackSize]), -1)
 
-	errors := "No panic information found!"
+	panics := "No panic information found!"
 	if len(matches) >= 2 {
 		matches = matches[2:]
 
@@ -50,10 +50,10 @@ func getPanicsFromStackTrace() string {
 
 		panicError = append(panicError, "\n")
 
-		errors = strings.Join(panicError, "\n")
+		panics = strings.Join(panicError, "\n")
 	}
 
-	return errors
+	return panics
 }
 
 func (s *server) logError(ctx *gin.Context, err error) {
@@ -67,18 +67,19 @@ func (s *server) logError(ctx *gin.Context, err error) {
 	if s.config.Logs.LogsToFile {
 		logFile, errFile = createLogFile()
 	}
+
+	if logFile != nil {
+		fileLogger := log.New(logFile, "", log.LstdFlags)
+		fileLogger.Printf("Panic occurred on URL %s | method [%s]\n%s\n%s\n", reqPath, reqMethod, err.Error(), panicErrors)
+		errFile = closeLogFile(logFile)
+	}
+
 	if errFile != nil {
 		err = errFile
 	}
 
 	if s.config.Logs.LogsToScreen {
 		log.Printf("\n\u001B[32m%s\u001B[0m:\u001B[31m\u001B[0m \u001B[41;5;28m\u001B[38;53;30m Panic occurred on URL \u001B[0m  \u001B[31m[%s]\u001B[0m  | Method \u001B[0m[%s]\u001B[31m\n%s\n%s", time.Now().Format("2006-01-02 15:04:05"), reqPath, reqMethod, err.Error(), panicErrors)
-	}
-
-	if logFile != nil {
-		fileLogger := log.New(logFile, "", log.LstdFlags)
-		fileLogger.Printf("Panic occurred on URL %s | method [%s]\n%s\n%s\n", reqPath, reqMethod, err.Error(), panicErrors)
-		closeLogFile(logFile)
 	}
 
 }
