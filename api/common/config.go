@@ -1,34 +1,51 @@
 package common
 
 import (
+	"errors"
+	"fmt"
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 	"strconv"
 	"time"
 )
 
+type logsConfig struct {
+	LogsToScreen bool
+	LogsToFile   bool
+}
 type Config struct {
-	Environment         string
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
 	AccessTokenDuration time.Duration
 	Url                 string
 	Policy              AuthPolicyConfig
+	Logs                logsConfig
 }
 
-func LoadConfig(envFilePath string) (config Config, err error) {
+func getLogsConfig() logsConfig {
+	logsToScreen, err := strconv.ParseBool(os.Getenv("LOGS_TO_SCREEN"))
+	if err != nil {
+		logsToScreen = false
+	}
 
+	logsToFile, err := strconv.ParseBool(os.Getenv("LOGS_TO_FILE"))
+	if err != nil {
+		logsToFile = false
+	}
+	return logsConfig{LogsToScreen: logsToScreen, LogsToFile: logsToFile}
+}
+
+func LoadConfig(mode string) (config Config, err error) {
+	envFilePath := ".env." + mode
 	err = godotenv.Load(envFilePath)
 	if err != nil {
-		log.Fatalf("cannot find or parse config file: %s", envFilePath)
+		return Config{}, errors.New(fmt.Sprintf("cannot find or parse config file: %s", envFilePath))
 	}
 
 	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
 
 	return Config{
-		Environment:         os.Getenv("ENV"),
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
@@ -49,5 +66,6 @@ func LoadConfig(envFilePath string) (config Config, err error) {
 				m = r.group == 'admin' || ((r.group == p.sub || r.sub == p.sub) && r.act == p.act && r.resource == p.resource)
 			`,
 		},
+		Logs: getLogsConfig(),
 	}, nil
 }

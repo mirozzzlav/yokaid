@@ -56,22 +56,30 @@ func getPanicsFromStackTrace() string {
 	return errors
 }
 
-func (s *server) logError(logFile *os.File, ctx *gin.Context, err error) {
+func (s *server) logError(ctx *gin.Context, err error) {
 	scheme := "http"
 	reqPath := scheme + "://" + ctx.Request.Host + ctx.Request.URL.Path
 	reqMethod := ctx.Request.Method
 	panicErrors := getPanicsFromStackTrace()
 
-	if s.config.Environment == "development" {
+	var logFile *os.File
+	var errFile error
+	if s.config.Logs.LogsToFile {
+		logFile, errFile = createLogFile()
+	}
+	if errFile != nil {
+		err = errFile
+	}
+
+	if s.config.Logs.LogsToScreen {
 		log.Printf("\n\u001B[32m%s\u001B[0m:\u001B[31m\u001B[0m \u001B[41;5;28m\u001B[38;53;30m Panic occurred on URL \u001B[0m  \u001B[31m[%s]\u001B[0m  | Method \u001B[0m[%s]\u001B[31m\n%s\n%s", time.Now().Format("2006-01-02 15:04:05"), reqPath, reqMethod, err.Error(), panicErrors)
 	}
 
-	if logFile == nil {
-		return
+	if logFile != nil {
+		fileLogger := log.New(logFile, "", log.LstdFlags)
+		fileLogger.Printf("Panic occurred on URL %s | method [%s]\n%s\n%s\n", reqPath, reqMethod, err.Error(), panicErrors)
+		closeLogFile(logFile)
 	}
-
-	fileLogger := log.New(logFile, "", log.LstdFlags)
-	fileLogger.Printf("Panic occurred on URL %s | method [%s]\n%s\n%s\n", reqPath, reqMethod, err.Error(), panicErrors)
 
 }
 
@@ -82,17 +90,11 @@ func panicMiddleware(s *server) gin.HandlerFunc {
 			if r == nil {
 				return
 			}
-			logFile, err := createLogFile()
-			if err != nil {
-				s.logError(nil, ctx, err)
-			}
 
 			if httpError, castingOk := r.(common.HttpError); castingOk {
-				s.logError(logFile, ctx, httpError.Error)
+				s.logError(ctx, httpError.Error)
 				common.SetErrorJSONResponse(ctx, httpError.HttpCode, httpError.OutputError)
 			}
-
-			closeLogFile(logFile)
 
 		}()
 		ctx.Next()

@@ -4,7 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/rand"
 	"net/http"
+	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -58,4 +60,23 @@ func StripTags(text string) string {
 	}
 
 	return r.ReplaceAllString(text, "")
+}
+
+func GetEnvMode() string {
+	args := os.Args[1:] // Exclude the program name
+
+	// Parse command-line arguments
+	params := make(map[string]string)
+	for _, arg := range args {
+		parts := strings.SplitN(arg, "=", 2)
+		if len(parts) == 2 {
+			params[parts[0]] = parts[1]
+		}
+	}
+	// Access specific parameters
+	mode, modeExists := params["mode"]
+	if modeExists {
+		return mode
+	}
+	return "development" // default if nothing set
 }
