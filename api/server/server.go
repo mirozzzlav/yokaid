@@ -38,8 +38,9 @@ func NewServer(config common.Config, store common.Store) (common.Server, error) 
 func (s *server) initRouter() {
 
 	var router *gin.Engine
-
-	if s.config.Environment == "development" {
+	envMode := common.GetEnvMode()
+	if envMode == "development" || envMode == "local" {
+		// running GIN in devel mode - enabling GIN logs on screen
 		router = gin.Default()
 	} else {
 		gin.SetMode(gin.ReleaseMode)
