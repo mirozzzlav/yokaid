@@ -43,12 +43,20 @@ func SetErrorJSONResponse(ctx *gin.Context, httpCode int, err error) {
 	ctx.AbortWithStatusJSON(httpCode, GetJSONResponse(err, nil))
 }
 
-func CheckErrAndPanic(err error, httpCode int, outputErr error) {
+func NewHttpError(err error, httpCode int, outputErr error) HttpError {
 	if outputErr == nil {
 		outputErr = err
 	}
+	return HttpError{
+		Error:       err,
+		HttpCode:    httpCode,
+		OutputError: outputErr,
+	}
+}
+
+func CheckErrAndPanic(err error, httpCode int, outputErr error) {
 	if err != nil {
-		panic(HttpError{HttpCode: httpCode, Error: err, OutputError: outputErr})
+		panic(NewHttpError(err, httpCode, outputErr))
 	}
 }
 

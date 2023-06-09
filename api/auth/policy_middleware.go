@@ -55,7 +55,7 @@ func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		if !authorized {
-			common.CheckErrAndPanic(common.AuthErr, http.StatusUnauthorized, nil)
+			panic(common.NewHttpError(common.AuthErr, http.StatusUnauthorized, nil))
 		}
 
 		ctx.Next()

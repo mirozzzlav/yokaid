@@ -62,7 +62,7 @@ func (s *server) initRouter() {
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			common.SetErrorJSONResponse(ctx, http.StatusNotFound, errors.New("route not found"))
+			panic(common.NewHttpError(errors.New("route not found"), http.StatusNotFound, nil))
 		},
 	)
 
