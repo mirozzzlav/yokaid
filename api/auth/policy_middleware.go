@@ -26,7 +26,6 @@ func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]strin
 }
 
 func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.HandlerFunc {
-	authErr := errors.New("user is not authorized to proceed with the given request")
 	internalErr := errors.New("internal error while authorizing user")
 	return func(ctx *gin.Context) {
 		if !server.IsPrivateRoute(ctx.FullPath()) {
@@ -41,7 +40,7 @@ func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		authUser, err := server.GetAuthUser()
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, authErr)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, common.AuthErr)
 
 		policies, err := server.GetStore().ListPoliciesAsStringArray()
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
@@ -56,12 +55,7 @@ func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		if !authorized {
-			panic(
-				common.HttpError{
-					Error:       authErr,
-					HttpCode:    http.StatusUnauthorized,
-					OutputError: authErr,
-				})
+			common.CheckErrAndPanic(common.AuthErr, http.StatusUnauthorized, nil)
 		}
 
 		ctx.Next()

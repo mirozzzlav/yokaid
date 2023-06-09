@@ -35,13 +35,17 @@ func TokenMiddleware(server common.Server) gin.HandlerFunc {
 		}
 		accessToken, err := getRequestToken(ctx)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
-		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
 
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
-		server.SetAuthUser(payload.User)
+		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, common.AuthErr)
+
 		tokenBytes, err := json.Marshal(map[string]any{"refresh_token": accessToken})
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, tokenError)
-		ctx.Writer.Write(tokenBytes)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, tokenError)
+
+		_, err = ctx.Writer.Write(tokenBytes)
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, tokenError)
+
+		server.SetAuthUser(payload.User)
 		ctx.Next()
 	}
 }

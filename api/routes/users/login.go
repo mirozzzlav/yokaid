@@ -33,6 +33,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
 		authUser := common.AuthUser{
+			ID:       user.ID,
 			Username: user.Username,
 			Role:     user.Role,
 		}
@@ -43,10 +44,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 			ctx,
 			loginUserResponse{
 				AccessToken: accessToken,
-				User: common.AuthUser{
-					Username: user.Username,
-					Role:     user.Role,
-				},
+				User:        authUser,
 			},
 		)
 	}
