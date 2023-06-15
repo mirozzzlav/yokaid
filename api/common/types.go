@@ -44,3 +44,8 @@ type HttpError struct {
 	Error       error
 	OutputError error
 }
+
+type StoreRequest struct {
+	Query  string
+	Params []any
+}

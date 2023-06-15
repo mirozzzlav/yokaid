@@ -88,3 +88,18 @@ func GetEnvMode() string {
 	}
 	return "development" // default if nothing set
 }
+
+func GetStoreRequest(baseQuery string, srGetters ...StoreRequestGetter) (StoreRequest, error) {
+	req := StoreRequest{
+		Query: baseQuery,
+	}
+	for _, getter := range srGetters {
+		reqPart, err := getter.GetStoreRequest()
+		if err != nil {
+			return StoreRequest{}, err
+		}
+		req.Query = req.Query + " " + reqPart.Query
+		req.Params = append(req.Params, reqPart.Params...)
+	}
+	return req, nil
+}

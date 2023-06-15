@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"rental-app/api/common"
 )
 
@@ -55,7 +54,7 @@ func (store SQLStore) ListPolicies() ([]common.Policy, error) {
 		}
 		policies = append(policies, policy)
 	}
-	err = CloseRows(rows)
+	err = closeRows(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -77,45 +76,28 @@ func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
 		}
 		policies = append(policies, []string{policy.Subject, policy.Action, policy.Resource})
 	}
-	err = CloseRows(rows)
+	err = closeRows(rows)
 	if err != nil {
 		return nil, err
 	}
 	return policies, nil
 }
 
-func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.ProfessionalResponse, error) {
-	sql := "SELECT * FROM (" +
-		"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
-		"FROM professionals p, users u, professionals_services ps, services s " +
-		"WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name " +
-		"GROUP BY u.username, u.fullname, p.rating" +
-		") AS pros"
+func (store SQLStore) ListProfessionals(reqGetters []common.StoreRequestGetter, fn func(rowBytes []byte)) error {
 
-	rows, err := store.ListData(sql, filter)
+	req, err := GetProfessionalsRequest(reqGetters)
 	if err != nil {
-		return nil, err
-	}
-	var pros []common.ProfessionalResponse
-	for rows.Next() {
-		var pro common.ProfessionalResponse
-		var servicesStr string
-
-		if err := rows.Scan(&pro.Fullname, &pro.Rating, &servicesStr); err != nil {
-			return nil, err
-		}
-		var services []common.ServiceResponse
-		json.Unmarshal([]byte(servicesStr), &services)
-		pro.Services = services
-		pros = append(pros, pro)
+		return err
 	}
 
-	err = CloseRows(rows)
+	rows, err := store.db.QueryContext(store.ctx, req.Query, req.Params...)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	err = store.Select(rows, fn)
 
-	return pros, nil
+	return err
+
 }
 
 func (store SQLStore) CreateRental(rental common.Rental) (common.Rental, error) {

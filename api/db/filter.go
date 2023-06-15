@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"rental-app/api/common"
 	"strings"
 )
 
@@ -62,15 +63,19 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	return fKey, fOperator, "$1", params, nil
 }
 
-func GetFilterSQL(filterStr string) (string, []any, error) {
-	filters := strings.Split(filterStr, ";")
+type FilterStoreGetter struct {
+	Filter string
+}
+
+func (f FilterStoreGetter) GetStoreRequest() (common.StoreRequest, error) {
+	filters := strings.Split(f.Filter, ";")
 	sql := ""
 	var params []any
 	sqlPartial := ""
 	for _, filter := range filters {
 		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(filter)
 		if err != nil {
-			return "", nil, filterError
+			return common.StoreRequest{}, filterError
 		}
 
 		fSpecialSQL, isSpecialFilter := getFilterSpecialSQL(fKey, fOperator, fValuePlaceholder)
@@ -80,13 +85,10 @@ func GetFilterSQL(filterStr string) (string, []any, error) {
 		} else {
 			sqlPartial = fmt.Sprintf("%s %s %s", fKey, fOperator, fValuePlaceholder)
 		}
-		if sql == "" {
-			sql = sqlPartial
-		} else {
-			sql = sql + " AND" + sqlPartial
-		}
+
+		sql = sql + " AND " + sqlPartial
 		params = append(params, conditionParams...)
 
 	}
-	return sql, params, nil
+	return common.StoreRequest{Query: sql, Params: params}, nil
 }

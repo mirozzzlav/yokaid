@@ -21,10 +21,14 @@ type Server interface {
 	Close()
 }
 
+type StoreRequestGetter interface {
+	GetStoreRequest() (StoreRequest, error)
+}
+
 type Store interface {
 	GetAUser(username string) (User, error)
 	ListPolicies() ([]Policy, error)
 	ListPoliciesAsStringArray() ([][]string, error)
-	ListProfessionalsForResponse(filter string) ([]ProfessionalResponse, error)
+	ListProfessionals(reqGetters []StoreRequestGetter, fn func(rowBytes []byte)) error
 	CreateRental(rental Rental) (Rental, error)
 }
