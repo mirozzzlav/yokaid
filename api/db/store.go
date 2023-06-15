@@ -104,7 +104,7 @@ func (store SQLStore) ListProfessionalsForResponse(filter string) ([]common.Prof
 		if err := rows.Scan(&pro.Fullname, &pro.Rating, &servicesStr); err != nil {
 			return nil, err
 		}
-		var services []common.ServiceResposne
+		var services []common.ServiceResponse
 		json.Unmarshal([]byte(servicesStr), &services)
 		pro.Services = services
 		pros = append(pros, pro)

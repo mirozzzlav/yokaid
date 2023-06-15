@@ -22,10 +22,6 @@ type AuthPolicyConfig struct {
 	Model string
 }
 
-type UserPayload struct {
-	UserName string
-}
-
 type Route struct {
 	Path      string
 	IsPrivate bool
@@ -33,14 +29,14 @@ type Route struct {
 	Handler   gin.HandlerFunc
 }
 
-type ServiceResposne struct {
+type ServiceResponse struct {
 	Name string
 	Desc string
 }
 type ProfessionalResponse struct {
 	Fullname string
 	Rating   int
-	Services []ServiceResposne
+	Services []ServiceResponse
 }
 
 type HttpError struct {
