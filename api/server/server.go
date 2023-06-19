@@ -15,6 +15,7 @@ type server struct {
 	Store      common.Store
 	TokenMaker common.Maker
 	router     *gin.Engine
+	logError   func(ctx *gin.Context, err error)
 	Routes     []common.Route
 	authUser   *common.AuthUser
 }
@@ -31,8 +32,11 @@ func NewServer(config common.Config, store common.Store) (common.Server, error) 
 		TokenMaker: tokenMaker,
 	}
 	server.initRouter()
+	err = server.initRequestLogger()
+	if err != nil {
+		return nil, err
+	}
 	return server, nil
-
 }
 
 func (s *server) initRouter() {
@@ -48,7 +52,7 @@ func (s *server) initRouter() {
 	}
 
 	router.Use(
-		bufferWriterMiddleware(), // this has to be first, as it turns on buffering on response for token appending
+		jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
 		panicMiddleware(s),
 		auth.TokenMiddleware(s),
 		auth.PolicyMiddleware(s, s.config.Policy),
