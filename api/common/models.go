@@ -5,26 +5,6 @@ import (
 	"time"
 )
 
-type Action struct {
-	Name string
-}
-
-type Policy struct {
-	ID       int
-	Subject  string
-	Action   string
-	Resource string
-}
-
-type Role struct {
-	Name string
-}
-
-type Service struct {
-	Name string
-	Desc string
-}
-
 type User struct {
 	ID                int
 	Username          string
@@ -36,23 +16,12 @@ type User struct {
 	Role              string
 }
 
+type Service struct {
+	Name string
+	Desc string
+}
 type Professional struct {
-	ID       int
-	User     User
+	Fullname string
 	Rating   int
 	Services []Service
-}
-
-type ProfessionalsService struct {
-	Professional Professional
-	Service      Service
-}
-
-type Rental struct {
-	ID           int
-	RentedFrom   time.Time
-	RentedTo     time.Time
-	Status       string
-	Professional Professional
-	Renter       User
 }

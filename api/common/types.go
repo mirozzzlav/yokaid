@@ -29,23 +29,13 @@ type Route struct {
 	Handler   gin.HandlerFunc
 }
 
-type ServiceResponse struct {
-	Name string
-	Desc string
-}
-type ProfessionalResponse struct {
-	Fullname string
-	Rating   int
-	Services []ServiceResponse
-}
-
 type HttpError struct {
 	HttpCode    int
 	Error       error
 	OutputError error
 }
 
-type StoreRequest struct {
+type StoreQuery struct {
 	Query  string
 	Params []any
 }

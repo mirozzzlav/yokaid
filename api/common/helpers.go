@@ -89,17 +89,13 @@ func GetEnvMode() string {
 	return "development" // default if nothing set
 }
 
-func GetStoreRequest(baseQuery string, srGetters ...StoreRequestGetter) (StoreRequest, error) {
-	req := StoreRequest{
-		Query: baseQuery,
-	}
-	for _, getter := range srGetters {
-		reqPart, err := getter.GetStoreRequest()
-		if err != nil {
-			return StoreRequest{}, err
-		}
-		req.Query = req.Query + " " + reqPart.Query
-		req.Params = append(req.Params, reqPart.Params...)
-	}
-	return req, nil
+func ToPascalCase(snakeCase string) string {
+	re := regexp.MustCompile("_[a-z]")
+
+	// Use a closure to replace the capturing group with its uppercase version
+	result := re.ReplaceAllStringFunc(snakeCase[1:], func(match string) string {
+		return strings.ToUpper(match[1:])
+	})
+
+	return strings.ToUpper(snakeCase[0:1]) + result
 }

@@ -63,11 +63,14 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	return fKey, fOperator, "$1", params, nil
 }
 
-type FilterStoreGetter struct {
+type FilterStoreQueryProcessor struct {
 	Filter string
 }
 
-func (f FilterStoreGetter) GetStoreRequest() (common.StoreRequest, error) {
+func (f FilterStoreQueryProcessor) GetQuery() (common.StoreQuery, error) {
+	if f.Filter == "" {
+		return common.StoreQuery{Query: "", Params: []any{}}, nil
+	}
 	filters := strings.Split(f.Filter, ";")
 	sql := ""
 	var params []any
@@ -75,7 +78,7 @@ func (f FilterStoreGetter) GetStoreRequest() (common.StoreRequest, error) {
 	for _, filter := range filters {
 		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(filter)
 		if err != nil {
-			return common.StoreRequest{}, filterError
+			return common.StoreQuery{}, filterError
 		}
 
 		fSpecialSQL, isSpecialFilter := getFilterSpecialSQL(fKey, fOperator, fValuePlaceholder)
@@ -90,5 +93,5 @@ func (f FilterStoreGetter) GetStoreRequest() (common.StoreRequest, error) {
 		params = append(params, conditionParams...)
 
 	}
-	return common.StoreRequest{Query: sql, Params: params}, nil
+	return common.StoreQuery{Query: sql, Params: params}, nil
 }

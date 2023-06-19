@@ -1,105 +1,57 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"rental-app/api/common"
 )
 
 // SQLStore provides all functions to execute SQL queries and transactions
 type SQLStore struct {
-	db  *sql.DB
-	ctx context.Context
+	queryManager DBQueryManager
 }
 
 // NewStore creates a new store
-func NewStore(db *sql.DB, ctx context.Context) common.Store {
+func NewStore(db *sql.DB) common.Store {
 	return SQLStore{
-		db:  db,
-		ctx: ctx,
+		queryManager: DBQueryManager{
+			db: db,
+		},
 	}
 }
 
-func (store SQLStore) GetAUser(username string) (common.User, error) {
-	const query = `select * from users where username = $1`
-	row := store.db.QueryRowContext(store.ctx, query, username)
+func (store SQLStore) GetUser(q common.StoreQuery, fn func(rowBytes []byte)) error {
 
-	var user common.User
-	err := row.Scan(
-		&user.ID,
-		&user.Username,
-		&user.Fullname,
-		&user.Email,
-		&user.HashedPassword,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
-		&user.Role,
+	return store.queryManager.SelectRow(
+		common.StoreQuery{
+			Query:  "select * from users where " + q.Query,
+			Params: q.Params,
+		},
+		fn,
 	)
-
-	return user, err
 }
 
-func (store SQLStore) ListPolicies() ([]common.Policy, error) {
-	const query = `select * from policies`
-
-	rows, err := store.db.QueryContext(store.ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var policies []common.Policy
-	for rows.Next() {
-		var policy common.Policy
-		if err := rows.Scan(&policy.Subject, &policy.Action, &policy.Resource); err != nil {
-			return nil, err
-		}
-		policies = append(policies, policy)
-	}
-	err = closeRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return policies, nil
+func (store SQLStore) ListPolicies(fn func(rowBytes []byte)) error {
+	return store.queryManager.SelectRowsAsStringArray(
+		common.StoreQuery{
+			Query:  `select subject, action, resource from policies`,
+			Params: []any{},
+		},
+		fn,
+	)
 }
 
-func (store SQLStore) ListPoliciesAsStringArray() ([][]string, error) {
-	const query = `select subject, action, resource from policies`
+func (store SQLStore) ListProfessionals(q common.StoreQuery, fn func(rowBytes []byte)) error {
 
-	rows, err := store.db.QueryContext(store.ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var policies [][]string
-	for rows.Next() {
-		var policy common.Policy
-		if err := rows.Scan(&policy.Subject, &policy.Action, &policy.Resource); err != nil {
-			return nil, err
-		}
-		policies = append(policies, []string{policy.Subject, policy.Action, policy.Resource})
-	}
-	err = closeRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return policies, nil
-}
-
-func (store SQLStore) ListProfessionals(reqGetters []common.StoreRequestGetter, fn func(rowBytes []byte)) error {
-
-	req, err := GetProfessionalsRequest(reqGetters)
-	if err != nil {
-		return err
+	q = common.StoreQuery{
+		Query: "SELECT * FROM (" +
+			"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
+			"FROM professionals p, users u, professionals_services ps, services s " +
+			"WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name " +
+			"GROUP BY u.username, u.fullname, p.rating" +
+			") AS pros WHERE 1=1 " + q.Query,
+		Params: q.Params,
 	}
 
-	rows, err := store.db.QueryContext(store.ctx, req.Query, req.Params...)
-	if err != nil {
-		return err
-	}
-	err = store.Select(rows, fn)
-
+	err := store.queryManager.SelectRows(q, fn)
 	return err
-
-}
-
-func (store SQLStore) CreateRental(rental common.Rental) (common.Rental, error) {
-	return common.Rental{}, nil
 }

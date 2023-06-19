@@ -12,16 +12,15 @@ import (
 func list(server common.Server) gin.HandlerFunc {
 	internalErr := errors.New("error occurred while getting professionals list")
 	return func(ctx *gin.Context) {
-		var pros []common.ProfessionalResponse
+		var pros []common.Professional
 		var err error
-		var reqGetters []common.StoreRequestGetter
-		if filter, filterExists := ctx.Params.Get("filter"); filterExists {
-			common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
-			reqGetters = []common.StoreRequestGetter{db.FilterStoreGetter{Filter: filter}}
-		}
+		filter, _ := ctx.Params.Get("filter")
+
+		q, err := db.MergeStoreProcessorsQueries(db.FilterStoreQueryProcessor{Filter: filter})
+		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		err = server.GetStore().ListProfessionals(
-			reqGetters,
+			q,
 			func(rowBytes []byte) {
 				_ = json.Unmarshal(rowBytes, &pros)
 			},

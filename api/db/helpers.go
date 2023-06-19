@@ -2,7 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
+	"rental-app/api/common"
+	"strings"
 )
 
 func closeRows(rows *sql.Rows) error {
@@ -15,51 +16,35 @@ func closeRows(rows *sql.Rows) error {
 	return nil
 }
 
-func (store SQLStore) Select(rows *sql.Rows, fn func(rowBytes []byte)) error {
-	columns, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-
-	var result []map[string]any
-	values := make([]any, len(columns))
-	pointers := make([]any, len(columns))
-	for i, _ := range values {
-		pointers[i] = &values[i]
-	}
-
-	for rows.Next() {
-		err := rows.Scan(pointers...)
+func MergeStoreProcessorsQueries(processors ...common.StoreQueryProcessor) (common.StoreQuery, error) {
+	var queries []string
+	var params []any
+	for _, p := range processors {
+		q, err := p.GetQuery()
 		if err != nil {
-			return err
+			return common.StoreQuery{}, err
 		}
-		var resultObj = make(map[string]any, len(columns))
-		for i, colName := range columns {
-			value := values[i]
-			valueBytes, isByteArray := value.([]byte)
-			//column value can be byte array (for example json encoded into bytes)
-			if isByteArray {
-				var jsonV json.RawMessage
-				_ = json.Unmarshal(valueBytes, &jsonV)
-				resultObj[colName] = jsonV
-			} else {
-				resultObj[colName] = value
-			}
+		queries = append(queries, q.Query)
+		params = append(params, q.Params...)
 
-		}
-		result = append(result, resultObj)
 	}
+	return common.StoreQuery{Query: strings.Join(queries, " "), Params: params}, nil
+}
+func MergeStoreQueries(storeQueries ...common.StoreQuery) common.StoreQuery {
 
-	resultBytes, err := json.Marshal(result)
-	if err != nil {
-		return err
+	var params []any
+	var queries []string
+	for _, q := range storeQueries {
+		queries = append(queries, q.Query)
+		params = append(params, q.Params...)
+
 	}
+	return common.StoreQuery{Query: strings.Join(queries, " "), Params: params}
+}
 
-	err = closeRows(rows)
-	if err != nil {
-		return err
+func columnNameToObjName(colName string) string {
+	if colName == "id" {
+		return "ID"
 	}
-
-	fn(resultBytes)
-	return nil
+	return common.ToPascalCase(colName)
 }

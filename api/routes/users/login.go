@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -26,9 +27,19 @@ func login(server common.Server) func(ctx *gin.Context) {
 		err := ctx.ShouldBindJSON(&req)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
-		user, err := server.GetStore().GetAUser(req.Username)
+		var user *common.User
+		err = server.GetStore().GetUser(
+			common.StoreQuery{
+				Query:  "username = $1",
+				Params: []any{req.Username},
+			}, func(rowBytes []byte) {
+				_ = json.Unmarshal(rowBytes, &user)
+			},
+		)
+		if user == nil {
+			panic(common.NewHttpError(loginErr, http.StatusUnauthorized, nil))
+		}
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
-
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 

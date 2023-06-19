@@ -21,14 +21,18 @@ type Server interface {
 	Close()
 }
 
-type StoreRequestGetter interface {
-	GetStoreRequest() (StoreRequest, error)
+type StoreQueryProcessor interface {
+	GetQuery() (StoreQuery, error)
+}
+
+type QueryManager interface {
+	SelectRows(q StoreQuery, fn func(rowBytes []byte)) error
+	SelectRowsAsStringArray(q StoreQuery, fn func(rowBytes []byte)) error
+	SelectRow(q StoreQuery, fn func(rowBytes []byte)) error
 }
 
 type Store interface {
-	GetAUser(username string) (User, error)
-	ListPolicies() ([]Policy, error)
-	ListPoliciesAsStringArray() ([][]string, error)
-	ListProfessionals(reqGetters []StoreRequestGetter, fn func(rowBytes []byte)) error
-	CreateRental(rental Rental) (Rental, error)
+	GetUser(q StoreQuery, fn func(rowBytes []byte)) error
+	ListPolicies(fn func(rowBytes []byte)) error
+	ListProfessionals(q StoreQuery, fn func(rowBytes []byte)) error
 }

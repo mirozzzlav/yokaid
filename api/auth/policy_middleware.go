@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -42,7 +43,12 @@ func PolicyMiddleware(server common.Server, config common.AuthPolicyConfig) gin.
 		authUser, err := server.GetAuthUser()
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, common.AuthErr)
 
-		policies, err := server.GetStore().ListPoliciesAsStringArray()
+		var policies [][]string
+		err = server.GetStore().ListPolicies(
+			func(rowBytes []byte) {
+				_ = json.Unmarshal(rowBytes, &policies)
+			},
+		)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		_, err = enforcer.AddPoliciesEx(policies)
