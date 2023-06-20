@@ -5,7 +5,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"rental-app/api/common"
-	"rental-app/api/db"
+	dbPkg "rental-app/api/db"
 	serverPkg "rental-app/api/server"
 )
 
@@ -15,15 +15,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn, err := sql.Open(config.DBDriver, config.DBSource)
+	db, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 
-	store := db.NewStore(conn)
-
 	// creating new server instance
-	server, err := serverPkg.NewServer(config, store)
+	server, err := serverPkg.NewServer(config, dbPkg.NewQueryRunner(db))
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

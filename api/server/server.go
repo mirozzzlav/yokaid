@@ -11,25 +11,25 @@ import (
 )
 
 type server struct {
-	config     common.Config
-	Store      common.Store
-	TokenMaker common.Maker
-	router     *gin.Engine
-	logError   func(ctx *gin.Context, err error)
-	Routes     []common.Route
-	authUser   *common.AuthUser
+	config      common.Config
+	tokenMaker  common.Maker
+	router      *gin.Engine
+	logError    func(ctx *gin.Context, err error)
+	routes      []common.Route
+	authUser    *common.AuthUser
+	queryRunner common.QueryRunner
 }
 
-func NewServer(config common.Config, store common.Store) (common.Server, error) {
+func NewServer(config common.Config, queryRunner common.QueryRunner) (common.Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
 	server := &server{
-		config:     config,
-		Store:      store,
-		TokenMaker: tokenMaker,
+		config:      config,
+		queryRunner: queryRunner,
+		tokenMaker:  tokenMaker,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -54,12 +54,11 @@ func (s *server) initRouter() {
 	router.Use(
 		jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
 		panicMiddleware(s),
-		auth.TokenMiddleware(s),
-		auth.PolicyMiddleware(s, s.config.Policy),
+		auth.Middleware(s),
 	)
 
-	s.Routes = routes.GetRoutes(s)
-	for _, route := range s.Routes {
+	s.routes = routes.GetRoutes(s)
+	for _, route := range s.routes {
 		router.Handle(route.Method, route.Path, route.Handler)
 	}
 
@@ -77,11 +76,11 @@ func (s *server) Start() error {
 	return s.router.Run(s.config.Url)
 }
 
-func (s *server) GetStore() common.Store {
-	return s.Store
+func (s *server) GetQueryRunner() common.QueryRunner {
+	return s.queryRunner
 }
 func (s *server) GetTokenMaker() common.Maker {
-	return s.TokenMaker
+	return s.tokenMaker
 }
 
 func (s *server) GetConfig() common.Config {
@@ -100,7 +99,7 @@ func (s *server) GetAuthUser() (common.AuthUser, error) {
 }
 
 func (s *server) IsPrivateRoute(path string) bool {
-	for _, route := range s.Routes {
+	for _, route := range s.routes {
 		if route.Path == path && route.IsPrivate {
 			return true
 		}

@@ -1,12 +1,12 @@
 package users
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/auth"
 	"rental-app/api/common"
+	"rental-app/api/db"
 )
 
 type loginUserRequest struct {
@@ -27,16 +27,15 @@ func login(server common.Server) func(ctx *gin.Context) {
 		err := ctx.ShouldBindJSON(&req)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
-		var user *common.User
-		err = server.GetStore().GetUser(
-			common.StoreQuery{
-				Query:  "username = $1",
+		user, userFiller := common.UserFiller()
+		q := db.GetUserQuery(
+			common.QueryPartial{
+				Query:  "username = ?",
 				Params: []any{req.Username},
-			}, func(rowBytes []byte) {
-				_ = json.Unmarshal(rowBytes, &user)
 			},
 		)
-		if user == nil {
+		err = server.GetQueryRunner().GetRows(q, userFiller)
+		if user == nil || err != nil {
 			panic(common.NewHttpError(loginErr, http.StatusUnauthorized, nil))
 		}
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)

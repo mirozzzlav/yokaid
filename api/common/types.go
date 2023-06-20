@@ -35,7 +35,7 @@ type HttpError struct {
 	OutputError error
 }
 
-type StoreQuery struct {
+type QueryPartial struct {
 	Query  string
 	Params []any
 }

@@ -15,7 +15,7 @@ func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string
 		"services": "EXISTS (select 1 FROM json_array_elements(services) AS service_json WHERE service_json ->>'%s' %s %s)",
 	}
 
-	for special, _ := range filterSQLSpecial {
+	for special := range filterSQLSpecial {
 		if strings.HasPrefix(fKey, special) {
 			fKey = strings.Replace(fKey, special+".", "", -1)
 			return fmt.Sprintf(filterSQLSpecial[special], fKey, fOperator, fValuePlaceholder), true
@@ -42,12 +42,11 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 		res := ""
 		r := regexp.MustCompile(" *, *")
 		fValueItems := r.Split(strings.Trim(fValue, "[] "), -1)
-		for index, v := range fValueItems {
-
+		for _, v := range fValueItems {
 			if res == "" {
-				res = "$1"
+				res = "?"
 			} else {
-				res = res + ",$" + fmt.Sprintf("%d", index+1)
+				res = res + ",?"
 			}
 			params = append(params, interface{}(v))
 
@@ -60,16 +59,16 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	}
 
 	params = []any{fValue}
-	return fKey, fOperator, "$1", params, nil
+	return fKey, fOperator, "?", params, nil
 }
 
-type FilterStoreQueryProcessor struct {
+type FilterQueryPartialProcessor struct {
 	Filter string
 }
 
-func (f FilterStoreQueryProcessor) GetQuery() (common.StoreQuery, error) {
+func (f FilterQueryPartialProcessor) GetPartial() (common.QueryPartial, error) {
 	if f.Filter == "" {
-		return common.StoreQuery{Query: "", Params: []any{}}, nil
+		return common.QueryPartial{Query: "", Params: []any{}}, nil
 	}
 	filters := strings.Split(f.Filter, ";")
 	sql := ""
@@ -78,7 +77,7 @@ func (f FilterStoreQueryProcessor) GetQuery() (common.StoreQuery, error) {
 	for _, filter := range filters {
 		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(filter)
 		if err != nil {
-			return common.StoreQuery{}, filterError
+			return common.QueryPartial{}, filterError
 		}
 
 		fSpecialSQL, isSpecialFilter := getFilterSpecialSQL(fKey, fOperator, fValuePlaceholder)
@@ -93,5 +92,5 @@ func (f FilterStoreQueryProcessor) GetQuery() (common.StoreQuery, error) {
 		params = append(params, conditionParams...)
 
 	}
-	return common.StoreQuery{Query: sql, Params: params}, nil
+	return common.QueryPartial{Query: sql, Params: params}, nil
 }

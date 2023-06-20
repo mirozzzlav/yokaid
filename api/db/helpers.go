@@ -16,30 +16,19 @@ func closeRows(rows *sql.Rows) error {
 	return nil
 }
 
-func MergeStoreProcessorsQueries(processors ...common.StoreQueryProcessor) (common.StoreQuery, error) {
+func GetJoinedPartial(processors ...common.QueryPartialProcessor) (common.QueryPartial, error) {
 	var queries []string
 	var params []any
 	for _, p := range processors {
-		q, err := p.GetQuery()
+		q, err := p.GetPartial()
 		if err != nil {
-			return common.StoreQuery{}, err
+			return common.QueryPartial{}, err
 		}
 		queries = append(queries, q.Query)
 		params = append(params, q.Params...)
 
 	}
-	return common.StoreQuery{Query: strings.Join(queries, " "), Params: params}, nil
-}
-func MergeStoreQueries(storeQueries ...common.StoreQuery) common.StoreQuery {
-
-	var params []any
-	var queries []string
-	for _, q := range storeQueries {
-		queries = append(queries, q.Query)
-		params = append(params, q.Params...)
-
-	}
-	return common.StoreQuery{Query: strings.Join(queries, " "), Params: params}
+	return common.QueryPartial{Query: strings.Join(queries, " "), Params: params}, nil
 }
 
 func columnNameToObjName(colName string) string {

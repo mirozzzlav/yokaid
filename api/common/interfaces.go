@@ -11,8 +11,8 @@ type Maker interface {
 }
 
 type Server interface {
-	GetStore() Store
 	GetTokenMaker() Maker
+	GetQueryRunner() QueryRunner
 	GetConfig() Config
 	SetAuthUser(u AuthUser)
 	GetAuthUser() (AuthUser, error)
@@ -21,18 +21,13 @@ type Server interface {
 	Close()
 }
 
-type StoreQueryProcessor interface {
-	GetQuery() (StoreQuery, error)
+type QueryRunner interface {
+	GetRows(q Query, fn func(rowBytes []byte)) error
+}
+type QueryPartialProcessor interface {
+	GetPartial() (QueryPartial, error)
 }
 
-type QueryManager interface {
-	SelectRows(q StoreQuery, fn func(rowBytes []byte)) error
-	SelectRowsAsStringArray(q StoreQuery, fn func(rowBytes []byte)) error
-	SelectRow(q StoreQuery, fn func(rowBytes []byte)) error
-}
-
-type Store interface {
-	GetUser(q StoreQuery, fn func(rowBytes []byte)) error
-	ListPolicies(fn func(rowBytes []byte)) error
-	ListProfessionals(q StoreQuery, fn func(rowBytes []byte)) error
+type Query interface {
+	GetQuery() (string, []any)
 }
