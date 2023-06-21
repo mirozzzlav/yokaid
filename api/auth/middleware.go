@@ -27,7 +27,7 @@ func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]strin
 	}
 	action, exists := actionsMap[ctx.Request.Method]
 	if exists {
-		return []string{user.Username, user.Role, action, ctx.FullPath()}, nil
+		return []string{user.Username, user.Role, action, ctx.Request.URL.Path}, nil
 	}
 
 	return []string{}, nil
@@ -45,8 +45,8 @@ func checkPolicies(server common.Server, ctx *gin.Context, authUser common.AuthU
 		return err, false
 	}
 
-	policies, policiesFiller := common.PoliciesFiller()
-	err = server.GetQueryRunner().GetRowsAsArrayOfArrays(server.GetQueriesRepo().ListPoliciesQuery(), policiesFiller)
+	policies, policiesModelLoader := common.PoliciesModelLoader()
+	err = server.GetQueryRunner().GetRowsAsArrayOfArrays(server.GetQueriesRepo().ListPoliciesQuery(), policiesModelLoader)
 	if err != nil {
 		return err, false
 	}
@@ -114,7 +114,7 @@ func Middleware(server common.Server) gin.HandlerFunc {
 		}
 
 		server.SetAuthUser(payload.User)
-		freshToken, err := GetFreshToken(server)
+		freshToken, err := getFreshToken(server)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
 
 		ctx.Next()

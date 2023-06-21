@@ -26,18 +26,18 @@ func login(server common.Server) func(ctx *gin.Context) {
 		err := ctx.ShouldBindJSON(&req)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
-		user, userFiller := common.UserFiller()
+		user, userModelLoader := common.UserModelLoader()
 		q := server.GetQueriesRepo().GetUserQuery(
 			common.QueryPartial{
 				Query:  "username = ?",
 				Params: []any{req.Username},
 			},
 		)
-		err = server.GetQueryRunner().GetRows(q, userFiller)
-		if user == nil || err != nil {
+		err = server.GetQueryRunner().GetRows(q, userModelLoader)
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
+		if user == nil {
 			panic(common.NewHttpError(loginErr, http.StatusUnauthorized, nil))
 		}
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 

@@ -11,7 +11,7 @@ import (
 func list(server common.Server) gin.HandlerFunc {
 	internalErr := errors.New("error occurred while getting professionals list")
 	return func(ctx *gin.Context) {
-		pros, prosFiller := common.ProfessionalsFiller()
+		pros, prosModelLoader := common.ProfessionalsModelLoader()
 		var err error
 		filter, _ := ctx.Params.Get("filter")
 
@@ -19,7 +19,7 @@ func list(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		dbQuery := server.GetQueriesRepo().ListProfessionalsQuery(filterQP)
-		err = server.GetQueryRunner().GetRows(dbQuery, prosFiller)
+		err = server.GetQueryRunner().GetRows(dbQuery, prosModelLoader)
 
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 		common.SetOKJSONResponse(ctx, pros)

@@ -63,7 +63,7 @@ func LoadConfig(mode string) (config Config, err error) {
 				e = some(where (p.eft == allow))
 				
 				[matchers]
-				m = r.group == 'admin' || ((r.group == p.sub || r.sub == p.sub) && r.act == p.act && r.resource == p.resource)
+				m = r.group == 'admin' || ((r.group == p.sub || r.sub == p.sub) && r.act == p.act && keyMatch(r.resource,p.resource))
 			`,
 		},
 		Logs: getLogsConfig(),

@@ -27,14 +27,14 @@ type Professional struct {
 	Services []Service
 }
 
-func UserFiller() (*User, func(rowBytes []byte)) {
+func UserModelLoader() (*User, func(rowBytes []byte)) {
 	var user User
 	return &user, func(rowBytes []byte) {
 		_ = json.Unmarshal(rowBytes, &user)
 	}
 }
 
-func ProfessionalsFiller() (*[]Professional, func(rowBytes []byte)) {
+func ProfessionalsModelLoader() (*[]Professional, func(rowBytes []byte)) {
 	var pros []Professional
 
 	return &pros, func(rowBytes []byte) {
@@ -44,7 +44,7 @@ func ProfessionalsFiller() (*[]Professional, func(rowBytes []byte)) {
 	}
 }
 
-func PoliciesFiller() (*[][]string, func(rowBytes []byte)) {
+func PoliciesModelLoader() (*[][]string, func(rowBytes []byte)) {
 	var policies [][]string
 
 	return &policies, func(rowBytes []byte) {

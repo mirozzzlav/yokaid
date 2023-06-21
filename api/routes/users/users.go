@@ -9,5 +9,6 @@ func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
 		{"/users/login", false, http.MethodPost, login(server)},
+		{"/users/update/:id", true, http.MethodPut, update(server)},
 	}
 }
