@@ -25,6 +25,7 @@ type Server interface {
 type QueryRunner interface {
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
+	Update(q Query) (int, error)
 }
 type QueryPartialProcessor interface {
 	GetPartial() (QueryPartial, error)
@@ -36,6 +37,7 @@ type Query interface {
 
 type QueriesRepo interface {
 	GetUserQuery(filter QueryPartial) Query
+	UpdateUserQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
 	ListProfessionalsQuery(filter QueryPartial) Query
 }

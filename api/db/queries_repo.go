@@ -48,6 +48,20 @@ func (qr QueriesRepo) GetUserQuery(filter common.QueryPartial) common.Query {
 	}
 }
 
+func (qr QueriesRepo) UpdateUserQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
+	filter.Query = " where " + filter.Query
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "update users set ",
+				Params: []any{},
+			},
+			data,
+			filter,
+		},
+	}
+}
+
 func (qr QueriesRepo) ListPoliciesQuery() common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{

@@ -101,3 +101,18 @@ func (qr QueryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
 func (qr QueryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn, true)
 }
+
+func (qr QueryRunner) Update(q common.Query) (int, error) {
+	qString, qParams := q.GetQuery()
+	result, err := qr.db.Exec(qString, qParams...)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(rowsAffected), nil
+}
