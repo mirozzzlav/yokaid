@@ -114,7 +114,7 @@ func Middleware(server common.Server) gin.HandlerFunc {
 		}
 
 		server.SetAuthUser(payload.User)
-		freshToken, err := GetFreshToken(server)
+		freshToken, err := getFreshToken(server)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
 
 		ctx.Next()

@@ -34,10 +34,10 @@ func login(server common.Server) func(ctx *gin.Context) {
 			},
 		)
 		err = server.GetQueryRunner().GetRows(q, userModelLoader)
-		if user == nil || err != nil {
+		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
+		if user == nil {
 			panic(common.NewHttpError(loginErr, http.StatusUnauthorized, nil))
 		}
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 

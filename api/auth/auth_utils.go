@@ -21,7 +21,7 @@ func CheckPassword(password string, hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func GetFreshToken(server common.Server) (string, error) {
+func getFreshToken(server common.Server) (string, error) {
 	genericError := errors.New("problem with refresh token creation")
 	authUser, err := server.GetAuthUser()
 	if err != nil {
