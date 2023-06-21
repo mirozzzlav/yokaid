@@ -27,7 +27,7 @@ func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]strin
 	}
 	action, exists := actionsMap[ctx.Request.Method]
 	if exists {
-		return []string{user.Username, user.Role, action, ctx.FullPath()}, nil
+		return []string{user.Username, user.Role, action, ctx.Request.URL.Path}, nil
 	}
 
 	return []string{}, nil
