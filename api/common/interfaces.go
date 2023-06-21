@@ -38,4 +38,5 @@ type QueriesRepo interface {
 	GetUserQuery(filter QueryPartial) Query
 	ListPoliciesQuery() Query
 	ListProfessionalsQuery(filter QueryPartial) Query
+	QueryUserTest(filter QueryPartial) Query
 }

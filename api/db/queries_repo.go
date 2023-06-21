@@ -60,6 +60,18 @@ func (qr QueriesRepo) ListPoliciesQuery() common.Query {
 
 }
 
+func (qr QueriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  `select * from "users" INNER JOIN "roles" ON "users"."role" = "roles"."name"`,
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+}
+
 func (qr QueriesRepo) ListProfessionalsQuery(filter common.QueryPartial) common.Query {
 
 	return dbQuery{

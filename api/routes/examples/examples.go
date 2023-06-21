@@ -8,8 +8,9 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/response/json", false, http.MethodGet, jsonResponse(server)},
-		{"/email/submit", false, http.MethodGet, submitEmail(server)},
-		{"/error/panic", false, http.MethodGet, panicError(server)},
+		{"/example/response", false, http.MethodGet, jsonResponse(server)},
+		{"/example/email", false, http.MethodGet, submitEmail(server)},
+		{"/example/panic", false, http.MethodGet, panicError(server)},
+		{"/example/query", false, http.MethodGet, query(server)},
 	}
 }
