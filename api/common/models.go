@@ -46,13 +46,12 @@ func ProfessionalsFiller() (*[]Professional, func(rowBytes []byte)) {
 
 func PoliciesFiller() (*[][]string, func(rowBytes []byte)) {
 	var policies [][]string
+
 	return &policies, func(rowBytes []byte) {
-		var mapObject map[string]any
-		_ = json.Unmarshal(rowBytes, &mapObject)
-		var policyRow []string
-		for _, value := range mapObject {
-			policyRow = append(policyRow, value.(string))
-		}
-		policies = append(policies, policyRow)
+		var policy []string
+		_ = json.Unmarshal(rowBytes, &policy)
+
+		policies = append(policies, policy)
+
 	}
 }

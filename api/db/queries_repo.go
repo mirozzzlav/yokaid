@@ -34,7 +34,9 @@ func (q dbQuery) GetQuery() (string, []any) {
 	return prepareQueryString(strings.Join(qStrings, " ")), params
 }
 
-func GetUserQuery(filter common.QueryPartial) common.Query {
+type QueriesRepo struct{}
+
+func (qr QueriesRepo) GetUserQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -46,7 +48,7 @@ func GetUserQuery(filter common.QueryPartial) common.Query {
 	}
 }
 
-func ListPoliciesQuery() common.Query {
+func (qr QueriesRepo) ListPoliciesQuery() common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -58,7 +60,7 @@ func ListPoliciesQuery() common.Query {
 
 }
 
-func ListProfessionalsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) ListProfessionalsQuery(filter common.QueryPartial) common.Query {
 
 	return dbQuery{
 		partials: []common.QueryPartial{

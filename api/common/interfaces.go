@@ -13,6 +13,7 @@ type Maker interface {
 type Server interface {
 	GetTokenMaker() Maker
 	GetQueryRunner() QueryRunner
+	GetQueriesRepo() QueriesRepo
 	GetConfig() Config
 	SetAuthUser(u AuthUser)
 	GetAuthUser() (AuthUser, error)
@@ -23,6 +24,7 @@ type Server interface {
 
 type QueryRunner interface {
 	GetRows(q Query, fn func(rowBytes []byte)) error
+	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 }
 type QueryPartialProcessor interface {
 	GetPartial() (QueryPartial, error)
@@ -30,4 +32,10 @@ type QueryPartialProcessor interface {
 
 type Query interface {
 	GetQuery() (string, []any)
+}
+
+type QueriesRepo interface {
+	GetUserQuery(filter QueryPartial) Query
+	ListPoliciesQuery() Query
+	ListProfessionalsQuery(filter QueryPartial) Query
 }

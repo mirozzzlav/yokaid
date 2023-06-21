@@ -18,9 +18,10 @@ type server struct {
 	routes      []common.Route
 	authUser    *common.AuthUser
 	queryRunner common.QueryRunner
+	queriesRepo common.QueriesRepo
 }
 
-func NewServer(config common.Config, queryRunner common.QueryRunner) (common.Server, error) {
+func NewServer(config common.Config, queryRunner common.QueryRunner, repo common.QueriesRepo) (common.Server, error) {
 	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -30,6 +31,7 @@ func NewServer(config common.Config, queryRunner common.QueryRunner) (common.Ser
 		config:      config,
 		queryRunner: queryRunner,
 		tokenMaker:  tokenMaker,
+		queriesRepo: repo,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -79,6 +81,11 @@ func (s *server) Start() error {
 func (s *server) GetQueryRunner() common.QueryRunner {
 	return s.queryRunner
 }
+
+func (s *server) GetQueriesRepo() common.QueriesRepo {
+	return s.queriesRepo
+}
+
 func (s *server) GetTokenMaker() common.Maker {
 	return s.tokenMaker
 }

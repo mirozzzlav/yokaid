@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// creating new server instance
-	server, err := serverPkg.NewServer(config, dbPkg.NewQueryRunner(db))
+	server, err := serverPkg.NewServer(config, dbPkg.NewQueryRunner(db), dbPkg.QueriesRepo{})
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

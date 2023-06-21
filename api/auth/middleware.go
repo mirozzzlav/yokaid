@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/common"
-	"rental-app/api/db"
 	"strings"
 )
 
@@ -47,7 +46,7 @@ func checkPolicies(server common.Server, ctx *gin.Context, authUser common.AuthU
 	}
 
 	policies, policiesFiller := common.PoliciesFiller()
-	err = server.GetQueryRunner().GetRows(db.ListPoliciesQuery(), policiesFiller)
+	err = server.GetQueryRunner().GetRowsAsArrayOfArrays(server.GetQueriesRepo().ListPoliciesQuery(), policiesFiller)
 	if err != nil {
 		return err, false
 	}
@@ -118,8 +117,8 @@ func Middleware(server common.Server) gin.HandlerFunc {
 		freshToken, err := GetFreshToken(server)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
 
+		ctx.Next()
 		err = addTokenToResponse(ctx, freshToken)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
-		ctx.Next()
 	}
 }

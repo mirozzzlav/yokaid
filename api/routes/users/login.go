@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"rental-app/api/auth"
 	"rental-app/api/common"
-	"rental-app/api/db"
 )
 
 type loginUserRequest struct {
@@ -28,7 +27,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
 
 		user, userFiller := common.UserFiller()
-		q := db.GetUserQuery(
+		q := server.GetQueriesRepo().GetUserQuery(
 			common.QueryPartial{
 				Query:  "username = ?",
 				Params: []any{req.Username},
