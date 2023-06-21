@@ -27,9 +27,6 @@ type QueryRunner interface {
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 	Update(q Query) (int, error)
 }
-type QueryPartialProcessor interface {
-	GetPartial() (QueryPartial, error)
-}
 
 type Query interface {
 	GetQuery() (string, []any)

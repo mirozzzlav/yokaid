@@ -62,15 +62,11 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	return fKey, fOperator, "?", params, nil
 }
 
-type FilterQueryPartialProcessor struct {
-	Filter string
-}
-
-func (f FilterQueryPartialProcessor) GetPartial() (common.QueryPartial, error) {
-	if f.Filter == "" {
+func GetFilterQueryPartial(f string) (common.QueryPartial, error) {
+	if f == "" {
 		return common.QueryPartial{Query: "", Params: []any{}}, nil
 	}
-	filters := strings.Split(f.Filter, ";")
+	filters := strings.Split(f, ";")
 	sql := ""
 	var params []any
 	sqlPartial := ""

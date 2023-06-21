@@ -15,7 +15,7 @@ func list(server common.Server) gin.HandlerFunc {
 		var err error
 		filter, _ := ctx.Params.Get("filter")
 
-		filterQP, err := (db.FilterQueryPartialProcessor{Filter: filter}).GetPartial()
+		filterQP, err := db.GetFilterQueryPartial(filter)
 		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalErr)
 
 		dbQuery := server.GetQueriesRepo().ListProfessionalsQuery(filterQP)
