@@ -66,7 +66,7 @@ func (qr QueriesRepo) ListPoliciesQuery() common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query:  `select subject, action, resource from policies`,
+				Query:  `select p.user, p.role, p.action, p.resource from policies as p`,
 				Params: []any{},
 			},
 		},

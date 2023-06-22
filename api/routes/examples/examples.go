@@ -11,6 +11,6 @@ func GetRoutes(server common.Server) []common.Route {
 		{"/example/response", false, http.MethodGet, jsonResponse(server)},
 		{"/example/email", false, http.MethodGet, submitEmail(server)},
 		{"/example/panic", false, http.MethodGet, panicError(server)},
-		{"/example/query", false, http.MethodGet, query(server)},
+		{"/example/query/:username", false, http.MethodGet, query(server)},
 	}
 }

@@ -54,16 +54,16 @@ func LoadConfig(mode string) (config Config, err error) {
 		Policy: AuthPolicyConfig{
 			Model: `
 				[request_definition]
-				r = sub, group, act, resource
+				r = user, role, act, resource
 				
 				[policy_definition]
-				p = sub, act, resource
+				p = user, role, act, resource
 				
 				[policy_effect]
 				e = some(where (p.eft == allow))
 				
 				[matchers]
-				m = r.group == 'admin' || ((r.group == p.sub || r.sub == p.sub) && r.act == p.act && keyMatch(r.resource,p.resource))
+				m = r.role == 'admin' || ((r.role == p.role || r.user == p.user) && r.act == p.act && keyMatch(r.resource,p.resource))
 			`,
 		},
 		Logs: getLogsConfig(),

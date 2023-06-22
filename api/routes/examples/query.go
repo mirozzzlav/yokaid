@@ -9,20 +9,20 @@ import (
 func query(server common.Server) func(ctx *gin.Context) {
 
 	return func(ctx *gin.Context) {
+		username, _ := ctx.Params.Get("username")
 		q := server.GetQueriesRepo().QueryUserTest(
 			common.QueryPartial{
-				Query:  "",
-				Params: []any{},
+				Query:  " WHERE username= ?",
+				Params: []any{username},
 			},
 		)
-		
-		err := server.GetQueryRunner().GetRows(q, func(result []byte) {
-			fmt.Println(result)
-		})
+		users, usersLoader := common.UserModelLoader()
+		err := server.GetQueryRunner().GetRows(q, usersLoader)
 
 		if err != nil {
 			fmt.Println(err)
 		}
+		common.SetOKJSONResponse(ctx, users)
 
 	}
 
