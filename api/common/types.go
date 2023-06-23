@@ -30,12 +30,17 @@ type Route struct {
 }
 
 type HttpError struct {
-	HttpCode    int
-	Error       error
-	OutputError error
+	Error        error
+	ResponseMeta ResponseMeta
 }
 
 type QueryPartial struct {
 	Query  string
 	Params []any
+}
+
+type ResponseMeta struct {
+	Code      int
+	Msg       string
+	ExtraData any
 }

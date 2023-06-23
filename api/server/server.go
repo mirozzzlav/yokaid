@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -67,7 +66,7 @@ func (s *server) initRouter() {
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			panic(common.NewHttpError(errors.New("route not found"), http.StatusNotFound, nil))
+			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusNotFound}))
 		},
 	)
 
@@ -98,11 +97,8 @@ func (s *server) SetAuthUser(u common.AuthUser) {
 	s.authUser = &u
 }
 
-func (s *server) GetAuthUser() (common.AuthUser, error) {
-	if s.authUser == nil {
-		return common.AuthUser{}, errors.New("unauthenticated user")
-	}
-	return *s.authUser, nil
+func (s *server) GetAuthUser() *common.AuthUser {
+	return s.authUser
 }
 
 func (s *server) IsPrivateRoute(path string) bool {

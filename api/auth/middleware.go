@@ -16,8 +16,6 @@ const (
 	typeBearer = "bearer"
 )
 
-var internalAuthError = errors.New("internal error occured during user authorization")
-
 func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]string, error) {
 	actionsMap := map[string]string{
 		http.MethodGet:    "read",
@@ -101,24 +99,24 @@ func Middleware(server common.Server) gin.HandlerFunc {
 			return
 		}
 		accessToken, err := getRequestToken(ctx)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, common.AuthErr)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized})
 
 		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, common.AuthErr)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized})
 
 		err, userPassedPolicy := checkPolicies(server, ctx, payload.User)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
+		common.CheckErrAndPanic(err)
 
 		if !userPassedPolicy {
-			common.CheckErrAndPanic(common.AuthErr, http.StatusUnauthorized, nil)
+			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusUnauthorized}))
 		}
 
 		server.SetAuthUser(payload.User)
 		freshToken, err := getFreshToken(server)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
+		common.CheckErrAndPanic(err)
 
 		ctx.Next()
 		err = addTokenToResponse(ctx, freshToken)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError, internalAuthError)
+		common.CheckErrAndPanic(err)
 	}
 }

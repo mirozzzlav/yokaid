@@ -23,11 +23,11 @@ func CheckPassword(password string, hashedPassword string) error {
 
 func getFreshToken(server common.Server) (string, error) {
 	genericError := errors.New("problem with refresh token creation")
-	authUser, err := server.GetAuthUser()
-	if err != nil {
+	authUser := server.GetAuthUser()
+	if authUser == nil {
 		return "", genericError
 	}
-	refreshToken, err := server.GetTokenMaker().CreateToken(authUser)
+	refreshToken, err := server.GetTokenMaker().CreateToken(*authUser)
 	if err != nil {
 		return "", genericError
 	}

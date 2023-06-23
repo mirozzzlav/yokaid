@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"math/rand"
 	"net/http"
 	"os"
@@ -22,41 +23,86 @@ func RandomString(length int) string {
 	return string(b)
 }
 
-func GetJSONResponse(err error, data any) gin.H {
-	if err != nil {
-		return gin.H{
-			"error": err.Error(),
+func SetOKJSONResponse(ctx *gin.Context, data any) {
+	ctx.JSON(
+		http.StatusOK,
+		gin.H{
+			"error": nil,
 			"data":  data,
+		},
+	)
+}
+
+func SetErrorJSONResponse(ctx *gin.Context, httpCode int, errMsg string, data ...any) {
+	var _data any = nil
+	if data != nil {
+		_data = data[0]
+	}
+	ctx.AbortWithStatusJSON(httpCode, gin.H{
+		"error": map[string]any{
+			"msg":        errMsg,
+			"extra_data": _data,
+		},
+		"data": nil,
+	})
+}
+
+func GetValidationErrors(errors any) []map[string]any {
+	validationErrors, haveValidationErrors := errors.(validator.ValidationErrors)
+	if !haveValidationErrors {
+		return nil
+	}
+
+	var res []map[string]any
+	for _, e := range validationErrors {
+		mappedErr := map[string]any{
+			"field":     e.StructField(),
+			"validator": e.Tag(),
+		}
+		res = append(res, mappedErr)
+	}
+	return res
+}
+
+func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
+
+	var _responseMeta ResponseMeta
+
+	if responseMeta == nil {
+		_responseMeta = ResponseMeta{
+			Code:      http.StatusInternalServerError,
+			ExtraData: nil,
+		}
+	} else {
+		_responseMeta = responseMeta[0]
+		if _responseMeta.Code == 0 { // if not filled in
+			_responseMeta.Code = http.StatusInternalServerError
+		}
+		if _responseMeta.Msg == "" {
+			_responseMeta.Msg = "hoops, internal server error give it an other try"
+
+			if _responseMeta.Code == http.StatusUnauthorized {
+				_responseMeta.Msg = "user is not authorized for the given request"
+			}
+
+			if _responseMeta.Code == http.StatusBadRequest {
+				_responseMeta.Msg = "bad request, given inputs are not valid"
+			}
+
+			if _responseMeta.Code == http.StatusNotFound {
+				_responseMeta.Msg = "page not found"
+			}
 		}
 	}
-	return gin.H{
-		"error": nil,
-		"data":  data,
-	}
-}
-
-func SetOKJSONResponse(ctx *gin.Context, data any) {
-	ctx.JSON(http.StatusOK, GetJSONResponse(nil, data))
-}
-
-func SetErrorJSONResponse(ctx *gin.Context, httpCode int, err error) {
-	ctx.AbortWithStatusJSON(httpCode, GetJSONResponse(err, nil))
-}
-
-func NewHttpError(err error, httpCode int, outputErr error) HttpError {
-	if outputErr == nil {
-		outputErr = err
-	}
 	return HttpError{
-		Error:       err,
-		HttpCode:    httpCode,
-		OutputError: outputErr,
+		Error:        err,
+		ResponseMeta: _responseMeta,
 	}
 }
 
-func CheckErrAndPanic(err error, httpCode int, outputErr error) {
+func CheckErrAndPanic(err error, respMeta ...ResponseMeta) {
 	if err != nil {
-		panic(NewHttpError(err, httpCode, outputErr))
+		panic(NewHttpError(err, respMeta...))
 	}
 }
 

@@ -1,7 +1,6 @@
 package users
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/auth"
@@ -19,12 +18,12 @@ type loginUserResponse struct {
 }
 
 func login(server common.Server) func(ctx *gin.Context) {
-	loginErr := errors.New("login failed, check your credentials")
+	loginErrMsg := "login failed, check your credentials"
 	return func(ctx *gin.Context) {
 		var req loginUserRequest
 
 		err := ctx.ShouldBindJSON(&req)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized, Msg: loginErrMsg})
 
 		user, userModelLoader := common.UserModelLoader()
 		q := server.GetQueriesRepo().GetUserQuery(
@@ -34,12 +33,17 @@ func login(server common.Server) func(ctx *gin.Context) {
 			},
 		)
 		err = server.GetQueryRunner().GetRows(q, userModelLoader)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
+		common.CheckErrAndPanic(err)
 		if user == nil {
-			panic(common.NewHttpError(loginErr, http.StatusUnauthorized, nil))
+			panic(
+				common.NewHttpError(
+					nil,
+					common.ResponseMeta{Code: http.StatusUnauthorized, Msg: loginErrMsg},
+				),
+			)
 		}
 		err = auth.CheckPassword(req.Password, user.HashedPassword)
-		common.CheckErrAndPanic(err, http.StatusUnauthorized, loginErr)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized, Msg: loginErrMsg})
 
 		authUser := common.AuthUser{
 			ID:       user.ID,
@@ -47,7 +51,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 			Role:     user.Role,
 		}
 		accessToken, err := server.GetTokenMaker().CreateToken(authUser)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError, errors.New("internal error on login"))
+		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(
 			ctx,

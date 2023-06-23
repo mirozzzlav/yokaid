@@ -1,41 +1,28 @@
 package examples
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"net/http"
-	"regexp"
 	"rental-app/api/common"
 )
 
-func emailValidation(fl validator.FieldLevel) bool {
-	email := fl.Field().String()
-
-	matched, _ := regexp.MatchString("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email)
-
-	return matched
-}
-
 type updateUserRequest struct {
-	Username string `json:"username" binding:"required,alphanum"`
+	Username string `json:"username" binding:"required,min=3"`
 	Fullname string `json:"fullname" binding:"required"`
-	Email    string `json:"email" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
 }
 
 func validate(server common.Server) func(ctx *gin.Context) {
-	validationErr := errors.New("bad inputs, user validation failed")
-	noUserErr := errors.New("given user doesn't exist")
-
 	return func(ctx *gin.Context) {
 		var req updateUserRequest
 
 		err := ctx.ShouldBindJSON(&req)
-		common.CheckErrAndPanic(err, http.StatusBadRequest, validationErr)
+		validationErrors := common.GetValidationErrors(err)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
 		id, idParamExist := ctx.Params.Get("id")
 		if !idParamExist {
-			panic(common.NewHttpError(noUserErr, http.StatusBadRequest, nil))
+			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 		}
 		q := server.GetQueriesRepo().UpdateUserQuery(
 			common.QueryPartial{
@@ -49,10 +36,10 @@ func validate(server common.Server) func(ctx *gin.Context) {
 		)
 
 		updatedUsers, err := server.GetQueryRunner().Update(q)
-		common.CheckErrAndPanic(err, http.StatusInternalServerError, errors.New("internal error while updating user"))
+		common.CheckErrAndPanic(err)
 
 		if updatedUsers == 0 {
-			panic(common.NewHttpError(noUserErr, http.StatusBadRequest, nil))
+			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 		}
 		common.SetOKJSONResponse(ctx, "user successfully updated")
 	}

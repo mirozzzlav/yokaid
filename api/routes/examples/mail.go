@@ -1,7 +1,6 @@
 package examples
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"rental-app/api/common"
 )
@@ -21,7 +20,7 @@ func submitEmail(_ common.Server) gin.HandlerFunc {
 		if statusCode == 202 {
 			common.SetOKJSONResponse(ctx, "Email sent successfully")
 		} else {
-			common.SetErrorJSONResponse(ctx, statusCode, errors.New("error sending email"))
+			common.SetErrorJSONResponse(ctx, statusCode, "error sending email")
 		}
 
 	}

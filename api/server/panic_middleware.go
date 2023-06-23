@@ -1,7 +1,10 @@
 package server
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"rental-app/api/common"
 )
 
@@ -14,8 +17,16 @@ func panicMiddleware(s *server) gin.HandlerFunc {
 			}
 
 			if httpError, castingOk := r.(common.HttpError); castingOk {
-				s.logError(ctx, httpError.Error)
-				common.SetErrorJSONResponse(ctx, httpError.HttpCode, httpError.OutputError)
+				if httpError.Error != nil && httpError.ResponseMeta.Code == http.StatusInternalServerError {
+					s.logError(ctx, httpError.Error)
+				}
+				common.SetErrorJSONResponse(
+					ctx, httpError.ResponseMeta.Code,
+					httpError.ResponseMeta.Msg,
+					httpError.ResponseMeta.ExtraData,
+				)
+			} else {
+				s.logError(ctx, errors.New(fmt.Sprintf("%s", r)))
 			}
 
 		}()

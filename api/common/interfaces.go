@@ -16,7 +16,7 @@ type Server interface {
 	GetQueriesRepo() QueriesRepo
 	GetConfig() Config
 	SetAuthUser(u AuthUser)
-	GetAuthUser() (AuthUser, error)
+	GetAuthUser() *AuthUser
 	IsPrivateRoute(path string) bool
 	Start() error
 	Close()
