@@ -1,7 +1,6 @@
 package common
 
 import (
-	"database/sql"
 	"encoding/json"
 	"time"
 )
@@ -12,7 +11,7 @@ type User struct {
 	Fullname          string
 	Email             string
 	HashedPassword    string
-	PasswordChangedAt sql.NullTime
+	PasswordChangedAt *time.Time
 	CreatedAt         time.Time
 	Role              string
 }
