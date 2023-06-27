@@ -8,8 +8,8 @@ import (
 )
 
 type loginUserRequest struct {
-	Username string `json:"username" binding:"required,alphanum"`
-	Password string `json:"password" binding:"required,min=6"`
+	UsernameOrEmail string `json:"username_or_email" binding:"required"`
+	Password        string `json:"password" binding:"required"`
 }
 
 type loginUserResponse struct {
@@ -19,7 +19,7 @@ type loginUserResponse struct {
 
 const credentialsErr = "login failed, check your credentials"
 
-func getVerifiedUser(server common.Server, username string, password string) (*common.User, *common.HttpError) {
+func getVerifiedUser(server common.Server, usernameOrEmail string, password string) (*common.User, *common.HttpError) {
 	loginErr := common.NewHttpError(
 		nil,
 		common.ResponseMeta{
@@ -28,27 +28,24 @@ func getVerifiedUser(server common.Server, username string, password string) (*c
 		},
 	)
 
-	user, userModelLoader := common.UserModelLoader()
-	q := server.GetQueriesRepo().GetUserQuery(
+	usersRef, UsersModelLoader := common.UsersModelLoader()
+	q := server.GetQueriesRepo().GetUsersQuery(
 		common.QueryPartial{
-			Query:  "username = ?",
-			Params: []any{username},
+			Query:  "username = ? or email = ?",
+			Params: []any{usernameOrEmail, usernameOrEmail},
 		},
 	)
-	err := server.GetQueryRunner().GetRows(q, userModelLoader)
+	err := server.GetQueryRunner().GetRows(q, UsersModelLoader)
 	if err != nil {
 		loginErr = common.NewHttpError(err)
 		return nil, &loginErr
 	}
-	if user == nil {
+	if len(*usersRef) == 0 {
 		return nil, &loginErr
 	}
-	err = auth.CheckPassword(password, user.HashedPassword)
-	if err != nil {
-		return nil, &loginErr
-	}
+	user := (*usersRef)[0]
 
-	if user.PasswordChangedAt == nil {
+	if user.Active == false {
 		loginErr = common.NewHttpError(
 			nil,
 			common.ResponseMeta{
@@ -58,7 +55,12 @@ func getVerifiedUser(server common.Server, username string, password string) (*c
 		return nil, &loginErr
 	}
 
-	return user, nil
+	err = auth.CheckPassword(password, user.HashedPassword)
+	if err != nil {
+		return nil, &loginErr
+	}
+
+	return &user, nil
 
 }
 
@@ -69,7 +71,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 		err := ctx.ShouldBindJSON(&req)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized, Msg: credentialsErr})
 
-		user, httpErr := getVerifiedUser(server, req.Username, req.Password)
+		user, httpErr := getVerifiedUser(server, req.UsernameOrEmail, req.Password)
 		if httpErr != nil {
 			panic(*httpErr)
 		}

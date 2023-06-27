@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 	"rental-app/api/auth"
 	"rental-app/api/common"
@@ -18,6 +19,7 @@ type server struct {
 	authUser    *common.AuthUser
 	queryRunner common.QueryRunner
 	queriesRepo common.QueriesRepo
+	validate    *validator.Validate
 }
 
 func NewServer(config common.Config, queryRunner common.QueryRunner, repo common.QueriesRepo) (common.Server, error) {
@@ -26,17 +28,29 @@ func NewServer(config common.Config, queryRunner common.QueryRunner, repo common
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
+	validate := validator.New()
+	err = validate.RegisterValidation("publicRoles", common.PublicRolesValidator)
+	if err != nil {
+		return nil, err
+	}
+	err = validate.RegisterValidation("passwords", common.PasswordValidator)
+	if err != nil {
+		return nil, err
+	}
+
 	server := &server{
 		config:      config,
 		queryRunner: queryRunner,
 		tokenMaker:  tokenMaker,
 		queriesRepo: repo,
+		validate:    validate,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
 	if err != nil {
 		return nil, err
 	}
+
 	return server, nil
 }
 
@@ -112,4 +126,8 @@ func (s *server) IsPrivateRoute(path string) bool {
 
 func (s *server) Close() {
 	*s = server{}
+}
+
+func (s *server) GetValidate() *validator.Validate {
+	return s.validate
 }

@@ -21,7 +21,11 @@ type Config struct {
 	Url                 string
 	Policy              AuthPolicyConfig
 	Logs                logsConfig
+	PublicRoles         []string
 }
+
+var publicRoles = []string{"professional", "guest"}
+var ErrNoRows = errors.New("no rows in result set")
 
 func getLogsConfig() logsConfig {
 	logsToScreen, err := strconv.ParseBool(os.Getenv("LOGS_TO_SCREEN"))

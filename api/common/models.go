@@ -6,14 +6,14 @@ import (
 )
 
 type User struct {
-	ID                int
-	Username          string
-	Fullname          string
-	Email             string
-	HashedPassword    string
-	PasswordChangedAt *time.Time
-	CreatedAt         time.Time
-	Role              string
+	ID             int
+	Username       string
+	FullName       string
+	Email          string
+	HashedPassword string
+	Active         bool
+	CreatedAt      time.Time
+	Role           string
 }
 
 type Service struct {
@@ -21,15 +21,23 @@ type Service struct {
 	Desc string
 }
 type Professional struct {
-	Fullname string
+	FullName string
 	Rating   int
 	Services []Service
 }
 
-func UserModelLoader() (*User, func(rowBytes []byte)) {
-	var user User
-	return &user, func(rowBytes []byte) {
+type PasswordChangeRequest struct {
+	UserId   int
+	CratedAt time.Time
+	Token    string
+}
+
+func UsersModelLoader() (*[]User, func(rowBytes []byte)) {
+	var users []User
+	return &users, func(rowBytes []byte) {
+		var user User
 		_ = json.Unmarshal(rowBytes, &user)
+		users = append(users, user)
 	}
 }
 
@@ -52,5 +60,14 @@ func PoliciesModelLoader() (*[][]string, func(rowBytes []byte)) {
 
 		policies = append(policies, policy)
 
+	}
+}
+
+func PasswordChangeRequestsModelLoader() (*[]PasswordChangeRequest, func(rowBytes []byte)) {
+	var requests []PasswordChangeRequest
+	return &requests, func(rowBytes []byte) {
+		var req PasswordChangeRequest
+		_ = json.Unmarshal(rowBytes, &req)
+		requests = append(requests, req)
 	}
 }

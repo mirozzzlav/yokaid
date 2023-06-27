@@ -36,7 +36,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetUserQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetUsersQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -48,7 +48,31 @@ func (qr QueriesRepo) GetUserQuery(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr QueriesRepo) UpdateUserQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  `select count(id) from users where `,
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+}
+
+func (qr QueriesRepo) CreateUserQuery(data common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "insert into users ",
+				Params: []any{},
+			},
+			data,
+		},
+	}
+}
+
+func (qr QueriesRepo) UpdateUsersQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
 	filter.Query = " where " + filter.Query
 	return dbQuery{
 		partials: []common.QueryPartial{
@@ -92,10 +116,10 @@ func (qr QueriesRepo) ListProfessionalsQuery(filter common.QueryPartial) common.
 		partials: []common.QueryPartial{
 			{
 				Query: "SELECT * FROM (" +
-					"SELECT u.fullname, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
+					"SELECT u.full_name, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
 					"FROM professionals p, users u, professionals_services ps, services s " +
 					"WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name " +
-					"GROUP BY u.username, u.fullname, p.rating" +
+					"GROUP BY u.username, u.full_name, p.rating" +
 					") AS pros WHERE 1=1 ",
 				Params: []any{},
 			},
@@ -105,11 +129,38 @@ func (qr QueriesRepo) ListProfessionalsQuery(filter common.QueryPartial) common.
 
 }
 
-//func UpdateUserQuery(data common.Query, filter common.Query) common.Query {
-//	query := "update user set fullname = ?, email = ? WHERE 1=1"
-//	Fullname          string
-//	Email             string
-//	//	q := mergeStoreQueries(filter, data)
-//	return MergeQueries()
-//	return common.Query{}
-//}
+func (qr QueriesRepo) CreatePasswordChangeRequestQuery(data common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "INSERT INTO password_change_requests",
+				Params: []any{},
+			},
+			data,
+		},
+	}
+}
+
+func (qr QueriesRepo) GetPasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "SELECT * FROM password_change_requests WHERE ",
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+}
+
+func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "DELETE FROM password_change_requests WHERE ",
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+}

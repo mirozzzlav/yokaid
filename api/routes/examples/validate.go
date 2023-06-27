@@ -8,7 +8,7 @@ import (
 
 type updateUserRequest struct {
 	Username string `json:"username" binding:"required,min=3"`
-	Fullname string `json:"fullname" binding:"required"`
+	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 }
 
@@ -24,10 +24,10 @@ func validate(server common.Server) func(ctx *gin.Context) {
 		if !idParamExist {
 			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 		}
-		q := server.GetQueriesRepo().UpdateUserQuery(
+		q := server.GetQueriesRepo().UpdateUsersQuery(
 			common.QueryPartial{
-				Query:  "username = ?, fullname = ?, email = ?",
-				Params: []any{req.Username, req.Fullname, req.Email},
+				Query:  "username = ?, full_name = ?, email = ?",
+				Params: []any{req.Username, req.FullName, req.Email},
 			},
 			common.QueryPartial{
 				Query:  "id = ?",
@@ -35,12 +35,9 @@ func validate(server common.Server) func(ctx *gin.Context) {
 			},
 		)
 
-		updatedUsers, err := server.GetQueryRunner().Update(q)
+		err = server.GetQueryRunner().Update(q)
 		common.CheckErrAndPanic(err)
 
-		if updatedUsers == 0 {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
-		}
 		common.SetOKJSONResponse(ctx, "user successfully updated")
 	}
 }

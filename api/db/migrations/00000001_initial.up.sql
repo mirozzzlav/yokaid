@@ -65,15 +65,26 @@ CREATE TABLE "services" (
 CREATE TABLE "users" (
     "id" serial NOT NULL,
     "username" character varying(32) NOT NULL,
-    "fullname" character varying(32) NOT NULL,
+    "full_name" character varying(32) NOT NULL,
     "email" character varying(64) NOT NULL,
-    "hashed_password" character varying(256) NOT NULL,
-    "password_changed_at" timestamp,
+    "hashed_password" character varying(256) NULL,
+    "active" boolean DEFAULT FALSE NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "role" character varying(32) DEFAULT 'guest' NOT NULL,
     CONSTRAINT "users_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "users_username_key" UNIQUE ("username")
 ) WITH (oids = false);
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE "password_change_requests" (
+    "user_id" integer NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "token" character varying(64) DEFAULT uuid_generate_v4() NOT NULL,
+    CONSTRAINT "password_change_requests_pkey" PRIMARY KEY ("user_id")
+) WITH (oids = false);
+
+
 
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_action_fkey" FOREIGN KEY (action) REFERENCES actions(name) NOT DEFERRABLE;
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_role_fkey" FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
@@ -84,9 +95,9 @@ ALTER TABLE ONLY "professionals_services" ADD CONSTRAINT "professionals_services
 ALTER TABLE ONLY "rentals" ADD CONSTRAINT "rentals_professional_fkey" FOREIGN KEY (professional) REFERENCES professionals(id) NOT DEFERRABLE;
 ALTER TABLE ONLY "rentals" ADD CONSTRAINT "rentals_renter_fkey" FOREIGN KEY (renter) REFERENCES users(id) NOT DEFERRABLE;
 ALTER TABLE ONLY "users" ADD CONSTRAINT "users_role_fkey" FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE SET DEFAULT NOT DEFERRABLE;
-
+ALTER TABLE ONLY "password_change_requests" ADD CONSTRAINT "requests_user_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 /*
-INSERT INTO "users" ("id", "username", "fullname", "email", "hashed_password", "password_changed_at", "created_at", "role") VALUES
+INSERT INTO "users" ("id", "username", "full_name", "email", "hashed_password", "password_changed_at", "created_at", "role") VALUES
 (3,	'milan',	'milan ko',	'mi@lan.sk',	'$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e',	NULL,	'2023-06-15 16:08:21.721551',	'guest'),
 (1,	'miro',	'mi li nko',	'miro.furo@tuta.io',	'$2a$10$XrcRWW8YabW.hRcSXJSkxugBwCo0AgUthlwAE/Nae2fOW8oJZWBBm',	NULL,	'2023-06-05 08:02:39.732293',	'professional');
 

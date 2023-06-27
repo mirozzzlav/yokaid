@@ -8,19 +8,21 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
+	"unicode"
 )
 
-func RandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+func randomString(length int, charset string) string {
+	var charsetRune = []rune(charset)
 
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+		b[i] = charsetRune[rand.Intn(len(charsetRune))]
 	}
 	return string(b)
+}
+
+func RandomString(length int) string {
+	return randomString(length, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_#$.!@")
 }
 
 func SetOKJSONResponse(ctx *gin.Context, data any) {
@@ -70,30 +72,48 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 
 	if responseMeta == nil {
 		_responseMeta = ResponseMeta{
-			Code:      http.StatusInternalServerError,
 			ExtraData: nil,
 		}
 	} else {
 		_responseMeta = responseMeta[0]
-		if _responseMeta.Code == 0 { // if not filled in
-			_responseMeta.Code = http.StatusInternalServerError
-		}
-		if _responseMeta.Msg == "" {
-			_responseMeta.Msg = "hoops, internal server error give it an other try"
+	}
 
-			if _responseMeta.Code == http.StatusUnauthorized {
-				_responseMeta.Msg = "user is not authorized for the given request"
-			}
-
-			if _responseMeta.Code == http.StatusBadRequest {
-				_responseMeta.Msg = "bad request, given inputs are not valid"
-			}
-
-			if _responseMeta.Code == http.StatusNotFound {
-				_responseMeta.Msg = "page not found"
-			}
+	if err == ErrNoRows {
+		_responseMeta.Code = http.StatusBadRequest
+		_responseMeta.Msg = "no results found for the given request"
+		return HttpError{
+			Error:        err,
+			ResponseMeta: _responseMeta,
 		}
 	}
+
+	if _responseMeta.Code == 0 { // if not filled in
+		_responseMeta.Code = http.StatusInternalServerError
+	}
+
+	if _responseMeta.Msg != "" {
+		return HttpError{
+			Error:        err,
+			ResponseMeta: _responseMeta,
+		}
+	}
+
+	if _responseMeta.Code == http.StatusInternalServerError {
+		_responseMeta.Msg = "hoops, internal server error give it an other try"
+	}
+
+	if _responseMeta.Code == http.StatusUnauthorized {
+		_responseMeta.Msg = "user is not authorized for the given request"
+	}
+
+	if _responseMeta.Code == http.StatusBadRequest {
+		_responseMeta.Msg = "bad request, given inputs are not valid"
+	}
+
+	if _responseMeta.Code == http.StatusNotFound {
+		_responseMeta.Msg = "page not found"
+	}
+
 	return HttpError{
 		Error:        err,
 		ResponseMeta: _responseMeta,
@@ -144,4 +164,33 @@ func ToPascalCase(snakeCase string) string {
 	})
 
 	return strings.ToUpper(snakeCase[0:1]) + result
+}
+
+func PublicRolesValidator(fl validator.FieldLevel) bool {
+	fieldValue := fl.Field().String()
+
+	for _, allowedValue := range publicRoles {
+		if fieldValue == allowedValue {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PasswordValidator(fl validator.FieldLevel) bool {
+	password := fl.Field().String()
+
+	num, upper, special := 0, 0, 0
+	for _, c := range password {
+		switch {
+		case unicode.IsNumber(c):
+			num++
+		case unicode.IsUpper(c):
+			upper++
+		case unicode.IsPunct(c) || unicode.IsSymbol(c):
+			special++
+		}
+	}
+	return num > 0 && upper > 0 && special > 0 && len(password) >= 8
 }

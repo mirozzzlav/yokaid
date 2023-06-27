@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/go-playground/validator/v10"
 	"time"
 )
 
@@ -18,14 +19,18 @@ type Server interface {
 	SetAuthUser(u AuthUser)
 	GetAuthUser() *AuthUser
 	IsPrivateRoute(path string) bool
+	GetValidate() *validator.Validate
 	Start() error
 	Close()
 }
 
 type QueryRunner interface {
+	GetScalar(q Query) (int, error)
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
-	Update(q Query) (int, error)
+	Update(q Query) error
+	Create(q Query, IdColumnName string) (int, error)
+	Delete(q Query) error
 }
 
 type Query interface {
@@ -33,9 +38,14 @@ type Query interface {
 }
 
 type QueriesRepo interface {
-	GetUserQuery(filter QueryPartial) Query
-	UpdateUserQuery(data QueryPartial, filter QueryPartial) Query
+	GetUsersQuery(filter QueryPartial) Query
+	GetUsersCountQuery(filter QueryPartial) Query
+	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
+	CreateUserQuery(data QueryPartial) Query
 	ListPoliciesQuery() Query
 	ListProfessionalsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
+	CreatePasswordChangeRequestQuery(data QueryPartial) Query
+	GetPasswordChangeRequestsQuery(data QueryPartial) Query
+	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 }
