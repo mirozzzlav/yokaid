@@ -44,7 +44,7 @@ type QueriesRepo interface {
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	CreateUserQuery(data QueryPartial) Query
 	ListPoliciesQuery() Query
-	ListProfessionalsQuery(filter QueryPartial) Query
+	ListPostsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
 	CreatePasswordChangeRequestQuery(data QueryPartial) Query
 	GetPasswordChangeRequestsQuery(data QueryPartial) Query

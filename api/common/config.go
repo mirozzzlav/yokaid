@@ -24,7 +24,7 @@ type Config struct {
 	PublicRoles         []string
 }
 
-var publicRoles = []string{"professional", "guest"}
+var publicRoles = []string{"guest"}
 var ErrNoRows = errors.New("no rows in result set")
 
 func getLogsConfig() logsConfig {

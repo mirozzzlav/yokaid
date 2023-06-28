@@ -11,14 +11,17 @@ import (
 var filterError = errors.New("wrong filter specified")
 
 func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string) (string, bool) {
+
 	var filterSQLSpecial = map[string]string{
-		"services": "EXISTS (select 1 FROM json_array_elements(services) AS service_json WHERE service_json ->>'%s' %s %s)",
+		"author": fmt.Sprintf("users.full_name %s %s", fOperator, fValuePlaceholder),
 	}
 
-	for special := range filterSQLSpecial {
-		if strings.HasPrefix(fKey, special) {
-			fKey = strings.Replace(fKey, special+".", "", -1)
-			return fmt.Sprintf(filterSQLSpecial[special], fKey, fOperator, fValuePlaceholder), true
+	fKey = strings.ToLower(fKey)
+	for k, special := range filterSQLSpecial {
+		if fKey == k {
+			//fKey = strings.ToLower(fKey)
+			//fKey = strings.Replace(fKey, special+".", "", -1)
+			return special, true
 		}
 	}
 	return "", false

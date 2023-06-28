@@ -110,17 +110,14 @@ func (qr QueriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr QueriesRepo) ListProfessionalsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
 
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: "SELECT * FROM (" +
-					"SELECT u.full_name, p.rating, json_agg(jsonb_build_object('name', s.name, 'desc', s.desc)) as services " +
-					"FROM professionals p, users u, professionals_services ps, services s " +
-					"WHERE p.user = u.id AND ps.professional = p.id AND ps.service = s.name " +
-					"GROUP BY u.username, u.full_name, p.rating" +
-					") AS pros WHERE 1=1 ",
+				Query: "SELECT full_name as author, latitude, longitude, text, posts.created_at " +
+					"FROM posts, users " +
+					"WHERE posts.author = users.id ",
 				Params: []any{},
 			},
 			filter,

@@ -3,12 +3,7 @@ CREATE TABLE "actions" (
     CONSTRAINT "actions_pkey" PRIMARY KEY ("name")
 ) WITH (oids = false);
 
-INSERT INTO "actions" ("name") VALUES
-('read'),
-('create'),
-('update'),
-('delete');
-
+INSERT INTO "actions" ("name") VALUES ('read'), ('create'), ('update'), ('delete');
 
 CREATE TABLE "policies" (
     "id" serial NOT NULL,
@@ -19,31 +14,14 @@ CREATE TABLE "policies" (
     CONSTRAINT "policies_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
-INSERT INTO "policies" ("id", "user", "role", "action", "resource") VALUES
-(6,	NULL,	'professional',	'read',	'/professionals/list*');
-
-
-CREATE TABLE "professionals" (
+CREATE TABLE "posts" (
     "id" serial NOT NULL,
-    "user" integer NOT NULL,
-    "rating" integer NOT NULL,
-    CONSTRAINT "professionals_pk" PRIMARY KEY ("id")
-) WITH (oids = false);
-
-CREATE TABLE "professionals_services" (
-    "professional" integer NOT NULL,
-    "service" character varying(64) NOT NULL,
-    CONSTRAINT "professionals_services_pk" PRIMARY KEY ("professional", "service")
-) WITH (oids = false);
-
-CREATE TABLE "rentals" (
-    "id" serial NOT NULL,
-    "rented_from" timestamp NOT NULL,
-    "rented_to" timestamp NOT NULL,
-    "status" character varying NOT NULL,
-    "professional" integer NOT NULL,
-    "renter" integer NOT NULL,
-    CONSTRAINT "rentals_pk" PRIMARY KEY ("id")
+    "author" integer NOT NULL,
+    "latitude"  real NOT NULL,
+	"longitude" real NOT NULL,
+	"text" text NOT NULL,
+	"created_at" timestamp NOT NULL DEFAULT now(),
+    CONSTRAINT "posts_pk" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
 CREATE TABLE "roles" (
@@ -51,16 +29,7 @@ CREATE TABLE "roles" (
     CONSTRAINT "roles_pkey" PRIMARY KEY ("name")
 ) WITH (oids = false);
 
-INSERT INTO "roles" ("name") VALUES
-('admin'),
-('professional'),
-('guest');
-
-CREATE TABLE "services" (
-    "name" character varying(64) NOT NULL,
-    "desc" text NOT NULL,
-    CONSTRAINT "services_pk" PRIMARY KEY ("name")
-) WITH (oids = false);
+INSERT INTO "roles" ("name") VALUES ('admin'), ('guest');
 
 CREATE TABLE "users" (
     "id" serial NOT NULL,
@@ -85,24 +54,15 @@ CREATE TABLE "password_change_requests" (
 ) WITH (oids = false);
 
 
-
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_action_fkey" FOREIGN KEY (action) REFERENCES actions(name) NOT DEFERRABLE;
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_role_fkey" FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_subject_fkey" FOREIGN KEY ("user") REFERENCES users(username) NOT DEFERRABLE;
-ALTER TABLE ONLY "professionals" ADD CONSTRAINT "professionals_user_fkey" FOREIGN KEY ("user") REFERENCES users(id) NOT DEFERRABLE;
-ALTER TABLE ONLY "professionals_services" ADD CONSTRAINT "professionals_services_professional_fkey" FOREIGN KEY (professional) REFERENCES professionals(id) NOT DEFERRABLE;
-ALTER TABLE ONLY "professionals_services" ADD CONSTRAINT "professionals_services_service_fkey" FOREIGN KEY (service) REFERENCES services(name) NOT DEFERRABLE;
-ALTER TABLE ONLY "rentals" ADD CONSTRAINT "rentals_professional_fkey" FOREIGN KEY (professional) REFERENCES professionals(id) NOT DEFERRABLE;
-ALTER TABLE ONLY "rentals" ADD CONSTRAINT "rentals_renter_fkey" FOREIGN KEY (renter) REFERENCES users(id) NOT DEFERRABLE;
+ALTER TABLE ONLY "posts" ADD CONSTRAINT "posts_user_fkey" FOREIGN KEY ("author") REFERENCES users(id) NOT DEFERRABLE;
 ALTER TABLE ONLY "users" ADD CONSTRAINT "users_role_fkey" FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE SET DEFAULT NOT DEFERRABLE;
 ALTER TABLE ONLY "password_change_requests" ADD CONSTRAINT "requests_user_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+
 /*
 INSERT INTO "users" ("id", "username", "full_name", "email", "hashed_password", "password_changed_at", "created_at", "role") VALUES
 (3,	'milan',	'milan ko',	'mi@lan.sk',	'$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e',	NULL,	'2023-06-15 16:08:21.721551',	'guest'),
 (1,	'miro',	'mi li nko',	'miro.furo@tuta.io',	'$2a$10$XrcRWW8YabW.hRcSXJSkxugBwCo0AgUthlwAE/Nae2fOW8oJZWBBm',	NULL,	'2023-06-05 08:02:39.732293',	'professional');
-
-INSERT INTO "services" ("name", "desc") VALUES
-('web development',	'web development desc'),
-('hacking',	'pen tests'),
-('trubkarcina',	'Trubky vymiena more');
 */

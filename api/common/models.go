@@ -5,6 +5,20 @@ import (
 	"time"
 )
 
+type timeCustom struct {
+	time.Time
+}
+
+func (t *timeCustom) UnmarshalJSON(b []byte) error {
+
+	tRes, err := time.Parse("\"2006-01-02T15:04:05.999999Z\"", string(b))
+	if err != nil {
+		return err
+	}
+	t.Time = tRes
+	return nil
+}
+
 type User struct {
 	ID             int
 	Username       string
@@ -12,24 +26,22 @@ type User struct {
 	Email          string
 	HashedPassword string
 	Active         bool
-	CreatedAt      time.Time
+	CreatedAt      timeCustom
 	Role           string
 }
 
-type Service struct {
-	Name string
-	Desc string
-}
-type Professional struct {
-	FullName string
-	Rating   int
-	Services []Service
+type post struct {
+	Author    string
+	Latitude  float64
+	Longitude float64
+	Text      string
+	CreatedAt timeCustom
 }
 
-type PasswordChangeRequest struct {
-	UserId   int
-	CratedAt time.Time
-	Token    string
+type passwordChangeRequest struct {
+	UserId    int
+	CreatedAt timeCustom
+	Token     string
 }
 
 func UsersModelLoader() (*[]User, func(rowBytes []byte)) {
@@ -41,13 +53,13 @@ func UsersModelLoader() (*[]User, func(rowBytes []byte)) {
 	}
 }
 
-func ProfessionalsModelLoader() (*[]Professional, func(rowBytes []byte)) {
-	var pros []Professional
+func PostsModelLoader() (*[]post, func(rowBytes []byte)) {
+	var posts []post
 
-	return &pros, func(rowBytes []byte) {
-		var pro Professional
-		_ = json.Unmarshal(rowBytes, &pro)
-		pros = append(pros, pro)
+	return &posts, func(rowBytes []byte) {
+		var post post
+		_ = json.Unmarshal(rowBytes, &post)
+		posts = append(posts, post)
 	}
 }
 
@@ -63,10 +75,10 @@ func PoliciesModelLoader() (*[][]string, func(rowBytes []byte)) {
 	}
 }
 
-func PasswordChangeRequestsModelLoader() (*[]PasswordChangeRequest, func(rowBytes []byte)) {
-	var requests []PasswordChangeRequest
+func PasswordChangeRequestsModelLoader() (*[]passwordChangeRequest, func(rowBytes []byte)) {
+	var requests []passwordChangeRequest
 	return &requests, func(rowBytes []byte) {
-		var req PasswordChangeRequest
+		var req passwordChangeRequest
 		_ = json.Unmarshal(rowBytes, &req)
 		requests = append(requests, req)
 	}

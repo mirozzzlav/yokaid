@@ -1,4 +1,4 @@
-package professionals
+package posts
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,17 +7,17 @@ import (
 
 func list(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		pros, prosModelLoader := common.ProfessionalsModelLoader()
+		posts, postsModelLoader := common.PostsModelLoader()
 		var err error
 		filter, _ := ctx.Params.Get("filter")
 
 		filterQP, err := server.GetStoreHelpers().HandleFilter(filter)
 		common.CheckErrAndPanic(err)
 
-		dbQuery := server.GetQueriesRepo().ListProfessionalsQuery(filterQP)
-		err = server.GetQueryRunner().GetRows(dbQuery, prosModelLoader)
+		dbQuery := server.GetQueriesRepo().ListPostsQuery(filterQP)
+		err = server.GetQueryRunner().GetRows(dbQuery, postsModelLoader)
 
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, pros)
+		common.SetOKJSONResponse(ctx, posts)
 	}
 }
