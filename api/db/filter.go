@@ -62,16 +62,16 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	return fKey, fOperator, "?", params, nil
 }
 
-func GetFilterQueryPartial(f string) (common.QueryPartial, error) {
-	if f == "" {
+func handleFilter(filter string) (common.QueryPartial, error) {
+	if filter == "" {
 		return common.QueryPartial{Query: "", Params: []any{}}, nil
 	}
-	filters := strings.Split(f, ";")
+	filters := strings.Split(filter, ";")
 	sql := ""
 	var params []any
 	sqlPartial := ""
-	for _, filter := range filters {
-		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(filter)
+	for _, f := range filters {
+		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(f)
 		if err != nil {
 			return common.QueryPartial{}, filterError
 		}

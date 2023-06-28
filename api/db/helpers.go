@@ -24,18 +24,23 @@ func columnNameToObjName(colName string) string {
 	return common.ToPascalCase(colName)
 }
 
-func getTempUsername(fullName string) string {
+func getUsernameBase(fullName string) string {
 	return strings.ToLower(strings.ReplaceAll(fullName, " ", "_"))
 }
 
-func GenerateUserName(server common.Server, fullName string) (string, error) {
-	tempUsername := getTempUsername(fullName)
-	q := server.GetQueriesRepo().GetUsersCountQuery(common.QueryPartial{
+type StoreHelpers struct {
+	QueryRunner common.QueryRunner
+	QueriesRepo common.QueriesRepo
+}
+
+func (sH StoreHelpers) GenerateUserName(fullName string) (string, error) {
+	tempUsername := getUsernameBase(fullName)
+	q := sH.QueriesRepo.GetUsersCountQuery(common.QueryPartial{
 		Query:  "username LIKE ?",
 		Params: []any{tempUsername + "%"},
 	})
 
-	userDuplicates, err := server.GetQueryRunner().GetScalar(q)
+	userDuplicates, err := sH.QueryRunner.GetScalar(q)
 	if err == common.ErrNoRows {
 		return tempUsername, nil
 	}
@@ -48,4 +53,8 @@ func GenerateUserName(server common.Server, fullName string) (string, error) {
 		usernameSuffix = fmt.Sprintf("@%d", userDuplicates)
 	}
 	return tempUsername + usernameSuffix, nil
+}
+
+func (_ StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) {
+	return handleFilter(filter)
 }

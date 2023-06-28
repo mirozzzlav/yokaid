@@ -20,8 +20,11 @@ func main() {
 		log.Fatal("cannot connect to db:", err)
 	}
 
+	queryRunner := dbPkg.NewQueryRunner(db)
+	queriesRepo := dbPkg.QueriesRepo{}
+	storeHelpers := dbPkg.StoreHelpers{QueryRunner: queryRunner, QueriesRepo: queriesRepo}
 	// creating new server instance
-	server, err := serverPkg.NewServer(config, dbPkg.NewQueryRunner(db), dbPkg.QueriesRepo{})
+	server, err := serverPkg.NewServer(config, queryRunner, queriesRepo, storeHelpers)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

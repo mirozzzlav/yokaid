@@ -15,6 +15,7 @@ type Server interface {
 	GetTokenMaker() Maker
 	GetQueryRunner() QueryRunner
 	GetQueriesRepo() QueriesRepo
+	GetStoreHelpers() StoreHelpers
 	GetConfig() Config
 	SetAuthUser(u AuthUser)
 	GetAuthUser() *AuthUser
@@ -48,4 +49,9 @@ type QueriesRepo interface {
 	CreatePasswordChangeRequestQuery(data QueryPartial) Query
 	GetPasswordChangeRequestsQuery(data QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
+}
+
+type StoreHelpers interface {
+	GenerateUserName(fullName string) (string, error)
+	HandleFilter(filter string) (QueryPartial, error)
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rental-app/api/common"
-	"rental-app/api/db"
 )
 
 type registerUserRequest struct {
@@ -49,7 +48,7 @@ func register(server common.Server) func(ctx *gin.Context) {
 			))
 		}
 
-		username, err := db.GenerateUserName(server, req.FullName)
+		username, err := server.GetStoreHelpers().GenerateUserName(req.FullName)
 		common.CheckErrAndPanic(err)
 
 		//TODO transaction
