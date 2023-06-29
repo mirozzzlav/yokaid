@@ -35,8 +35,15 @@ func register(server common.Server) func(ctx *gin.Context) {
 			panic(common.NewHttpError(nil, badReqMeta))
 		}
 
-		err = server.GetStoreHelpers().RegisterUser(req.FullName, req.Email, req.Role)
+		activationToken, err := server.GetStoreHelpers().RegisterUser(req.FullName, req.Email, req.Role)
 		common.CheckErrAndPanic(err)
+
+		err = server.GetNotifier().SendUserActivation(
+			req.Email,
+			map[string]string{"userFullName": req.FullName, "activationToken": activationToken},
+		)
+		common.CheckErrAndPanic(err)
+
 		common.SetOKJSONResponse(ctx, "user registered")
 	}
 }

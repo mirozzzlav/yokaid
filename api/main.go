@@ -1,25 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
-	"rental-app/api/common"
 	dbPkg "rental-app/api/db"
+	"rental-app/api/mail"
 	serverPkg "rental-app/api/server"
 )
 
 func main() {
-	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
-	if err != nil {
-		log.Fatal("cannot connect to db:", err)
-	}
-
-	queryRunner := dbPkg.NewQueryRunner(db)
+	queryRunner := dbPkg.NewQueryRunner()
 	queriesRepo := dbPkg.QueriesRepo{}
 	storeHelpers := dbPkg.StoreHelpers{QueryRunner: queryRunner, QueriesRepo: queriesRepo}
 	// creating new server instance
-	server, err := serverPkg.NewServer(queryRunner, queriesRepo, storeHelpers)
+	server, err := serverPkg.NewServer(queryRunner, queriesRepo, storeHelpers, mail.Notifier{})
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

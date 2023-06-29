@@ -131,7 +131,7 @@ func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	return usersCount, err
 }
 
-func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) error {
+func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) (string, error) {
 	username, err := sH.GenerateUserName(fullName)
 	common.CheckErrAndPanic(err)
 
@@ -144,14 +144,14 @@ func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) 
 	)
 	createdId, err := sH.QueryRunner.Create(q, "id")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	q = sH.QueriesRepo.CreatePasswordChangeRequestQuery(
 		common.QueryPartial{Query: "(user_id) VALUES (?)", Params: []any{createdId}},
 	)
-	_, err = sH.QueryRunner.Create(q, "")
+	token, err := sH.QueryRunner.Create(q, "token")
 
-	return err
+	return token.(string), err
 
 }
