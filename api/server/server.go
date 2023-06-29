@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	"regexp"
 	"rental-app/api/auth"
 	"rental-app/api/common"
 	"rental-app/api/routes"
@@ -20,10 +21,11 @@ type server struct {
 	queriesRepo  common.QueriesRepo
 	validate     *validator.Validate
 	storeHelpers common.StoreHelpers
+	notifier     common.Notifier
 }
 
 func NewServer(queryRunner common.QueryRunner,
-	repo common.QueriesRepo, sH common.StoreHelpers) (common.Server, error) {
+	repo common.QueriesRepo, sH common.StoreHelpers, notifier common.Notifier) (common.Server, error) {
 
 	tokenMaker, err := auth.NewPasetoMaker(common.Config.TokenSymmetricKey)
 	if err != nil {
@@ -46,6 +48,7 @@ func NewServer(queryRunner common.QueryRunner,
 		queriesRepo:  repo,
 		validate:     validate,
 		storeHelpers: sH,
+		notifier:     notifier,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -90,7 +93,9 @@ func (s *server) initRouter() {
 }
 
 func (s *server) Start() error {
-	return s.router.Run(common.Config.Url)
+	// server needs an url without http/https
+	r := regexp.MustCompile("https://?")
+	return s.router.Run(r.ReplaceAllString(common.Config.Url, ""))
 }
 
 func (s *server) GetQueryRunner() common.QueryRunner {
@@ -132,4 +137,8 @@ func (s *server) GetValidate() *validator.Validate {
 
 func (s *server) GetStoreHelpers() common.StoreHelpers {
 	return s.storeHelpers
+}
+
+func (s *server) GetNotifier() common.Notifier {
+	return s.notifier
 }

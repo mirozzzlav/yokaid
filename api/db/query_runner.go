@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"rental-app/api/common"
 )
 
@@ -43,7 +44,11 @@ func createDataElement(colNames []string, colValues []any) any {
 	return resultElem
 }
 
-func NewQueryRunner(db *sql.DB) QueryRunner {
+func NewQueryRunner() QueryRunner {
+	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
+	if err != nil {
+		log.Fatal("cannot connect to db:", err)
+	}
 	return QueryRunner{
 		db: db,
 	}
@@ -135,19 +140,19 @@ func (qr QueryRunner) Update(q common.Query) error {
 	return nil
 }
 
-func (qr QueryRunner) Create(q common.Query, IdColumnName string) (int, error) {
+func (qr QueryRunner) Create(q common.Query, IdColumnName string) (any, error) {
 	qString, qParams := q.GetQuery()
 	if IdColumnName == "" {
 
 		_, err := qr.db.Exec(qString, qParams...)
 		return 0, err
 	}
-	var createdId int
-	err := qr.db.QueryRow(qString+" returning "+IdColumnName, qParams...).Scan(&createdId)
+	var queryRes any
+	err := qr.db.QueryRow(qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
 	if err != nil {
 		return 0, err
 	}
-	return createdId, nil
+	return queryRes, nil
 }
 
 func (qr QueryRunner) Delete(q common.Query) error {

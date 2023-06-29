@@ -20,6 +20,7 @@ type Server interface {
 	GetAuthUser() *AuthUser
 	IsPrivateRoute(path string) bool
 	GetValidate() *validator.Validate
+	GetNotifier() Notifier
 	Start() error
 	Close()
 }
@@ -29,7 +30,7 @@ type QueryRunner interface {
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 	Update(q Query) error
-	Create(q Query, IdColumnName string) (int, error)
+	Create(q Query, IdColumnName string) (any, error)
 	Delete(q Query) error
 }
 
@@ -56,5 +57,9 @@ type StoreHelpers interface {
 	ChangeUserPassword(userId int, pass string) error
 	GetUserFromPasswordChangeRequest(token string) (int, error)
 	GetUsersCount(emailOrUsername string) (int, error)
-	RegisterUser(fullName string, email string, role string) error
+	RegisterUser(fullName string, email string, role string) (string, error)
+}
+
+type Notifier interface {
+	SendUserActivation(to string, data map[string]string) error
 }

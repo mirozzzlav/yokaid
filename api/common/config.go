@@ -13,6 +13,9 @@ type logsConfig struct {
 	LogsToFile   bool
 }
 type config struct {
+	AppName             string
+	AppMailFrom         string
+	AppMailAPIKey       string
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
@@ -49,6 +52,9 @@ var Config, _ = func(mode string) (config, error) {
 	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
 
 	return config{
+		AppName:             os.Getenv("APP_NAME"),
+		AppMailFrom:         os.Getenv("MAIL_FROM"),
+		AppMailAPIKey:       os.Getenv("MAIL_API_KEY"),
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
