@@ -63,7 +63,7 @@ var Config, _ = func(mode string) (config, error) {
 		EnableNotifications: enableNotifications,
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
-		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
+		TokenSymmetricKey:   os.Getenv("TOKEN_SYMMETRIC_KEY"),
 		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
 		Policy: AuthPolicyConfig{
