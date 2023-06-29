@@ -54,4 +54,8 @@ type QueriesRepo interface {
 type StoreHelpers interface {
 	GenerateUserName(fullName string) (string, error)
 	HandleFilter(filter string) (QueryPartial, error)
+	ChangeUserPassword(userId int, pass string) error
+	GetUserFromPasswordChangeRequest(token string) (int, error)
+	GetUsersCount(emailOrUsername string) (int, error)
+	RegisterUser(fullName string, email string, role string) error
 }

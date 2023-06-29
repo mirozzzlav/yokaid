@@ -3,17 +3,21 @@ package users
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/auth"
 	"rental-app/api/common"
 )
 
-type UserActivationReq struct {
+var errMeta = map[string]common.ResponseMeta{
+	"badRequest":        common.ResponseMeta{Code: http.StatusBadRequest},
+	"badRequestExpired": common.ResponseMeta{Code: http.StatusBadRequest, Msg: "user activation period has expired"},
+}
+
+type userActivationReq struct {
 	Password string `json:"password" validate:"passwords"`
 }
 
 func activate(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var req UserActivationReq
+		var req userActivationReq
 		err := ctx.BindJSON(&req)
 		common.CheckErrAndPanic(err)
 
@@ -23,56 +27,16 @@ func activate(server common.Server) func(ctx *gin.Context) {
 
 		token, tokenParamExist := ctx.Params.Get("password_change_token")
 		if !tokenParamExist {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
+			panic(common.NewHttpError(nil, errMeta["badRequest"]))
 		}
 
-		q := server.GetQueriesRepo().GetPasswordChangeRequestsQuery(
-			common.QueryPartial{
-				Query:  "token = ? and now() - created_at < INTERVAL '24 hours'",
-				Params: []any{token},
-			},
-		)
+		userId, err := server.GetStoreHelpers().GetUserFromPasswordChangeRequest(token)
 
-		requestsRef, reqModelLoader := common.PasswordChangeRequestsModelLoader()
-		err = server.GetQueryRunner().GetRows(q, reqModelLoader)
-		common.CheckErrAndPanic(err)
-
-		if len(*requestsRef) == 0 {
-			panic(
-				common.NewHttpError(
-					err,
-					common.ResponseMeta{Code: http.StatusBadRequest, Msg: "user activation period has expired"},
-				),
-			)
+		if err == common.ErrNoRows {
+			panic(common.NewHttpError(nil, errMeta["badRequestExpired"]))
 		}
-		userId := (*requestsRef)[0].UserId
 
-		hashedPass, err := auth.HashPassword(req.Password)
-		common.CheckErrAndPanic(err)
-
-		//TODO transaction
-		q = server.GetQueriesRepo().UpdateUsersQuery(
-			common.QueryPartial{
-				Query:  "active = true, hashed_password = ?",
-				Params: []any{hashedPass},
-			},
-			common.QueryPartial{
-				Query:  "id = ?",
-				Params: []any{userId},
-			},
-		)
-
-		err = server.GetQueryRunner().Update(q)
-		common.CheckErrAndPanic(err)
-
-		q = server.GetQueriesRepo().DeletePasswordChangeRequestsQuery(
-			common.QueryPartial{
-				Query:  "user_id = ?",
-				Params: []any{userId},
-			},
-		)
-
-		err = server.GetQueryRunner().Delete(q)
+		err = server.GetStoreHelpers().ChangeUserPassword(userId, req.Password)
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "user is activated")
