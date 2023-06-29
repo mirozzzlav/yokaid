@@ -16,7 +16,6 @@ type Server interface {
 	GetQueryRunner() QueryRunner
 	GetQueriesRepo() QueriesRepo
 	GetStoreHelpers() StoreHelpers
-	GetConfig() Config
 	SetAuthUser(u AuthUser)
 	GetAuthUser() *AuthUser
 	IsPrivateRoute(path string) bool

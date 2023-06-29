@@ -11,7 +11,6 @@ import (
 )
 
 type server struct {
-	config       common.Config
 	tokenMaker   common.Maker
 	router       *gin.Engine
 	logError     func(ctx *gin.Context, err error)
@@ -23,10 +22,10 @@ type server struct {
 	storeHelpers common.StoreHelpers
 }
 
-func NewServer(config common.Config, queryRunner common.QueryRunner,
+func NewServer(queryRunner common.QueryRunner,
 	repo common.QueriesRepo, sH common.StoreHelpers) (common.Server, error) {
 
-	tokenMaker, err := auth.NewPasetoMaker(config.TokenSymmetricKey)
+	tokenMaker, err := auth.NewPasetoMaker(common.Config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
@@ -42,7 +41,6 @@ func NewServer(config common.Config, queryRunner common.QueryRunner,
 	}
 
 	server := &server{
-		config:       config,
 		queryRunner:  queryRunner,
 		tokenMaker:   tokenMaker,
 		queriesRepo:  repo,
@@ -92,7 +90,7 @@ func (s *server) initRouter() {
 }
 
 func (s *server) Start() error {
-	return s.router.Run(s.config.Url)
+	return s.router.Run(common.Config.Url)
 }
 
 func (s *server) GetQueryRunner() common.QueryRunner {
@@ -105,10 +103,6 @@ func (s *server) GetQueriesRepo() common.QueriesRepo {
 
 func (s *server) GetTokenMaker() common.Maker {
 	return s.tokenMaker
-}
-
-func (s *server) GetConfig() common.Config {
-	return s.config
 }
 
 func (s *server) SetAuthUser(u common.AuthUser) {

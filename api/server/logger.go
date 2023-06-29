@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"rental-app/api/common"
 	"runtime"
 	"strings"
 	"time"
@@ -58,7 +59,7 @@ func getPanicsFromStackTrace() string {
 func (s *server) initRequestLogger() error {
 	var logFile *os.File
 	var err error
-	if s.config.Logs.LogsToFile {
+	if common.Config.Logs.LogsToFile {
 		logFile, err = createLogFile()
 	}
 	if err != nil {
@@ -71,7 +72,7 @@ func (s *server) initRequestLogger() error {
 		reqMethod := ctx.Request.Method
 		panicErrors := getPanicsFromStackTrace()
 
-		if s.config.Logs.LogsToScreen {
+		if common.Config.Logs.LogsToScreen {
 			log.Printf("\n\u001B[32m%s\u001B[0m:\u001B[31m\u001B[0m \u001B[41;5;28m\u001B[38;53;30m Panic occurred on URL \u001B[0m  \u001B[31m[%s]\u001B[0m  | Method \u001B[0m[%s]\u001B[31m\n%s\n%s", time.Now().Format("2006-01-02 15:04:05"), reqPath, reqMethod, err.Error(), panicErrors)
 		}
 

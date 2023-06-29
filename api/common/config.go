@@ -2,7 +2,6 @@ package common
 
 import (
 	"errors"
-	"fmt"
 	"github.com/joho/godotenv"
 	"os"
 	"strconv"
@@ -13,7 +12,7 @@ type logsConfig struct {
 	LogsToScreen bool
 	LogsToFile   bool
 }
-type Config struct {
+type config struct {
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
@@ -40,16 +39,16 @@ func getLogsConfig() logsConfig {
 	return logsConfig{LogsToScreen: logsToScreen, LogsToFile: logsToFile}
 }
 
-func LoadConfig(mode string) (config Config, err error) {
+var Config, _ = func(mode string) (config, error) {
 	envFilePath := ".env." + mode
-	err = godotenv.Load(envFilePath)
+	err := godotenv.Load(envFilePath)
 	if err != nil {
-		return Config{}, errors.New(fmt.Sprintf("cannot find or parse config file: %s", envFilePath))
+		return config{}, err
 	}
 
 	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
 
-	return Config{
+	return config{
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
@@ -72,4 +71,4 @@ func LoadConfig(mode string) (config Config, err error) {
 		},
 		Logs: getLogsConfig(),
 	}, nil
-}
+}(GetEnvMode())

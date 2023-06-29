@@ -10,12 +10,7 @@ import (
 )
 
 func main() {
-	config, err := common.LoadConfig(common.GetEnvMode())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := sql.Open(config.DBDriver, config.DBSource)
+	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
@@ -24,7 +19,7 @@ func main() {
 	queriesRepo := dbPkg.QueriesRepo{}
 	storeHelpers := dbPkg.StoreHelpers{QueryRunner: queryRunner, QueriesRepo: queriesRepo}
 	// creating new server instance
-	server, err := serverPkg.NewServer(config, queryRunner, queriesRepo, storeHelpers)
+	server, err := serverPkg.NewServer(queryRunner, queriesRepo, storeHelpers)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

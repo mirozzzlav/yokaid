@@ -33,7 +33,7 @@ func getRequestForAuthorization(ctx *gin.Context, user common.AuthUser) ([]strin
 }
 
 func checkPolicies(server common.Server, ctx *gin.Context, authUser common.AuthUser) (error, bool) {
-	m, err := model.NewModelFromString(server.GetConfig().Policy.Model)
+	m, err := model.NewModelFromString(common.Config.Policy.Model)
 	if err != nil {
 		return err, false
 	}
@@ -101,7 +101,7 @@ func Middleware(server common.Server) gin.HandlerFunc {
 		accessToken, err := getRequestToken(ctx)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized})
 
-		payload, err := server.GetTokenMaker().VerifyToken(accessToken, server.GetConfig().AccessTokenDuration)
+		payload, err := server.GetTokenMaker().VerifyToken(accessToken, common.Config.AccessTokenDuration)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized})
 
 		err, userPassedPolicy := checkPolicies(server, ctx, payload.User)
