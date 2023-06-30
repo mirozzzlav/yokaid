@@ -56,11 +56,15 @@ type StoreHelpers interface {
 	HandleFilter(filter string) (QueryPartial, error)
 	ChangeUserPassword(userId int, pass string) error
 	GetUserFromPasswordChangeRequest(token string) (int, error)
+	CreatePasswordChangeRequest(userId int) (string, error)
 	GetUsersCount(emailOrUsername string) (int, error)
 	RegisterUser(fullName string, email string, role string) (string, error)
+	GetUser(usernameOrEmail string) (*User, error)
+	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 }
 
 type Notifier interface {
 	SendNotification(to string, subject string, message string) error
 	SendUserActivation(to string, data map[string]string) error
+	SendPasswordChangeRequest(to string, data map[string]string) error
 }
