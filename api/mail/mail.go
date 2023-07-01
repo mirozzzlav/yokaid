@@ -6,7 +6,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"html/template"
-
 	"log"
 	"rental-app/api/common"
 )
