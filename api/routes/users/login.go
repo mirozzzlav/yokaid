@@ -3,7 +3,6 @@ package users
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/auth"
 	"rental-app/api/common"
 )
 
@@ -17,64 +16,17 @@ type loginUserResponse struct {
 	User        common.AuthUser `json:"user"`
 }
 
-const credentialsErr = "login failed, check your credentials"
-
-func getVerifiedUser(server common.Server, usernameOrEmail string, password string) (*common.User, *common.HttpError) {
-	loginErr := common.NewHttpError(
-		nil,
-		common.ResponseMeta{
-			Code: http.StatusUnauthorized,
-			Msg:  credentialsErr,
-		},
-	)
-
-	usersRef, UsersModelLoader := common.UsersModelLoader()
-	q := server.GetQueriesRepo().GetUsersQuery(
-		common.QueryPartial{
-			Query:  "username = ? or email = ?",
-			Params: []any{usernameOrEmail, usernameOrEmail},
-		},
-	)
-	err := server.GetQueryRunner().GetRows(q, UsersModelLoader)
-	if err != nil {
-		loginErr = common.NewHttpError(err)
-		return nil, &loginErr
-	}
-	if len(*usersRef) == 0 {
-		return nil, &loginErr
-	}
-	user := (*usersRef)[0]
-
-	if user.Active == false {
-		loginErr = common.NewHttpError(
-			nil,
-			common.ResponseMeta{
-				Code: http.StatusUnauthorized,
-				Msg:  "login failed, user is not activated",
-			})
-		return nil, &loginErr
-	}
-
-	err = auth.CheckPassword(password, user.HashedPassword)
-	if err != nil {
-		return nil, &loginErr
-	}
-
-	return &user, nil
-
-}
-
 func login(server common.Server) func(ctx *gin.Context) {
+	const credentialsErrMsg = "login failed, check your credentials"
+
 	return func(ctx *gin.Context) {
 		var req loginUserRequest
 
 		err := ctx.ShouldBindJSON(&req)
-		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusUnauthorized, Msg: credentialsErr})
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, Msg: credentialsErrMsg})
 
-		user, httpErr := getVerifiedUser(server, req.UsernameOrEmail, req.Password)
-		if httpErr != nil {
-			panic(*httpErr)
-		}
+		user, err := server.GetStoreHelpers().GetUserAndVerifyPassword(req.UsernameOrEmail, req.Password)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, Msg: credentialsErrMsg})
 
 		authUser := common.AuthUser{
 			ID:       user.ID,

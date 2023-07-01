@@ -119,6 +119,31 @@ func (sH StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, erro
 	return (*requestsRef)[0].UserId, nil
 }
 
+// CreatePasswordChangeRequest create new pass change query and delete old one if exist
+func (sH StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) {
+	q := sH.QueriesRepo.DeletePasswordChangeRequestsQuery(
+		common.QueryPartial{
+			Query:  "user_id = ?",
+			Params: []any{userId},
+		},
+	)
+	err := sH.QueryRunner.Delete(q)
+	if err != nil && err != common.ErrNoRows {
+		return "", err
+	}
+
+	q = sH.QueriesRepo.CreatePasswordChangeRequestQuery(
+		common.QueryPartial{Query: "(user_id) VALUES (?)", Params: []any{userId}},
+	)
+
+	token, err := sH.QueryRunner.Create(q, "token")
+	if err != nil {
+		return "", err
+	}
+
+	return token.(string), err
+}
+
 func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	q := sH.QueriesRepo.GetUsersCountQuery(common.QueryPartial{
 		Query:  "email = ? or username = ?",
@@ -128,7 +153,7 @@ func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return usersCount, err
+	return usersCount, nil
 }
 
 func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) (string, error) {
@@ -142,16 +167,54 @@ func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) 
 			Params: []any{username, fullName, email, role},
 		},
 	)
-	createdId, err := sH.QueryRunner.Create(q, "id")
+	tmpUserId, err := sH.QueryRunner.Create(q, "id")
 	if err != nil {
 		return "", err
 	}
 
-	q = sH.QueriesRepo.CreatePasswordChangeRequestQuery(
-		common.QueryPartial{Query: "(user_id) VALUES (?)", Params: []any{createdId}},
+	userId, err := common.ConvertToInt(tmpUserId)
+	if err != nil {
+		return "", err
+	}
+	return sH.CreatePasswordChangeRequest(userId)
+
+}
+
+func (sH StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
+
+	usersRef, UsersModelLoader := common.UsersModelLoader()
+	q := sH.QueriesRepo.GetUsersQuery(
+		common.QueryPartial{
+			Query:  "username = ? or email = ?",
+			Params: []any{usernameOrEmail, usernameOrEmail},
+		},
 	)
-	token, err := sH.QueryRunner.Create(q, "token")
+	err := sH.QueryRunner.GetRows(q, UsersModelLoader)
+	if err != nil {
+		return nil, err
+	}
+	if len(*usersRef) == 0 {
+		return nil, common.ErrNoRows
+	}
+	user := (*usersRef)[0]
 
-	return token.(string), err
+	return &user, nil
+}
 
+func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
+	user, err := sH.GetUser(usernameOrEmail)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Active == false {
+		return nil, common.ErrNoRows
+	}
+
+	err = auth.CheckPassword(password, user.HashedPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

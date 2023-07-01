@@ -1,12 +1,14 @@
 package common
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -74,17 +76,12 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 		_responseMeta = ResponseMeta{
 			ExtraData: nil,
 		}
+		if err == ErrNoRows {
+			_responseMeta.Code = http.StatusBadRequest
+			_responseMeta.Msg = "no results found for the given request"
+		}
 	} else {
 		_responseMeta = responseMeta[0]
-	}
-
-	if err == ErrNoRows {
-		_responseMeta.Code = http.StatusBadRequest
-		_responseMeta.Msg = "no results found for the given request"
-		return HttpError{
-			Error:        err,
-			ResponseMeta: _responseMeta,
-		}
 	}
 
 	if _responseMeta.Code == 0 { // if not filled in
@@ -193,4 +190,41 @@ func PasswordValidator(fl validator.FieldLevel) bool {
 		}
 	}
 	return num > 0 && upper > 0 && special > 0 && len(password) >= 8
+}
+
+func ConvertToInt(val any) (int, error) {
+	switch v := val.(type) {
+	case int:
+		return v, nil
+	case int8:
+		return int(v), nil
+	case int16:
+		return int(v), nil
+	case int32:
+		return int(v), nil
+	case int64:
+		return int(v), nil
+	case uint:
+		return int(v), nil
+	case uint8:
+		return int(v), nil
+	case uint16:
+		return int(v), nil
+	case uint32:
+		return int(v), nil
+	case uint64:
+		return int(v), nil
+	case float32:
+		return int(v), nil
+	case float64:
+		return int(v), nil
+	case string:
+		num, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, err
+		}
+		return num, nil
+	default:
+		return 0, fmt.Errorf("conversion failed")
+	}
 }

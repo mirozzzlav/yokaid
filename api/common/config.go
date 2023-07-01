@@ -16,6 +16,7 @@ type config struct {
 	AppName             string
 	AppMailFrom         string
 	AppMailAPIKey       string
+	EnableNotifications bool
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
@@ -50,14 +51,19 @@ var Config, _ = func(mode string) (config, error) {
 	}
 
 	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
+	enableNotifications, err := strconv.ParseBool(os.Getenv("ENABLE_NOTIFICATIONS"))
+	if err != nil {
+		return config{}, err
+	}
 
 	return config{
 		AppName:             os.Getenv("APP_NAME"),
 		AppMailFrom:         os.Getenv("MAIL_FROM"),
 		AppMailAPIKey:       os.Getenv("MAIL_API_KEY"),
+		EnableNotifications: enableNotifications,
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
-		TokenSymmetricKey:   os.Getenv("TOKEN_SYMETRIC_KEY"),
+		TokenSymmetricKey:   os.Getenv("TOKEN_SYMMETRIC_KEY"),
 		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
 		Policy: AuthPolicyConfig{
