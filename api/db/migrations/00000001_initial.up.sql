@@ -62,7 +62,7 @@ ALTER TABLE ONLY "users" ADD CONSTRAINT "users_role_fkey" FOREIGN KEY (role) REF
 ALTER TABLE ONLY "password_change_requests" ADD CONSTRAINT "requests_user_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 /*
-INSERT INTO "users" ("id", "username", "full_name", "email", "hashed_password", "password_changed_at", "created_at", "role") VALUES
-(3,	'milan',	'milan ko',	'mi@lan.sk',	'$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e',	NULL,	'2023-06-15 16:08:21.721551',	'guest'),
-(1,	'miro',	'mi li nko',	'miro.furo@tuta.io',	'$2a$10$XrcRWW8YabW.hRcSXJSkxugBwCo0AgUthlwAE/Nae2fOW8oJZWBBm',	NULL,	'2023-06-05 08:02:39.732293',	'professional');
+INSERT INTO "users" ("id", "username", "full_name", "email", "hashed_password", "created_at", "role") VALUES
+(3,	'milan',	'milan ko',	'mi@lan.sk',	'$2y$10$qCU7HWIZ6.ovOSLys1PLDOpyMGwCpE7eTqCB5cwtn2WtsO2iHK.1e',	'2023-06-15 16:08:21.721551',	'guest'),
+(1,	'miro',	'mi li nko',	'miro.furo@tuta.io',	'$2a$10$XrcRWW8YabW.hRcSXJSkxugBwCo0AgUthlwAE/Nae2fOW8oJZWBBm',	'2023-06-05 08:02:39.732293',	'professional');
 */

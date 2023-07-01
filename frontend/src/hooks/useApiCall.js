@@ -1,5 +1,6 @@
 import config from 'src/config';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Modal from 'src/UI/modal';
 
 const callStates = {
   initial: 'initial',
@@ -18,6 +19,15 @@ const initialResponse = {
 
 export default function useApiCall() {
   const [response, setResponse] = useState(initialResponse);
+
+  useEffect(() => {
+    if (response.state === 'error') {
+      Modal({
+        message: response.error.msg,
+        type: 'alert',
+      });
+    }
+  }, [response]);
 
   const call = useCallback(
     (endPoint, method = 'get', data = null, headers = null) => {

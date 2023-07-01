@@ -13,5 +13,7 @@ func GetRoutes(server common.Server) []common.Route {
 		{"/example/panic", false, http.MethodGet, panicError(server)},
 		{"/example/query/:username", false, http.MethodGet, query(server)},
 		{"/example/validate/:id", false, http.MethodPut, validate(server)},
+		{"/example/location/:address", false, http.MethodGet, location(server)},
+		{"/example/password/:password", false, http.MethodGet, password(server)},
 	}
 }

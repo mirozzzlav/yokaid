@@ -1,5 +1,5 @@
 import React from 'react';
-import { HomePage, LoginPage } from 'src/pages';
+import { HomePage, LoginPage, SignupPage, ForgotPasswordPage, NewPasswordPage } from 'src/pages';
 import { Route, Routes as RoutesReactDom } from 'react-router-dom';
 
 const routes = [
@@ -7,6 +7,24 @@ const routes = [
     name: 'login',
     route: 'login',
     element: <LoginPage />,
+    public: true,
+  },
+  {
+    name: 'signup',
+    route: 'signup',
+    element: <SignupPage />,
+    public: true,
+  },
+  {
+    name: 'forgot-password',
+    route: 'forgot-password',
+    element: <ForgotPasswordPage />,
+    public: true,
+  },
+  {
+    name: 'new-password',
+    route: 'new-password',
+    element: <NewPasswordPage />,
     public: true,
   },
   {
