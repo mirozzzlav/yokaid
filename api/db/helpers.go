@@ -218,3 +218,24 @@ func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password
 
 	return user, nil
 }
+
+func (sH StoreHelpers) CreatePost(authorId int, latitude float32, longitude float32, text string) (int, error) {
+
+	q := sH.QueriesRepo.CreatePostQuery(
+		common.QueryPartial{
+			Query:  "(author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
+			Params: []any{authorId, latitude, longitude, text},
+		},
+	)
+	tmpPostID, err := sH.QueryRunner.Create(q, "id")
+	if err != nil {
+		return 0, err
+	}
+
+	postId, err := common.ConvertToInt(tmpPostID)
+	if err != nil {
+		return 0, err
+	}
+
+	return postId, nil
+}

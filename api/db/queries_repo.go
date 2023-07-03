@@ -161,3 +161,15 @@ func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 		},
 	}
 }
+
+func (qr QueriesRepo) CreatePostQuery(data common.QueryPartial) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "insert into posts ",
+				Params: []any{},
+			},
+			data,
+		},
+	}
+}

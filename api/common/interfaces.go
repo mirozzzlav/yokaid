@@ -49,6 +49,7 @@ type QueriesRepo interface {
 	CreatePasswordChangeRequestQuery(data QueryPartial) Query
 	GetPasswordChangeRequestsQuery(data QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
+	CreatePostQuery(data QueryPartial) Query
 }
 
 type StoreHelpers interface {
@@ -61,6 +62,7 @@ type StoreHelpers interface {
 	RegisterUser(fullName string, email string, role string) (string, error)
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
+	CreatePost(authorId int, latitude float32, longitude float32, text string) (int, error)
 }
 
 type Notifier interface {
