@@ -1,6 +1,20 @@
 # Load the environment variables from the .env file
-include ./api/.env
-include ./frontend/.env
+
+ifndef ENV
+    $(error ENV is not set)
+endif
+
+ifeq ($(ENV),local)
+    include ./api/.env.local
+    $(info ------ Running local environment ------)
+else ifdef ($(ENV),production)
+	include ./api/.env.production
+    $(info ------ Running production environment ------)
+else
+    include ./api/.env
+    $(info ------ Running development environment ------)
+endif
+
 export
 
 DOCKER_NET = $(APP_NAME)_network
