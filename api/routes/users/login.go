@@ -6,11 +6,6 @@ import (
 	"rental-app/api/common"
 )
 
-type loginUserRequest struct {
-	UsernameOrEmail string `json:"username_or_email" binding:"required"`
-	Password        string `json:"password" binding:"required"`
-}
-
 type loginUserResponse struct {
 	AccessToken string          `json:"access_token"`
 	User        common.AuthUser `json:"user"`
@@ -20,12 +15,17 @@ func login(server common.Server) func(ctx *gin.Context) {
 	const credentialsErrMsg = "login failed, check your credentials"
 
 	return func(ctx *gin.Context) {
-		var req loginUserRequest
+		var req common.LoginUserRequest
 
-		err := ctx.ShouldBindJSON(&req)
-		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, Msg: credentialsErrMsg})
+		_ = ctx.BindJSON(&req)
 
-		user, err := server.GetStoreHelpers().GetUserAndVerifyPassword(req.UsernameOrEmail, req.Password)
+		err := server.GetValidate().Struct(req)
+		validationErrors := common.GetValidationErrors(err)
+		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
+
+		user, err := server.GetStoreHelpers().GetUserAndVerifyPassword(
+			req.UsernameOrEmail.(string), req.Password.(string),
+		)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, Msg: credentialsErrMsg})
 
 		authUser := common.AuthUser{

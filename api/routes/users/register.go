@@ -6,12 +6,6 @@ import (
 	"rental-app/api/common"
 )
 
-type registerUserRequest struct {
-	FullName string `json:"full_name" validate:"required,min=3"`
-	Email    string `json:"email" validate:"required,email"`
-	Role     string `json:"role" validate:"required,publicRoles"`
-}
-
 var badReqMeta = common.ResponseMeta{
 	Code: http.StatusBadRequest,
 	Msg:  "user with given email already exist",
@@ -19,7 +13,7 @@ var badReqMeta = common.ResponseMeta{
 
 func register(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var req registerUserRequest
+		var req common.RegisterUserRequest
 
 		err := ctx.BindJSON(&req)
 		common.CheckErrAndPanic(err)
@@ -28,19 +22,22 @@ func register(server common.Server) func(ctx *gin.Context) {
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
-		usersCount, err := server.GetStoreHelpers().GetUsersCount(req.Email)
+		email := req.Email.(string)
+		fullName := req.FullName.(string)
+
+		usersCount, err := server.GetStoreHelpers().GetUsersCount(email)
 		common.CheckErrAndPanic(err)
 
 		if usersCount != 0 {
 			panic(common.NewHttpError(nil, badReqMeta))
 		}
 
-		activationToken, err := server.GetStoreHelpers().RegisterUser(req.FullName, req.Email, req.Role)
+		activationToken, err := server.GetStoreHelpers().RegisterUser(req)
 		common.CheckErrAndPanic(err)
 
 		err = server.GetNotifier().SendUserActivation(
-			req.Email,
-			map[string]string{"userFullName": req.FullName, "activationToken": activationToken},
+			email,
+			map[string]string{"userFullName": fullName, "activationToken": activationToken},
 		)
 		common.CheckErrAndPanic(err)
 

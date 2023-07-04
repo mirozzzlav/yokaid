@@ -36,18 +36,6 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetUsersQuery(filter common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "select * from users where ",
-				Params: []any{},
-			},
-			filter,
-		},
-	}
-}
-
 func (qr QueriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
@@ -56,18 +44,6 @@ func (qr QueriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Quer
 				Params: []any{},
 			},
 			filter,
-		},
-	}
-}
-
-func (qr QueriesRepo) CreateUserQuery(data common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "insert into users ",
-				Params: []any{},
-			},
-			data,
 		},
 	}
 }
@@ -126,30 +102,6 @@ func (qr QueriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
 
 }
 
-func (qr QueriesRepo) CreatePasswordChangeRequestQuery(data common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "INSERT INTO password_change_requests",
-				Params: []any{},
-			},
-			data,
-		},
-	}
-}
-
-func (qr QueriesRepo) GetPasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "SELECT * FROM password_change_requests WHERE ",
-				Params: []any{},
-			},
-			filter,
-		},
-	}
-}
-
 func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
@@ -158,18 +110,6 @@ func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 				Params: []any{},
 			},
 			filter,
-		},
-	}
-}
-
-func (qr QueriesRepo) CreatePostQuery(data common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "insert into posts ",
-				Params: []any{},
-			},
-			data,
 		},
 	}
 }

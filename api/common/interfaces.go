@@ -39,17 +39,12 @@ type Query interface {
 }
 
 type QueriesRepo interface {
-	GetUsersQuery(filter QueryPartial) Query
 	GetUsersCountQuery(filter QueryPartial) Query
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
-	CreateUserQuery(data QueryPartial) Query
 	ListPoliciesQuery() Query
 	ListPostsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
-	CreatePasswordChangeRequestQuery(data QueryPartial) Query
-	GetPasswordChangeRequestsQuery(data QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
-	CreatePostQuery(data QueryPartial) Query
 }
 
 type StoreHelpers interface {
@@ -59,10 +54,10 @@ type StoreHelpers interface {
 	GetUserFromPasswordChangeRequest(token string) (int, error)
 	CreatePasswordChangeRequest(userId int) (string, error)
 	GetUsersCount(emailOrUsername string) (int, error)
-	RegisterUser(fullName string, email string, role string) (string, error)
+	RegisterUser(req RegisterUserRequest) (string, error)
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
-	CreatePost(authorId int, latitude float32, longitude float32, text string) (int, error)
+	CreatePost(authorId int, req CreatePostRequest) (int, error)
 }
 
 type Notifier interface {

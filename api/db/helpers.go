@@ -99,12 +99,14 @@ func (sH StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 }
 
 func (sH StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, error) {
-	q := sH.QueriesRepo.GetPasswordChangeRequestsQuery(
-		common.QueryPartial{
-			Query:  "token = ? and now() - created_at < INTERVAL '24 hours'",
-			Params: []any{token},
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "SELECT * FROM password_change_requests WHERE  token = ? and now() - created_at < INTERVAL '24 hours'",
+				Params: []any{token},
+			},
 		},
-	)
+	}
 
 	requestsRef, reqModelLoader := common.PasswordChangeRequestsModelLoader()
 	err := sH.QueryRunner.GetRows(q, reqModelLoader)
@@ -132,9 +134,11 @@ func (sH StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) {
 		return "", err
 	}
 
-	q = sH.QueriesRepo.CreatePasswordChangeRequestQuery(
-		common.QueryPartial{Query: "(user_id) VALUES (?)", Params: []any{userId}},
-	)
+	q = dbQuery{
+		partials: []common.QueryPartial{
+			{Query: "INSERT INTO password_change_requests (user_id) VALUES (?)", Params: []any{userId}},
+		},
+	}
 
 	token, err := sH.QueryRunner.Create(q, "token")
 	if err != nil {
@@ -156,17 +160,19 @@ func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	return usersCount, nil
 }
 
-func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) (string, error) {
-	username, err := sH.GenerateUserName(fullName)
+func (sH StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, error) {
+	username, err := sH.GenerateUserName(req.FullName.(string))
 	common.CheckErrAndPanic(err)
 
 	//TODO transaction
-	q := sH.QueriesRepo.CreateUserQuery(
-		common.QueryPartial{
-			Query:  "(username, full_name, email, role) VALUES (?, ?, ?, ?)",
-			Params: []any{username, fullName, email, role},
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "insert into users (username, full_name, email, role) VALUES (?, ?, ?, ?)",
+				Params: []any{username, req.FullName, req.Email, req.Role},
+			},
 		},
-	)
+	}
 	tmpUserId, err := sH.QueryRunner.Create(q, "id")
 	if err != nil {
 		return "", err
@@ -183,12 +189,14 @@ func (sH StoreHelpers) RegisterUser(fullName string, email string, role string) 
 func (sH StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 
 	usersRef, UsersModelLoader := common.UsersModelLoader()
-	q := sH.QueriesRepo.GetUsersQuery(
-		common.QueryPartial{
-			Query:  "username = ? or email = ?",
-			Params: []any{usernameOrEmail, usernameOrEmail},
-		},
-	)
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "select * from users where username = ? or email = ?",
+				Params: []any{usernameOrEmail, usernameOrEmail},
+			},
+		}}
+
 	err := sH.QueryRunner.GetRows(q, UsersModelLoader)
 	if err != nil {
 		return nil, err
@@ -219,14 +227,17 @@ func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password
 	return user, nil
 }
 
-func (sH StoreHelpers) CreatePost(authorId int, latitude float32, longitude float32, text string) (int, error) {
+func (sH StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (int, error) {
 
-	q := sH.QueriesRepo.CreatePostQuery(
-		common.QueryPartial{
-			Query:  "(author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
-			Params: []any{authorId, latitude, longitude, text},
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "insert into posts (author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
+				Params: []any{authorId, req.Latitude, req.Longitude, req.Text},
+			},
 		},
-	)
+	}
+
 	tmpPostID, err := sH.QueryRunner.Create(q, "id")
 	if err != nil {
 		return 0, err

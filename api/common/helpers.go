@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -175,7 +176,15 @@ func PublicRolesValidator(fl validator.FieldLevel) bool {
 	return false
 }
 
+func StringValidator(fl validator.FieldLevel) bool {
+	return fl.Field().Kind() == reflect.String
+}
+
 func PasswordValidator(fl validator.FieldLevel) bool {
+
+	if fl.Field().Kind() != reflect.String {
+		return false
+	}
 	password := fl.Field().String()
 
 	num, upper, special := 0, 0, 0

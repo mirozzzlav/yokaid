@@ -6,17 +6,12 @@ import (
 	"rental-app/api/common"
 )
 
-type updateUserRequest struct {
-	Username string `json:"username" binding:"required,min=3"`
-	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-}
-
 func update(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		var req updateUserRequest
+		var req common.UpdateUserRequest
 
-		err := ctx.ShouldBindJSON(&req)
+		_ = ctx.BindJSON(&req)
+		err := server.GetValidate().Struct(req)
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 

@@ -37,7 +37,12 @@ func NewServer(queryRunner common.QueryRunner,
 	if err != nil {
 		return nil, err
 	}
-	err = validate.RegisterValidation("passwords", common.PasswordValidator)
+	err = validate.RegisterValidation("password", common.PasswordValidator)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.RegisterValidation("string", common.StringValidator)
 	if err != nil {
 		return nil, err
 	}
