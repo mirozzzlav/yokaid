@@ -1,22 +1,11 @@
-import React, { useContext, useEffect } from 'react';
-import { AuthContext } from 'src/providers';
-import config from 'src/config';
+import React from 'react';
+import Map from 'src/components/Map';
+import MainLayout from 'src/layouts/MainLayout';
 
 export default function HomePage() {
-  const { response, isAuthorized, authorizedCall } = useContext(AuthContext);
-
-  useEffect(() => {
-    authorizedCall(config.api.endPoints.books);
-  }, []);
-
-  if (
-    response.isReady &&
-    response.calledEndPoint.path === config.api.endPoints.books.path &&
-    isAuthorized
-  ) {
-    return response.data.map((book) => (
-      <div key={book.title}>{`${book.title} - ${book.author}`}</div>
-    ));
-  }
-  return isAuthorized ? <>Loading</> : <>NOT logged-in</>;
+  return (
+    <MainLayout mode="fullscreen">
+      <Map />
+    </MainLayout>
+  );
 }

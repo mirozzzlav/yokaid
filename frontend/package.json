@@ -9,7 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.0.19",
+    "@chakra-ui/react": "^2.7.1",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@vitejs/plugin-react": "^3.1.0",
+    "framer-motion": "^10.12.18",
+    "leaflet": "^1.9.4",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -30,7 +37,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.21",
     "prettier": "^2.8.7",
-    "tailwindcss": "^3.3.1"
+    "tailwindcss": "^3.3.1",
+    "vite-plugin-svgr": "^3.2.0"
   },
   "prettier": {
     "singleQuote": true,
@@ -66,7 +74,8 @@
     "rules": {
       "implicit-arrow-linebreak": "off",
       "operator-linebreak": "off",
-      "object-curly-newline": "off"
+      "object-curly-newline": "off",
+      "react/jsx-props-no-spreading": "off"
     }
   }
 }
