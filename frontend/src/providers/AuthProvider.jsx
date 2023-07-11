@@ -69,7 +69,7 @@ export default function AuthProvider({
     if (responseMeta.isError && responseMeta.httpCode === 401) {
       setToken(null);
     }
-  }, [response]);
+  }, [response, responseMeta]);
 
   return (
     <AuthContext.Provider value={contextVal}>{children}</AuthContext.Provider>

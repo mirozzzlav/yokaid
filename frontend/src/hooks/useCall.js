@@ -36,21 +36,22 @@ export default function useCall(responseModifier) {
         },
         ...(payload && { body: JSON.stringify(payload) }),
       })
-        .then((rawResponse) => {
-          setHttpResponseCode(rawResponse.status);
-          return rawResponse.json();
+        .then((r) => {
+          setHttpResponseCode(r.status);
+          return r.json();
         })
-        .then((rawResponse) => {
-          setState(callStates.ready);
+        .then((r) => {
+          setState(!r.error ? callStates.ready : callStates.error);
           setResponse((prevResponse) => ({
             ...prevResponse,
-            data: rawResponse,
-            error: null,
-            ...(responseModifier && responseModifier(rawResponse)),
+            data: typeof r.data === 'undefined' ? r : r.data,
+            error: r.error || null,
+            ...(responseModifier && responseModifier(r)),
           }));
         })
         .catch(() => {
           // Handle any errors
+          setState(callStates.error);
           setResponse((prevResponse) => ({
             ...prevResponse,
             error: 'Huups! Something went wrong.',
@@ -60,14 +61,17 @@ export default function useCall(responseModifier) {
     [],
   );
 
-  return {
-    response: response.data || null, // data and error
-    responseMeta: {
-      isReady: state === callStates.ready,
-      isError: !!response.error,
-      isLoading: state === callStates.loading,
-      httpCode: httpResponseCode,
-    },
-    call,
-  };
+  return useMemo(
+    () => ({
+      response, // data and error
+      responseMeta: {
+        isReady: state === callStates.ready,
+        isError: state === callStates.error,
+        isLoading: state === callStates.loading,
+        httpCode: httpResponseCode,
+      },
+      call,
+    }),
+    [response],
+  );
 }

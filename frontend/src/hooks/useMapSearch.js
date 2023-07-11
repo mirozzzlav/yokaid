@@ -31,7 +31,7 @@ export default function useMapSearch() {
 
   const foundItems = useMemo(() => {
     if (responseMeta.isReady) {
-      return response.map((place) => ({
+      return response.data.map((place) => ({
         id: place.place_id,
         text: place.display_name,
         value: [place.lat, place.lon],
