@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -11,7 +11,7 @@ import {
   Menu,
 } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import SearchDropdown from 'src/components/SearchDropdown';
+import { SearchDropdown } from 'src/components/Dropdown';
 import useMapSearch from 'src/hooks/useMapSearch';
 
 const style = {
@@ -39,7 +39,7 @@ const style = {
     },
 };
 
-function MainLayout({ children, mode }) {
+function MainLayout({ children, mode, topContent }) {
   return (
     <Box sx={style.container(mode)}>
       <Box sx={style.top}>
@@ -50,9 +50,7 @@ function MainLayout({ children, mode }) {
             icon={<Icon width="6rem" height="2rem" as={Logo} />}
           />
         </Box>
-        <Box>
-          <SearchDropdown searchResponseGetter={useMapSearch} />
-        </Box>
+        <Box>{topContent}</Box>
         <Menu>
           <MenuButton
             as={IconButton}
@@ -78,6 +76,7 @@ MainLayout.defaultProps = {
 MainLayout.propTypes = {
   children: PropTypes.node.isRequired,
   mode: PropTypes.string,
+  topContent: PropTypes.node.isRequired,
 };
 
 export default MainLayout;

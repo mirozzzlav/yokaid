@@ -1,13 +1,14 @@
 export const proxyApiSuffix = '/api';
 
+const apiUrl = `${window.location.origin}${proxyApiSuffix}`;
 export default {
   auth: {
     tokenType: 'bearer',
   },
   api: {
-    url: `${window.location.origin}${proxyApiSuffix}`, // Proxy api url instead of real one
-    endPoints: {
-      loginUser: { path: 'users/login', isPrivate: false },
+    url: apiUrl, // Proxy api url instead of real one
+    endPointsURLs: {
+      loginUser: `${apiUrl}/users/login`,
     },
   },
 };

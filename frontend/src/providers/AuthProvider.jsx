@@ -1,17 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import config from 'src/config';
-import { useApiCall } from 'src/hooks';
+import { useCall } from 'src/hooks';
+import { callStates } from 'src/constants';
 
 export const AuthContext = React.createContext([]);
 export const storageKey = 'auth';
+
+function getResponseWithAuth(response) {
+  return {
+    ...response,
+    refreshToken: response.refresh_token || null,
+  };
+}
 
 export default function AuthProvider({
   children,
   getLocalDataValue,
   setLocalDataValue,
 }) {
-  const { call, response } = useApiCall();
+  const { call, response, responseMeta } = useCall(getResponseWithAuth);
 
   const getToken = useCallback(
     () => getLocalDataValue(storageKey, 'accessToken') || null,
@@ -26,18 +34,18 @@ export default function AuthProvider({
 
   const contextVal = useMemo(
     () => ({
-      loginUser({ username_or_email, password }) {
-        call(config.api.endPoints.loginUser, 'post', {
-          username_or_email,
+      loginUser({ username_or_email: usernameOrEmail, password }) {
+        call(config.api.endPointsURLs.loginUser, 'post', {
+          username_or_email: usernameOrEmail,
           password,
         });
       },
-      authorizedCall(endpoint, method = 'get', data = null) {
+      authorizedCall(endpointURL, method = 'get', data = null) {
         const accessToken = getToken();
         const headers = {
           Authorization: `${config.auth.tokenType} ${accessToken}`,
         };
-        call(endpoint, method, data, headers);
+        call(endpointURL, method, data, headers);
       },
       response,
       isAuthorized,
@@ -46,24 +54,19 @@ export default function AuthProvider({
   );
 
   useEffect(() => {
-    if (
-      response.isReady
-    ) {
-      let accessToken = '';
-      if (response.calledEndPoint.path === config.api.endPoints.loginUser.path) {
-        accessToken =
-          response.data && response.data.access_token
-            ? response.data.access_token
-            : null;
+    if (responseMeta.isReady) {
+      let accessToken = null;
+      if (response?.data.access_token) {
+        accessToken = response.data.access_token;
       }
-
-      if (response.calledEndPoint.isPrivate) {
+      if (response.refreshToken) {
         accessToken = response.refreshToken;
       }
+
       setToken(accessToken);
     }
 
-    if (response.isError && response.httpResponseCode === 401) {
+    if (responseMeta.isError && responseMeta.httpCode === 401) {
       setToken(null);
     }
   }, [response]);

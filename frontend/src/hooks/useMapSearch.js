@@ -1,35 +1,47 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useCall } from 'src/hooks/index';
+
+// function useDelayedCall(useCall) {
+//   const { response, state, callRaw } = useCall();
+//   const timeout = useRef(null);
+//
+//   const call = useCallback((v) => {
+//     // valueRef.current = v;
+//     if (timeout.current) {
+//       return;
+//     }
+//
+//     timeout.current = setTimeout(() => {
+//       // search(valueRef.current);
+//       timeout.current = null;
+//     }, 500);
+//   }, []);
+//
+//   return { call, state, response };
+// }
 
 export default function useMapSearch() {
-  const [searchResponse, setSearchResponseRaw] = useState(null);
+  const { response, responseMeta, call } = useCall();
 
-  const setSearchResponse = useCallback(
-    (placesFromAPI) =>
-      setSearchResponseRaw(
-        placesFromAPI.map((place) => ({
-          id: place.place_id,
-          text: place.display_name,
-          value: JSON.stringify([place.lat, place.lon]),
-        })),
-      ),
-    [setSearchResponseRaw],
-  );
-
-  const search = useCallback((searchedTerm) => {
-    fetch(
+  const searchCall = useCallback((searchedTerm) => {
+    call(
       `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
-    )
-      .then((response) => response.json())
-      .then((response) => {
-        setSearchResponse(response);
-      })
-      .catch(() => {
-        console.error('Map API error');
-      });
+    );
   }, []);
 
+  const foundItems = useMemo(() => {
+    if (responseMeta.isReady) {
+      return response.map((place) => ({
+        id: place.place_id,
+        text: place.display_name,
+        value: [place.lat, place.lon],
+      }));
+    }
+    return [];
+  }, [response, responseMeta]);
   return {
-    search,
-    searchResponse,
+    responseMeta,
+    searchCall,
+    foundItems,
   };
 }
