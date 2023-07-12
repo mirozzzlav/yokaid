@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  extendTheme,
   Input,
   InputGroup,
   InputRightElement,
@@ -11,9 +10,7 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { SearchIcon } from '@chakra-ui/icons';
-
-// Extend the default Chakra UI theme to access shadow styles
-const theme = extendTheme();
+import { theme } from 'src/style';
 
 const style = {
   container: {
