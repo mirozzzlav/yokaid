@@ -1,18 +1,16 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
-  Box,
-  IconButton,
-  Icon,
   Avatar,
-  MenuButton,
-  MenuList,
-  MenuItem,
+  Box,
+  Icon,
+  IconButton,
   Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
 } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import { SearchDropdown } from 'src/components/Dropdown';
-import useMapSearch from 'src/hooks/useMapSearch';
 
 const style = {
   container: (mode) => ({

@@ -1,5 +1,11 @@
 import React from 'react';
-import { HomePage, LoginPage, SignupPage, ForgotPasswordPage, NewPasswordPage } from 'src/pages';
+import {
+  ForgotPasswordPage,
+  HomePage,
+  LoginPage,
+  NewPasswordPage,
+  SignupPage,
+} from 'src/pages';
 import { Route, Routes as RoutesReactDom } from 'react-router-dom';
 
 const routes = [

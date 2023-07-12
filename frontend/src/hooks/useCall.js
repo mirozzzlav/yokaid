@@ -1,4 +1,3 @@
-import config from 'src/config';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Modal from 'src/UI/modal';
 import { callStates } from 'src/constants';

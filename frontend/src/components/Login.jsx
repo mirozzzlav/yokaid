@@ -8,7 +8,9 @@ export function LoginUI({ credentials, updateCredentials, onLoginSubmit }) {
     <div className="flex items-center justify-center">
       <form onSubmit={onLoginSubmit}>
         <div className="p-10 m-10 sm:p-15 sm:m-5 w-96 bg-white rounded-lg shadow">
-          <h1 className="font-semibold w-full text-3xl mb-7 text-center">Login to your account</h1>
+          <h1 className="font-semibold w-full text-3xl mb-7 text-center">
+            Login to your account
+          </h1>
           <div className="rounded w-full">
             <label htmlFor="username_or_email">
               <span className="LabelText">Email or Username</span>
@@ -16,7 +18,9 @@ export function LoginUI({ credentials, updateCredentials, onLoginSubmit }) {
                 className="Input"
                 type="text"
                 value={credentials.username_or_email}
-                onChange={(e) => updateCredentials('username_or_email', e.target.value)}
+                onChange={(e) =>
+                  updateCredentials('username_or_email', e.target.value)
+                }
                 id="username_or_email"
               />
               <p className="text-red-500 text-xs italic" />
@@ -36,11 +40,24 @@ export function LoginUI({ credentials, updateCredentials, onLoginSubmit }) {
               Login
             </button>
             <div className="flex items-center justify-between">
-              <Link to="/forgot-password" className="text-sm font-medium text-primary-600 hover:underline text-blue-700">Forgot password?</Link>
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-primary-600 hover:underline text-blue-700"
+              >
+                Forgot password?
+              </Link>
             </div>
             <p className="text-sm font-light text-gray-500 mt-5">
-              <span className="float-left text-sm font-medium text-primary-600 mr-10"> Don’t have an account yet?</span>
-              <Link to="/signup" className="text-sm font-medium text-primary-600 hover:underline text-blue-700">Sign up</Link>
+              <span className="float-left text-sm font-medium text-primary-600 mr-10">
+                {' '}
+                Don’t have an account yet?
+              </span>
+              <Link
+                to="/signup"
+                className="text-sm font-medium text-primary-600 hover:underline text-blue-700"
+              >
+                Sign up
+              </Link>
             </p>
           </div>
         </div>

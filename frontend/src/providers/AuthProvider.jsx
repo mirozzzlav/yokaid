@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import config from 'src/config';
 import { useCall } from 'src/hooks';
-import { callStates } from 'src/constants';
 
 export const AuthContext = React.createContext([]);
 export const storageKey = 'auth';

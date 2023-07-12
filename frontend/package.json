@@ -17,7 +17,6 @@
     "@vitejs/plugin-react": "^3.1.0",
     "framer-motion": "^10.12.18",
     "leaflet": "^1.9.4",
-    "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.10.0",
@@ -37,6 +36,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.21",
     "prettier": "^2.8.7",
+    "prop-types": "^15.8.1",
     "tailwindcss": "^3.3.1",
     "vite-plugin-svgr": "^3.2.0"
   },
@@ -75,7 +75,15 @@
       "implicit-arrow-linebreak": "off",
       "operator-linebreak": "off",
       "object-curly-newline": "off",
-      "react/jsx-props-no-spreading": "off"
+      "react/jsx-props-no-spreading": "off",
+      "react/jsx-wrap-multilines": [
+        "error",
+        {
+          "arrow": true,
+          "return": true,
+          "declaration": true
+        }
+      ]
     }
   }
 }

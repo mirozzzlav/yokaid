@@ -1,12 +1,12 @@
 import {
   Box,
   Button,
-  Input,
   extendTheme,
-  useOutsideClick,
+  Input,
   InputGroup,
   InputRightElement,
   Spinner,
+  useOutsideClick,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
