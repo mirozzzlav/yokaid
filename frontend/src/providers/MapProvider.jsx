@@ -23,6 +23,19 @@ const mapClusterStyle = {
   fontSize: '1.1rem',
 };
 
+function calculateZoom(area) {
+  if (area === null || area.length != 4) {
+    return defaultZoom;
+  }
+
+  const widthFactor = 1.7;
+  const areaNum = area.map((p) => parseFloat(p));
+  const width = areaNum[1] - areaNum[0];
+  const zoom = Math.floor(Math.log2((360 * widthFactor) / width));
+
+  return zoom < 3 ? 3 : zoom;
+}
+
 export const MapContext = React.createContext([]);
 
 export default function MapProvider({ children }) {
@@ -49,8 +62,8 @@ export default function MapProvider({ children }) {
 
   const contextVal = useMemo(
     () => ({
-      setMapPosition(position) {
-        mapRef.current.setView(position, defaultZoom);
+      setMapPosition({ position, area = null }) {
+        mapRef.current.setView(position, calculateZoom(area));
       },
       initMap({ mapDivRef, position = [51.505, -0.09], markers }) {
         if (mapRef.current) {

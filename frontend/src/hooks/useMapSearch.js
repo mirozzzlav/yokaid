@@ -34,7 +34,7 @@ export default function useMapSearch() {
       return response.data.map((place) => ({
         id: place.place_id,
         text: place.display_name,
-        value: [place.lat, place.lon],
+        value: { position: [place.lat, place.lon], area: place.boundingbox },
       }));
     }
     return [];

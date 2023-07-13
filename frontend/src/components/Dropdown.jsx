@@ -47,6 +47,14 @@ function Dropdown({ items, onItemClick }) {
     handler: () => setShowDropdown(false),
   });
 
+  const onItemClickCallback = useCallback(
+    (itemValue) => {
+      onItemClick(itemValue);
+      setShowDropdown(false);
+    },
+    [onItemClick],
+  );
+
   return (
     showDropdown && (
       <Box sx={style.list} ref={wrapperRef}>
@@ -59,7 +67,7 @@ function Dropdown({ items, onItemClick }) {
                 sx={style.listElem}
                 variant="ghost"
                 key={`${id}`}
-                onClick={() => onItemClick(itemValue)}
+                onClick={() => onItemClickCallback(itemValue)}
               >
                 {`${itemText}`}
               </Button>
