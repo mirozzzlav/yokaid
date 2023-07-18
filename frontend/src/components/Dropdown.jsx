@@ -18,6 +18,7 @@ import React, {
 import PropTypes from 'prop-types';
 import { SearchIcon } from '@chakra-ui/icons';
 import { theme } from 'src/style';
+import { unknownObjectValidator } from 'src/helpers';
 
 const style = {
   dropdownContainer: {
@@ -124,6 +125,7 @@ function Dropdown({ items: itemsRaw, buttonMeta, positionSetup }) {
       <Button
         onClick={() => setIsShown((prevShown) => !prevShown)}
         variant={buttonMeta.variant}
+        sx={buttonMeta.style}
       >
         {buttonMeta.content}
       </Button>
@@ -156,6 +158,10 @@ Dropdown.propTypes = {
   buttonMeta: PropTypes.shape({
     content: PropTypes.node,
     variant: PropTypes.string,
+    style: PropTypes.oneOfType([
+      PropTypes.oneOf([null]),
+      unknownObjectValidator,
+    ]),
   }).isRequired,
   positionSetup: PropTypes.string,
 };

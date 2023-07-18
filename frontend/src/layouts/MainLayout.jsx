@@ -92,6 +92,7 @@ function MainLayoutUI({
           buttonMeta={{
             content: <Avatar size="sm" />,
             variant: 'ghost',
+            style: { ':hover': { background: 'none' } },
           }}
         />
       </Box>
