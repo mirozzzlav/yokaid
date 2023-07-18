@@ -19,6 +19,7 @@ CREATE TABLE "posts" (
     "author" integer NOT NULL,
     "latitude"  real NOT NULL,
 	"longitude" real NOT NULL,
+	"headline" character varying(256) NOT NULL,
 	"text" text NOT NULL,
 	"created_at" timestamp NOT NULL DEFAULT now(),
     CONSTRAINT "posts_pk" PRIMARY KEY ("id")
