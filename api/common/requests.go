@@ -22,7 +22,7 @@ type UpdateUserRequest struct {
 
 type LoginUserRequest struct {
 	UsernameOrEmail any `json:"username_or_email" validate:"required,string"`
-	Password        any `json:"password" validate:"password"`
+	Password        any `json:"password" validate:"required,string"`
 }
 
 type CreatePasswordChangeRequest struct {

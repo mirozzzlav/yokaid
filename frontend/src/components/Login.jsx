@@ -1,104 +1,106 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { AuthContext } from 'src/providers';
 import { Link } from 'react-router-dom';
+import { Input, FormLabel, FormControl, Flex, Box } from '@chakra-ui/react';
+import { theme } from 'src/style';
+import ErrorMessage from 'src/components/ErrorMessage';
 
-export function LoginUI({ credentials, updateCredentials, onLoginSubmit }) {
+export function LoginUI({ credentials, updateCredentials, error }) {
   return (
-    <div className="flex items-center justify-center">
-      <form onSubmit={onLoginSubmit}>
-        <div className="p-10 m-10 sm:p-15 sm:m-5 w-96 bg-white rounded-lg shadow">
-          <h1 className="font-semibold w-full text-3xl mb-7 text-center">
-            Login to your account
-          </h1>
-          <div className="rounded w-full">
-            <label htmlFor="username_or_email">
-              <span className="LabelText">Email or Username</span>
-              <input
-                className="Input"
-                type="text"
-                value={credentials.username_or_email}
-                onChange={(e) =>
-                  updateCredentials('username_or_email', e.target.value)
-                }
-                id="username_or_email"
-              />
-              <p className="text-red-500 text-xs italic" />
-            </label>
-            <label htmlFor="password">
-              <span className="LabelText">Password</span>
-              <input
-                className="Input"
-                type="password"
-                value={credentials.password}
-                onChange={(e) => updateCredentials('password', e.target.value)}
-                id="password"
-              />
-              <p className="text-red-500 text-xs italic" />
-            </label>
-            <button className="Button" type="submit">
-              Login
-            </button>
-            <div className="flex items-center justify-between">
-              <Link
-                to="/forgot-password"
-                className="text-sm font-medium text-primary-600 hover:underline text-blue-700"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <p className="text-sm font-light text-gray-500 mt-5">
-              <span className="float-left text-sm font-medium text-primary-600 mr-10">
-                {' '}
-                Don’t have an account yet?
-              </span>
-              <Link
-                to="/signup"
-                className="text-sm font-medium text-primary-600 hover:underline text-blue-700"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </form>
-    </div>
+    <Box>
+      <FormControl isInvalid={false} mb="10px">
+        <FormLabel mb={0}>Username or email</FormLabel>
+        <Input
+          type="email"
+          value={credentials.usernameOrEmail}
+          onChange={(e) => {
+            updateCredentials('usernameOrEmail', e.target.value);
+          }}
+        />
+      </FormControl>
+      <FormControl isInvalid={false}>
+        <FormLabel mb={0}>Password</FormLabel>
+        <Input
+          type="password"
+          value={credentials.password}
+          onChange={(e) => {
+            updateCredentials('password', e.target.value);
+          }}
+        />
+      </FormControl>
+      <Flex
+        mt={0}
+        mb="10px"
+        justifyContent="space-between"
+        fontWeight={theme.fontWeights.light}
+      >
+        <Link to="/forgot-password">Forgot password?</Link>
+        <Link to="/signup">Sign up</Link>
+      </Flex>
+      {error && <ErrorMessage error={error} />}
+    </Box>
   );
 }
 
-export default function Login() {
+LoginUI.defaultProps = {
+  error: '',
+};
+LoginUI.propTypes = {
+  credentials: PropTypes.shape({
+    usernameOrEmail: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired,
+  }).isRequired,
+  updateCredentials: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};
+
+export default function Login({ submit, onLoginFinish, isActive }) {
   const [credentials, setCredentials] = useState({
-    username_or_email: '',
+    usernameOrEmail: '',
     password: '',
   });
   const updateCredentials = useCallback((name, val) => {
     setCredentials((prevData) => ({ ...prevData, [name]: val }));
   }, []);
 
-  const { loginUser } = useContext(AuthContext);
+  const { loginUser, responseMeta, response } = useContext(AuthContext);
+  const [error, setError] = useState('');
 
-  const onLoginSubmit = useCallback(
-    (event) => {
-      event.preventDefault();
+  useEffect(() => {
+    if (submit && responseMeta.isFinished && onLoginFinish) {
+      onLoginFinish(!response.error);
+    }
+    if (responseMeta.isFinished && response.error) {
+      setError(response.error.msg || 'Login failed');
+    }
+  }, [responseMeta, response]);
+
+  useEffect(() => {
+    if (submit) {
       loginUser(credentials);
-    },
-    [credentials],
-  );
+    }
+  }, [submit, credentials]);
+
+  useEffect(() => {
+    setError('');
+  }, [isActive]);
 
   return (
     <LoginUI
       credentials={credentials}
       updateCredentials={updateCredentials}
-      onLoginSubmit={onLoginSubmit}
+      error={error}
     />
   );
 }
 
-LoginUI.propTypes = {
-  credentials: PropTypes.shape({
-    username_or_email: PropTypes.string.isRequired,
-    password: PropTypes.string.isRequired,
-  }).isRequired,
-  updateCredentials: PropTypes.func.isRequired,
-  onLoginSubmit: PropTypes.func.isRequired,
+Login.defaultProps = {
+  onLoginFinish: () => {},
+};
+
+Login.propTypes = {
+  submit: PropTypes.bool.isRequired,
+  onLoginFinish: PropTypes.func,
+  isActive: PropTypes.bool.isRequired,
 };

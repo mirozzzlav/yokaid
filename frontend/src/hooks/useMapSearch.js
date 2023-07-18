@@ -33,7 +33,7 @@ export default function useMapSearch() {
     if (responseMeta.isReady) {
       return response.data.map((place) => ({
         id: place.place_id,
-        text: place.display_name,
+        label: place.display_name,
         value: { position: [place.lat, place.lon], area: place.boundingbox },
       }));
     }

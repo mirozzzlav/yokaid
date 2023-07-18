@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import MainLayout from 'src/layouts/MainLayout';
 import useMapSearch from 'src/hooks/useMapSearch';
 import { SearchDropdown } from 'src/components/Dropdown';
@@ -16,6 +16,7 @@ export default function HomePage() {
         <SearchDropdown
           searchResponseGetter={useMapSearch}
           onItemClick={setMapPosition}
+          positionSetup="center"
         />
       }
     >

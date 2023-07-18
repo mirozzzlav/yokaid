@@ -1,16 +1,10 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Avatar,
-  Box,
-  Icon,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-} from '@chakra-ui/react';
+import { Avatar, Box, Button, Icon, IconButton } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
+import { Login } from 'src/components';
+import Modal from 'src/components/Modal';
+import { Dropdown } from 'src/components/Dropdown';
 
 const style = {
   container: (mode) => ({
@@ -20,7 +14,7 @@ const style = {
   }),
   top: {
     position: 'sticky',
-    zIndex: 9999,
+    zIndex: 500,
     background: 'rgba(255,255,255, 0.9)',
     display: 'flex',
     justifyContent: 'space-between',
@@ -38,35 +32,29 @@ const style = {
 };
 
 function MainLayout({ children, mode, topContent }) {
+  const [isLoginShown, setIsLoginShown] = useState(false);
+  const [isModalSubmitted, setIsModalSubmitted] = useState(false);
+  const userMenuItems = useMemo(
+    () => [
+      { onClick: () => setIsLoginShown(true), label: 'Login', id: 'login' },
+      { onClick: () => {}, label: 'Sign up', id: 'signup' },
+    ],
+    [],
+  );
   return (
-    <Box sx={style.container(mode)}>
-      <Box sx={style.top}>
-        <Box>
-          <IconButton
-            mr={6}
-            variant="link"
-            icon={<Icon width="6rem" height="2rem" as={Logo} />}
-          />
-        </Box>
-        <Box>{topContent}</Box>
-        <Menu>
-          <MenuButton
-            as={IconButton}
-            aria-label="Options"
-            icon={<Avatar size="sm" />}
-            variant="link"
-          />
-          <MenuList>
-            <MenuItem command="⌘⇧N">Open Closed Tab</MenuItem>
-            <MenuItem command="⌘O">Open File...</MenuItem>
-          </MenuList>
-        </Menu>
-      </Box>
-      <Box sx={style.content(mode)}>{children}</Box>
-    </Box>
+    <MainLayoutUI
+      mode={mode}
+      topContent={topContent}
+      userMenuItems={userMenuItems}
+      isLoginShown={isLoginShown}
+      hideLogin={() => setIsLoginShown(false)}
+      isModalSubmitted={isModalSubmitted}
+      setIsModalSubmitted={setIsModalSubmitted}
+    >
+      {children}
+    </MainLayoutUI>
   );
 }
-
 MainLayout.defaultProps = {
   mode: 'scroll',
 };
@@ -75,6 +63,75 @@ MainLayout.propTypes = {
   children: PropTypes.node.isRequired,
   mode: PropTypes.string,
   topContent: PropTypes.node.isRequired,
+};
+
+function MainLayoutUI({
+  children,
+  mode,
+  topContent,
+  userMenuItems,
+  isLoginShown,
+  hideLogin,
+  isModalSubmitted,
+  setIsModalSubmitted,
+}) {
+  return (
+    <Box sx={style.container(mode)}>
+      <Box sx={style.top}>
+        <Box>
+          <IconButton
+            aria-label="Company Logo"
+            mr={6}
+            variant="link"
+            icon={<Icon width="6rem" height="2rem" as={Logo} />}
+          />
+        </Box>
+        <Box>{topContent}</Box>
+        <Dropdown
+          items={userMenuItems}
+          buttonMeta={{
+            content: <Avatar size="sm" />,
+            variant: 'ghost',
+          }}
+        />
+      </Box>
+      <Box sx={style.content(mode)}>{children}</Box>
+      <Modal
+        title="Login"
+        show={isLoginShown}
+        onClose={() => {
+          hideLogin();
+          setIsModalSubmitted(false);
+        }}
+        submit={{ label: 'Login', action: () => setIsModalSubmitted(true) }}
+        isLoaderShown={isModalSubmitted}
+      >
+        <Login
+          isActive={isLoginShown}
+          submit={isModalSubmitted}
+          onLoginFinish={(success) => {
+            if (success) {
+              hideLogin();
+            }
+            setIsModalSubmitted(false);
+          }}
+        />
+      </Modal>
+    </Box>
+  );
+}
+
+MainLayoutUI.propTypes = {
+  children: PropTypes.node.isRequired,
+  mode: PropTypes.string.isRequired,
+  topContent: PropTypes.node.isRequired,
+  userMenuItems: PropTypes.arrayOf(
+    PropTypes.shape({ label: PropTypes.string, onClick: PropTypes.func }),
+  ).isRequired,
+  isLoginShown: PropTypes.bool.isRequired,
+  hideLogin: PropTypes.func.isRequired,
+  isModalSubmitted: PropTypes.bool.isRequired,
+  setIsModalSubmitted: PropTypes.func.isRequired,
 };
 
 export default MainLayout;

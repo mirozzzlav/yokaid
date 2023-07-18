@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Modal from 'src/UI/modal';
+import { useCallback, useMemo, useState } from 'react';
 import { callStates } from 'src/constants';
 
 const initialResponse = {
@@ -12,14 +11,14 @@ export default function useCall(responseModifier) {
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
 
-  useEffect(() => {
-    if (response.state === 'error') {
-      Modal({
-        message: response.error.msg,
-        type: 'alert',
-      });
-    }
-  }, [response]);
+  // useEffect(() => {
+  //   if (response.state === 'error') {
+  //     Modal({
+  //       message: response.error.msg,
+  //       type: 'alert',
+  //     });
+  //   }
+  // }, [response]);
 
   const call = useCallback(
     (url, method = 'get', payload = null, headers = null) => {
@@ -64,6 +63,7 @@ export default function useCall(responseModifier) {
     () => ({
       response, // data and error
       responseMeta: {
+        isFinished: state === callStates.ready || state === callStates.error,
         isReady: state === callStates.ready,
         isError: state === callStates.error,
         isLoading: state === callStates.loading,
@@ -71,6 +71,6 @@ export default function useCall(responseModifier) {
       },
       call,
     }),
-    [response],
+    [response, state],
   );
 }

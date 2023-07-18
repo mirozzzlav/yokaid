@@ -1,38 +1,8 @@
 import React from 'react';
-import {
-  ForgotPasswordPage,
-  HomePage,
-  LoginPage,
-  NewPasswordPage,
-  SignupPage,
-} from 'src/pages';
+import { HomePage } from 'src/pages';
 import { Route, Routes as RoutesReactDom } from 'react-router-dom';
 
 const routes = [
-  {
-    name: 'login',
-    route: 'login',
-    element: <LoginPage />,
-    public: true,
-  },
-  {
-    name: 'signup',
-    route: 'signup',
-    element: <SignupPage />,
-    public: true,
-  },
-  {
-    name: 'forgot-password',
-    route: 'forgot-password',
-    element: <ForgotPasswordPage />,
-    public: true,
-  },
-  {
-    name: 'new-password',
-    route: 'new-password',
-    element: <NewPasswordPage />,
-    public: true,
-  },
   {
     name: 'home',
     route: '',

@@ -33,7 +33,7 @@ export default function AuthProvider({
 
   const contextVal = useMemo(
     () => ({
-      loginUser({ username_or_email: usernameOrEmail, password }) {
+      loginUser({ usernameOrEmail, password }) {
         call(config.api.endPointsURLs.loginUser, 'post', {
           username_or_email: usernameOrEmail,
           password,
@@ -47,6 +47,7 @@ export default function AuthProvider({
         call(endpointURL, method, data, headers);
       },
       response,
+      responseMeta,
       isAuthorized,
     }),
     [response, isAuthorized],
