@@ -32,8 +32,8 @@ export default function useCall() {
         .then((r) => {
           setState(!r.error ? callStates.ready : callStates.error);
           setResponse((prevResponse) => {
-            if (r.data === 'undefined') {
-              // it is some non-standard response
+            if (typeof r.data === 'undefined') {
+              // no data field - it is coming from some external API response
               return {
                 data: r,
               };
