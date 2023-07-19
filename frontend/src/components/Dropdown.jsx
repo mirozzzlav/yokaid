@@ -173,7 +173,8 @@ const DropdownList = forwardRef(({ items, isShown, position }, ref) => {
       sx={{
         ...style.list,
         left: position,
-        opacity: isShown ? 1 : 0,
+        overflow: 'hidden',
+        ...(!isShown ? { opacity: 0, maxHeight: 0 } : null),
       }}
     >
       {items.length === 0 ? (

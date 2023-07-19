@@ -8,12 +8,13 @@ import { Dropdown } from 'src/components/Dropdown';
 
 const style = {
   container: (mode) => ({
-    ...(mode === 'fullscreen'
-      ? { position: 'relative', height: '100vh', overflow: 'hidden' }
-      : null),
+    ...(mode === 'fullscreen' ? { height: '100vh', overflow: 'hidden' } : null),
+    display: 'flex',
+    flexDirection: 'column',
   }),
   top: {
     position: 'sticky',
+    flexGrow: 0,
     zIndex: 500,
     background: 'rgba(255,255,255, 0.9)',
     display: 'flex',
@@ -21,14 +22,9 @@ const style = {
     alignItems: 'center',
     padding: '1rem',
   },
-  content: (mode) =>
-    mode === 'fullscreen' && {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-    },
+  content: {
+    flexGrow: 1,
+  },
 };
 
 function MainLayout({ children, mode, topContent }) {
@@ -96,7 +92,7 @@ function MainLayoutUI({
           }}
         />
       </Box>
-      <Box sx={style.content(mode)}>{children}</Box>
+      <Box sx={style.content}>{children}</Box>
       <Modal
         title="Login"
         show={isLoginShown}
