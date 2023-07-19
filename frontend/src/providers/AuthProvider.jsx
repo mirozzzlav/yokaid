@@ -6,19 +6,12 @@ import { useCall } from 'src/hooks';
 export const AuthContext = React.createContext([]);
 export const storageKey = 'auth';
 
-function getResponseWithAuth(response) {
-  return {
-    ...response,
-    refreshToken: response.refresh_token || null,
-  };
-}
-
 export default function AuthProvider({
   children,
   getLocalDataValue,
   setLocalDataValue,
 }) {
-  const { call, response, responseMeta } = useCall(getResponseWithAuth);
+  const { call, response, responseMeta } = useCall();
 
   const getToken = useCallback(
     () => getLocalDataValue(storageKey, 'accessToken') || null,
@@ -59,8 +52,8 @@ export default function AuthProvider({
       if (response?.data.access_token) {
         accessToken = response.data.access_token;
       }
-      if (response.refreshToken) {
-        accessToken = response.refreshToken;
+      if (response.refresh_token) {
+        accessToken = response.refresh_token;
       }
 
       setToken(accessToken);
