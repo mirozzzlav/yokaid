@@ -91,7 +91,8 @@ func (qr QueriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: "SELECT full_name as author, latitude, longitude, text, posts.created_at " +
+				Query: "SELECT posts.id as id, full_name as author, latitude, longitude, " +
+					"text, posts.created_at, posts.headline " +
 					"FROM posts, users " +
 					"WHERE posts.author = users.id ",
 				Params: []any{},

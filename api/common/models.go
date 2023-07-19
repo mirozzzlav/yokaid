@@ -31,11 +31,13 @@ type User struct {
 }
 
 type post struct {
+	Id        int
 	Author    string
 	Latitude  float64
 	Longitude float64
 	Text      string
 	CreatedAt timeCustom
+	Headline  string
 }
 
 type passwordChangeRequest struct {

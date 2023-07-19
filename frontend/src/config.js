@@ -9,6 +9,7 @@ export default {
     url: apiUrl, // Proxy api url instead of real one
     endPointsURLs: {
       loginUser: `${apiUrl}/users/login`,
+      getMapPosts: `${apiUrl}/posts/list`,
     },
   },
 };

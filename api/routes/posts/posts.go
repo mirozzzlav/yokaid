@@ -8,8 +8,8 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/posts/list", true, http.MethodGet, list(server)},
-		{"/posts/list/:filter", true, http.MethodGet, list(server)},
+		{"/posts/list", false, http.MethodGet, list(server)},
+		{"/posts/list/:filter", false, http.MethodGet, list(server)},
 		{"/posts/create", true, http.MethodPost, create(server)},
 	}
 }

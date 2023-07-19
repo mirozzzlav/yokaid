@@ -1,7 +1,7 @@
 import React from 'react';
 import AuthProvider from 'src/providers/AuthProvider';
 import { BrowserRouter } from 'react-router-dom';
-import { useLocalStorage } from 'src/hooks';
+import { useLocalStorage, useMapPosts } from 'src/hooks';
 import Routes from 'src/Routes';
 import MapProvider from 'src/providers/MapProvider';
 
@@ -14,7 +14,7 @@ function App() {
         setLocalDataValue={setLocalDataValue}
         getLocalDataValue={getLocalDataValue}
       >
-        <MapProvider>
+        <MapProvider mapPostsGetter={useMapPosts}>
           <Routes />
         </MapProvider>
       </AuthProvider>
