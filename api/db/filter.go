@@ -13,14 +13,12 @@ var filterError = errors.New("wrong filter specified")
 func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string) (string, bool) {
 
 	var filterSQLSpecial = map[string]string{
-		"author": fmt.Sprintf("users.full_name %s %s", fOperator, fValuePlaceholder),
+		"author.full_name": fmt.Sprintf("users.full_name %s %s", fOperator, fValuePlaceholder),
 	}
 
 	fKey = strings.ToLower(fKey)
 	for k, special := range filterSQLSpecial {
 		if fKey == k {
-			//fKey = strings.ToLower(fKey)
-			//fKey = strings.Replace(fKey, special+".", "", -1)
 			return special, true
 		}
 	}
