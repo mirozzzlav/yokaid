@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -10,7 +11,7 @@ import (
 func createDataElementAsArray(colValues []any) []any {
 	resultElem := make([]any, len(colValues))
 
-	for i, _ := range colValues {
+	for i := range colValues {
 		value := colValues[i]
 		valueBytes, isByteArray := value.([]byte)
 		//column value can be byte array (for example json encoded into bytes)
@@ -44,62 +45,125 @@ func createDataElement(colNames []string, colValues []any) any {
 	return resultElem
 }
 
-func NewQueryRunner() QueryRunner {
+func NewQueryRunner() *QueryRunner {
 	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	return QueryRunner{
+	return &QueryRunner{
 		db: db,
 	}
 }
 
 type QueryRunner struct {
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
+	tx  *sql.Tx
 }
 
-func (qr QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArrayOfArrays bool) error {
-	qString, qParams := q.GetQuery()
-	rows, err := qr.db.Query(qString, qParams...)
+func (qr *QueryRunner) Begin() {
+	if qr.ctx != nil {
+		qr.Commit()
+	}
+
+	qr.ctx = context.Background()
+
+	txOptions := &sql.TxOptions{
+		Isolation: sql.LevelDefault,
+		ReadOnly:  false,
+	}
+
+	var err error
+	qr.tx, err = qr.db.BeginTx(qr.ctx, txOptions)
+
 	if err != nil {
+		qr.ctx = nil
+		common.CheckErrAndPanic(err)
+	}
+}
+
+func (qr *QueryRunner) Rollback() {
+	if qr.tx != nil {
+		if err := qr.tx.Rollback(); err != nil {
+			log.Printf("Rollback error: %v\n", err)
+		}
+		qr.ctx = nil
+		qr.tx = nil
+	}
+}
+
+func (qr *QueryRunner) Commit() {
+
+	defer func() {
+		qr.ctx = nil
+		qr.tx = nil
+	}()
+
+	if err := qr.tx.Commit(); err != nil {
+		common.CheckErrAndPanic(err)
+	}
+}
+
+func (qr *QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArrayOfArrays bool) error {
+
+	if qr.ctx == nil {
+		qr.Begin()
+	}
+
+	qString, qParams := q.GetQuery()
+
+	rows, err := qr.tx.QueryContext(qr.ctx, qString, qParams...)
+	if err != nil {
+		qr.Rollback()
 		return err
 	}
 
 	columns, err := rows.Columns()
 	if err != nil {
+		qr.Rollback()
 		return err
 	}
 
-	values := make([]any, len(columns))
-	pointers := make([]any, len(columns))
-	for i, _ := range values {
+	values := make([]interface{}, len(columns))
+	pointers := make([]interface{}, len(columns))
+	for i := range values {
 		pointers[i] = &values[i]
 	}
 
-	var elemBytes []byte
 	for rows.Next() {
 		err := rows.Scan(pointers...)
 		if err != nil {
+			qr.Rollback()
 			return err
 		}
 
 		if asArrayOfArrays {
-			elemBytes, err = json.Marshal(createDataElementAsArray(values))
+			elemBytes, err := json.Marshal(createDataElementAsArray(values))
+			if err != nil {
+				qr.Rollback()
+				return err
+			}
+			fn(elemBytes)
 		} else {
-			elemBytes, err = json.Marshal(createDataElement(columns, values))
-		}
+			elemBytes, err := json.Marshal(createDataElement(columns, values))
 
-		if err != nil {
-			return err
+			if err != nil {
+				qr.Rollback()
+				return err
+			}
+			fn(elemBytes)
 		}
-		fn(elemBytes)
 	}
 
-	err = closeRows(rows)
-	return err
+	if err := rows.Err(); err != nil {
+		qr.Rollback()
+		return err
+	}
+
+	return nil
 }
 
-func (qr QueryRunner) GetScalar(q common.Query) (int, error) {
+func (qr *QueryRunner) GetScalar(q common.Query) (int, error) {
 	qString, qParams := q.GetQuery()
 	var scalar int
 	err := qr.db.QueryRow(qString, qParams...).Scan(&scalar)
@@ -114,25 +178,58 @@ func (qr QueryRunner) GetScalar(q common.Query) (int, error) {
 	return scalar, nil
 }
 
-func (qr QueryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *QueryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn, false)
 }
 
-func (qr QueryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *QueryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn, true)
 }
 
-func (qr QueryRunner) Update(q common.Query) error {
-	qString, qParams := q.GetQuery()
-	result, err := qr.db.Exec(qString, qParams...)
-	if err != nil {
-		return err
+func (qr *QueryRunner) Create(q common.Query, IdColumnName string) (any, error) {
+
+	if qr.ctx == nil {
+		qr.Begin()
 	}
-	rowsAffected, err := result.RowsAffected()
+
+	var queryRes any
+
+	qString, qParams := q.GetQuery()
+
+	if IdColumnName == "" {
+		_, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
+		if err != nil {
+			qr.Rollback()
+			return 0, err
+		}
+	} else {
+		err := qr.tx.QueryRowContext(qr.ctx, qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
+
+		if err != nil {
+			qr.Rollback()
+			return 0, err
+		}
+	}
+
+	return queryRes, nil
+}
+
+func (qr *QueryRunner) Update(q common.Query) error {
+	if qr.ctx == nil {
+		qr.Begin()
+	}
+
+	qString, qParams := q.GetQuery()
+
+	result, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
 
 	if err != nil {
+		qr.Rollback()
 		return err
 	}
+
+	rowsAffected, err := result.RowsAffected()
+
 	if rowsAffected == 0 {
 		return common.ErrNoRows
 	}
@@ -140,34 +237,24 @@ func (qr QueryRunner) Update(q common.Query) error {
 	return nil
 }
 
-func (qr QueryRunner) Create(q common.Query, IdColumnName string) (any, error) {
-	qString, qParams := q.GetQuery()
-	if IdColumnName == "" {
-
-		_, err := qr.db.Exec(qString, qParams...)
-		return 0, err
+func (qr *QueryRunner) Delete(q common.Query) error {
+	if qr.ctx == nil {
+		qr.Begin()
 	}
-	var queryRes any
-	err := qr.db.QueryRow(qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
-	if err != nil {
-		return 0, err
-	}
-	return queryRes, nil
-}
 
-func (qr QueryRunner) Delete(q common.Query) error {
 	qString, qParams := q.GetQuery()
-	res, err := qr.db.Exec(qString, qParams...)
+
+	result, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
 	if err != nil {
+		qr.Rollback()
 		return err
 	}
-	rowsAffected, err := res.RowsAffected()
 
-	if err != nil {
-		return err
-	}
+	rowsAffected, err := result.RowsAffected()
+
 	if rowsAffected == 0 {
 		return common.ErrNoRows
 	}
+
 	return nil
 }

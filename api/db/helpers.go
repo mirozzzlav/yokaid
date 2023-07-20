@@ -224,6 +224,8 @@ func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password
 		return nil, err
 	}
 
+	sH.QueryRunner.Commit()
+
 	return user, nil
 }
 

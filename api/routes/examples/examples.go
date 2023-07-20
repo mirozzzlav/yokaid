@@ -12,6 +12,9 @@ func GetRoutes(server common.Server) []common.Route {
 		{"/example/email", false, http.MethodGet, submitEmail(server)},
 		{"/example/panic", false, http.MethodGet, panicError(server)},
 		{"/example/query/:username", false, http.MethodGet, query(server)},
+		{"/example/transaction/:username", false, http.MethodGet, transaction(server)},
+		{"/example/second-transaction/:username", false, http.MethodGet, secondTransaction(server)},
+		{"/example/third-transaction/", false, http.MethodGet, thirdTransaction(server)},
 		{"/example/validate/:id", false, http.MethodPut, validate(server)},
 		{"/example/password/:password", false, http.MethodGet, password(server)},
 	}

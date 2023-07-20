@@ -29,6 +29,8 @@ type QueryRunner interface {
 	GetScalar(q Query) (int, error)
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
+	Begin()
+	Commit()
 	Update(q Query) error
 	Create(q Query, IdColumnName string) (any, error)
 	Delete(q Query) error
@@ -58,6 +60,11 @@ type StoreHelpers interface {
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 	CreatePost(authorId int, req CreatePostRequest) (int, error)
+
+	// only for testing
+	Insert() int
+	Update(id int)
+	Delete(id int)
 }
 
 type Notifier interface {
