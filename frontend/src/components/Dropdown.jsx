@@ -10,6 +10,7 @@ import {
 import React, {
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -19,6 +20,7 @@ import PropTypes from 'prop-types';
 import { SearchIcon } from '@chakra-ui/icons';
 import { theme } from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
+import { LoaderContext } from 'src/providers/LoaderProvider';
 
 const style = {
   dropdownContainer: {
@@ -222,11 +224,12 @@ function SearchDropdown({
   icon,
   onItemClick,
   positionSetup,
+  showLoader,
 }) {
   const valueRef = useRef('');
 
   const { foundItems, searchCall, responseMeta } = searchResponseGetter();
-
+  const { isLoading } = useContext(LoaderContext);
   const timeout = useRef(null);
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
@@ -276,9 +279,11 @@ function SearchDropdown({
           placeholder={placeholder}
           onChange={(e) => onInputChange(e.target.value)}
         />
-        <InputRightElement>
-          {responseMeta.isLoading ? <Spinner /> : icon}
-        </InputRightElement>
+        {showLoader && (
+          <InputRightElement>
+            {isLoading ? <Spinner /> : icon}
+          </InputRightElement>
+        )}
       </InputGroup>
       <DropdownList
         position={position}
@@ -294,6 +299,7 @@ SearchDropdown.defaultProps = {
   placeholder: 'search something',
   icon: <SearchIcon />,
   positionSetup: 'right',
+  showLoader: false,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -301,6 +307,7 @@ SearchDropdown.propTypes = {
   icon: PropTypes.node,
   onItemClick: PropTypes.func.isRequired,
   positionSetup: PropTypes.string,
+  showLoader: PropTypes.bool,
 };
 
 export { Dropdown, SearchDropdown };

@@ -16,6 +16,7 @@ export default function HomePage() {
           searchResponseGetter={useMapSearch}
           onItemClick={setMapPosition}
           positionSetup="center"
+          placeholder="Where?"
         />
       }
     >

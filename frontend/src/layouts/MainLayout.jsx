@@ -1,10 +1,21 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Avatar, Box, Button, Icon, IconButton } from '@chakra-ui/react';
+import { Avatar, Box, Icon, IconButton, keyframes } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
 import { Login } from 'src/components';
 import Modal from 'src/components/Modal';
 import { Dropdown } from 'src/components/Dropdown';
+import { theme } from 'src/style';
+import { LoaderContext } from 'src/providers/LoaderProvider';
+
+const loaderAnim = keyframes(`
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%
+  }
+`);
 
 const style = {
   container: (mode) => ({
@@ -20,8 +31,18 @@ const style = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '1rem',
+    padding: '1rem 1rem 1rem 1rem',
   },
+  loader: (isLoading) => ({
+    height: '2px',
+    width: '100%',
+    '> *': {
+      height: '100%',
+      width: '0',
+      backgroundColor: `${theme.colors.blue['600']}`,
+      ...(isLoading && { animation: `${loaderAnim} infinite 5s ease` }),
+    },
+  }),
   content: {
     flexGrow: 1,
   },
@@ -30,6 +51,7 @@ const style = {
 function MainLayout({ children, mode, topContent }) {
   const [isLoginShown, setIsLoginShown] = useState(false);
   const [isModalSubmitted, setIsModalSubmitted] = useState(false);
+  const { isLoading } = useContext(LoaderContext);
   const userMenuItems = useMemo(
     () => [
       { onClick: () => setIsLoginShown(true), label: 'Login', id: 'login' },
@@ -46,6 +68,7 @@ function MainLayout({ children, mode, topContent }) {
       hideLogin={() => setIsLoginShown(false)}
       isModalSubmitted={isModalSubmitted}
       setIsModalSubmitted={setIsModalSubmitted}
+      isLoading={isLoading}
     >
       {children}
     </MainLayoutUI>
@@ -70,9 +93,13 @@ function MainLayoutUI({
   hideLogin,
   isModalSubmitted,
   setIsModalSubmitted,
+  isLoading,
 }) {
   return (
     <Box sx={style.container(mode)}>
+      <Box sx={style.loader(isLoading)}>
+        <Box />
+      </Box>
       <Box sx={style.top}>
         <Box>
           <IconButton
@@ -88,7 +115,7 @@ function MainLayoutUI({
           buttonMeta={{
             content: <Avatar size="sm" />,
             variant: 'ghost',
-            style: { ':hover': { background: 'none' } },
+            style: { ':hover': { background: 'none' }, padding: 0 },
           }}
         />
       </Box>
@@ -101,7 +128,6 @@ function MainLayoutUI({
           setIsModalSubmitted(false);
         }}
         submit={{ label: 'Login', action: () => setIsModalSubmitted(true) }}
-        isLoaderShown={isModalSubmitted}
       >
         <Login
           isActive={isLoginShown}
@@ -118,6 +144,9 @@ function MainLayoutUI({
   );
 }
 
+MainLayoutUI.defaultProps = {
+  isLoading: false,
+};
 MainLayoutUI.propTypes = {
   children: PropTypes.node.isRequired,
   mode: PropTypes.string.isRequired,
@@ -129,6 +158,7 @@ MainLayoutUI.propTypes = {
   hideLogin: PropTypes.func.isRequired,
   isModalSubmitted: PropTypes.bool.isRequired,
   setIsModalSubmitted: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default MainLayout;

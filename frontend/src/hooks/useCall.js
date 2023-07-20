@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { callStates } from 'src/constants';
+import { LoaderContext } from 'src/providers/LoaderProvider';
 
 const initialResponse = {
   error: null,
@@ -10,6 +11,7 @@ export default function useCall() {
   const [response, setResponse] = useState(initialResponse);
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
+  const { setIsLoading } = useContext(LoaderContext);
 
   const call = useCallback(
     (url, method = 'get', payload = null, headers = null) => {
@@ -55,6 +57,10 @@ export default function useCall() {
     },
     [],
   );
+
+  useEffect(() => {
+    setIsLoading(state === callStates.loading);
+  }, [state]);
 
   return useMemo(
     () => ({
