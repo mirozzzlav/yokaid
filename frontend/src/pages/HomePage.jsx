@@ -9,19 +9,20 @@ import {
   LoginForm,
   Map,
 } from 'src/components';
+import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
   const { setMapPosition } = useContext(MapContext);
-  const [shownModal, setShownModal] = useState('');
+  const navigate = useNavigate();
   const userMenuItems = useMemo(
     () => [
       {
-        onClick: () => setShownModal('login'),
+        onClick: () => navigate('/login'),
         label: 'Login',
         id: 'login',
       },
       {
-        onClick: () => setShownModal('signup'),
+        onClick: () => navigate('/signup'),
         label: 'Sign up',
         id: 'signup',
       },
@@ -61,11 +62,7 @@ export default function HomePage() {
       userMenuItems={userMenuItems}
     >
       <Map />
-      <FormModals
-        modals={modals}
-        shownModal={shownModal}
-        setShownModal={setShownModal}
-      />
+      <FormModals modals={modals} />
     </MainLayout>
   );
 }

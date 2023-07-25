@@ -8,6 +8,11 @@ const routes = [
     route: '',
     element: <HomePage />,
   },
+  {
+    name: 'login',
+    route: ':action',
+    element: <HomePage />,
+  },
 ];
 
 export function isPublicRoute(routeToCheck) {

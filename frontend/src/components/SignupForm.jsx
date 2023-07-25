@@ -32,7 +32,6 @@ export default function SignupForm({
     ['firstName', 'lastName', 'email'],
     false,
   );
-  console.log(error);
   return (
     <Box>
       <FormControl isInvalid={inputsErrors?.fullName} mb="10px">
@@ -69,8 +68,8 @@ export default function SignupForm({
         <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
       </FormControl>
 
-      {error && <ErrorMessage message={error} />}
-      {error === '' && <SuccessMessage message={successMessage} />}
+      {error ? <ErrorMessage message={error} /> : null}
+      {error === '' ? <SuccessMessage message={successMessage} /> : null}
     </Box>
   );
 }

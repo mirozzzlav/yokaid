@@ -1,48 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
+import { useNavigate, useParams } from 'react-router-dom';
 
-function getInitialModalStates(modals) {
-  return Object.fromEntries(
-    modals.map(({ id }) => [
-      id,
-      {
-        isShown: false,
-        isSubmitted: false,
-      },
-    ]),
-  );
+function resetSubmitted(modals) {
+  return Object.fromEntries(modals.map(({ id }) => [id, false]));
 }
 
-export default function FormModals({ modals, shownModal, setShownModal }) {
-  const [formStates, setFormStates] = useState(getInitialModalStates(modals));
-  const { setIsShown, setIsSubmitted } = useMemo(
-    () => ({
-      setIsShown: (formId, isShown) => {
-        setFormStates((prevFormStates) => ({
-          ...prevFormStates,
-          [formId]: { ...prevFormStates[formId], isShown },
-        }));
-        setShownModal(false);
-      },
-      setIsSubmitted: (formId, isSubmitted) =>
-        setFormStates((prevFormStates) => ({
-          ...prevFormStates,
-          [formId]: { ...prevFormStates[formId], isSubmitted },
-        })),
-    }),
-    [formStates],
+export default function FormModals({ modals, baseUrl }) {
+  const [submitted, setSubmittedState] = useState(resetSubmitted(modals));
+  const navigate = useNavigate();
+  const { action: urlAction } = useParams();
+
+  const setIsShown = useCallback((formId, isShown) => {
+    if (isShown) {
+      navigate(`${baseUrl}/${urlAction}`);
+    } else {
+      navigate(baseUrl);
+    }
+  });
+  const setIsSubmitted = useCallback(
+    (formId, isSubmitted) =>
+      setSubmittedState((prevState) => ({
+        ...prevState,
+        [formId]: isSubmitted,
+      })),
+    [],
   );
 
   useEffect(() => {
-    if (!shownModal) {
+    setSubmittedState(resetSubmitted(modals));
+    if (!urlAction) {
+      navigate(baseUrl);
       return;
     }
-    setFormStates((prevState) => ({
-      ...prevState,
-      [shownModal]: { isSubmitted: false, isShown: true },
-    }));
-  }, [shownModal]);
+    navigate(`${baseUrl}${urlAction}`);
+  }, [urlAction]);
 
   return (
     <>
@@ -50,14 +43,14 @@ export default function FormModals({ modals, shownModal, setShownModal }) {
         <Modal
           key={id}
           {...modalProps}
-          isShown={formStates[id].isShown}
+          isShown={id === urlAction}
           setIsShown={(isShown) => setIsShown(id, isShown)}
           setIsSubmitted={(isSubmitted) => setIsSubmitted(id, isSubmitted)}
         >
           {React.createElement(form, {
-            isShown: formStates[id].isShown,
+            isShown: id === urlAction,
             setIsShown: (isShown) => setIsShown(id, isShown),
-            isSubmitted: formStates[id].isSubmitted,
+            isSubmitted: submitted[id],
             setIsSubmitted: (isSubmitted) => setIsSubmitted(id, isSubmitted),
           })}
         </Modal>
@@ -67,7 +60,7 @@ export default function FormModals({ modals, shownModal, setShownModal }) {
 }
 
 FormModals.defaultProps = {
-  shownModal: '',
+  baseUrl: '/',
 };
 FormModals.prototype.propTypes = {
   modals: PropTypes.arrayOf(
@@ -78,6 +71,5 @@ FormModals.prototype.propTypes = {
       form: PropTypes.node,
     }),
   ).isRequired,
-  shownModal: PropTypes.string,
-  setShownModal: PropTypes.func.isRequired,
+  baseUrl: PropTypes.string,
 };
