@@ -1,10 +1,8 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Avatar, Box, Icon, IconButton, keyframes } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import { Login } from 'src/components';
-import Modal from 'src/components/Modal';
-import { Dropdown } from 'src/components/Dropdown';
+import { Dropdown } from 'src/components';
 import { theme } from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 
@@ -48,53 +46,9 @@ const style = {
   },
 };
 
-function MainLayout({ children, mode, topContent }) {
-  const [isLoginShown, setIsLoginShown] = useState(false);
-  const [isModalSubmitted, setIsModalSubmitted] = useState(false);
+function MainLayout({ children, mode, topContent, userMenuItems }) {
   const { isLoading } = useContext(LoaderContext);
-  const userMenuItems = useMemo(
-    () => [
-      { onClick: () => setIsLoginShown(true), label: 'Login', id: 'login' },
-      { onClick: () => {}, label: 'Sign up', id: 'signup' },
-    ],
-    [],
-  );
-  return (
-    <MainLayoutUI
-      mode={mode}
-      topContent={topContent}
-      userMenuItems={userMenuItems}
-      isLoginShown={isLoginShown}
-      hideLogin={() => setIsLoginShown(false)}
-      isModalSubmitted={isModalSubmitted}
-      setIsModalSubmitted={setIsModalSubmitted}
-      isLoading={isLoading}
-    >
-      {children}
-    </MainLayoutUI>
-  );
-}
-MainLayout.defaultProps = {
-  mode: 'scroll',
-};
 
-MainLayout.propTypes = {
-  children: PropTypes.node.isRequired,
-  mode: PropTypes.string,
-  topContent: PropTypes.node.isRequired,
-};
-
-function MainLayoutUI({
-  children,
-  mode,
-  topContent,
-  userMenuItems,
-  isLoginShown,
-  hideLogin,
-  isModalSubmitted,
-  setIsModalSubmitted,
-  isLoading,
-}) {
   return (
     <Box sx={style.container(mode)}>
       <Box sx={style.loader(isLoading)}>
@@ -120,45 +74,24 @@ function MainLayoutUI({
         />
       </Box>
       <Box sx={style.content}>{children}</Box>
-      <Modal
-        title="Login"
-        show={isLoginShown}
-        onClose={() => {
-          hideLogin();
-          setIsModalSubmitted(false);
-        }}
-        submit={{ label: 'Login', action: () => setIsModalSubmitted(true) }}
-      >
-        <Login
-          isActive={isLoginShown}
-          submit={isModalSubmitted}
-          onLoginFinish={(success) => {
-            if (success) {
-              hideLogin();
-            }
-            setIsModalSubmitted(false);
-          }}
-        />
-      </Modal>
     </Box>
   );
 }
-
-MainLayoutUI.defaultProps = {
-  isLoading: false,
+MainLayout.defaultProps = {
+  mode: 'scroll',
 };
-MainLayoutUI.propTypes = {
+
+MainLayout.propTypes = {
   children: PropTypes.node.isRequired,
-  mode: PropTypes.string.isRequired,
+  mode: PropTypes.string,
   topContent: PropTypes.node.isRequired,
   userMenuItems: PropTypes.arrayOf(
-    PropTypes.shape({ label: PropTypes.string, onClick: PropTypes.func }),
-  ).isRequired,
-  isLoginShown: PropTypes.bool.isRequired,
-  hideLogin: PropTypes.func.isRequired,
-  isModalSubmitted: PropTypes.bool.isRequired,
-  setIsModalSubmitted: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool,
+    PropTypes.shape({
+      onClick: PropTypes.func,
+      label: PropTypes.string,
+      id: PropTypes.string,
+    }),
+  ),
 };
 
 export default MainLayout;

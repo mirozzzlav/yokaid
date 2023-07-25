@@ -3,8 +3,7 @@ import AuthProvider from 'src/providers/AuthProvider';
 import { BrowserRouter } from 'react-router-dom';
 import { useLocalStorage, useMapPosts } from 'src/hooks';
 import Routes from 'src/Routes';
-import MapProvider from 'src/providers/MapProvider';
-import LoaderProvider from 'src/providers/LoaderProvider';
+import { LoaderProvider, MapProvider } from 'src/providers';
 
 function App() {
   const { setLocalDataValue, getLocalDataValue } = useLocalStorage();
@@ -16,7 +15,7 @@ function App() {
           setLocalDataValue={setLocalDataValue}
           getLocalDataValue={getLocalDataValue}
         >
-          <MapProvider mapPostsGetter={useMapPosts}>
+          <MapProvider searchMapPostsHook={useMapPosts}>
             <Routes />
           </MapProvider>
         </AuthProvider>

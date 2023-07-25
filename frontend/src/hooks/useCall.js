@@ -7,7 +7,7 @@ const initialResponse = {
   data: null,
 };
 
-export default function useCall() {
+export default function useCall(onCallFinish = null) {
   const [response, setResponse] = useState(initialResponse);
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
@@ -15,10 +15,6 @@ export default function useCall() {
 
   const call = useCallback(
     (url, method = 'get', payload = null, headers = null) => {
-      setResponse(initialResponse);
-      setHttpResponseCode(null);
-      setState(callStates.loading);
-
       fetch(url, {
         method,
         headers: {
@@ -32,7 +28,7 @@ export default function useCall() {
           return r.json();
         })
         .then((r) => {
-          setState(!r.error ? callStates.ready : callStates.error);
+          setState(callStates.finished);
           setResponse((prevResponse) => {
             if (typeof r.data === 'undefined') {
               // no data field - it is coming from some external API response
@@ -60,20 +56,13 @@ export default function useCall() {
 
   useEffect(() => {
     setIsLoading(state === callStates.loading);
-  }, [state]);
+    if (!onCallFinish) {
+      return;
+    }
+    if (state === callStates.finished) {
+      onCallFinish(response, httpResponseCode);
+    }
+  }, [state, response, httpResponseCode]);
 
-  return useMemo(
-    () => ({
-      response, // data and error
-      responseMeta: {
-        isFinished: state === callStates.ready || state === callStates.error,
-        isReady: state === callStates.ready,
-        isError: state === callStates.error,
-        isLoading: state === callStates.loading,
-        httpCode: httpResponseCode,
-      },
-      call,
-    }),
-    [response, state],
-  );
+  return call;
 }

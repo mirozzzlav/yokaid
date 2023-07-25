@@ -1,8 +1,7 @@
 const callStates = {
   initial: 'initial',
   loading: 'loading',
-  ready: 'ready',
-  error: 'error',
+  finished: 'finished',
 };
 
 export { callStates };
