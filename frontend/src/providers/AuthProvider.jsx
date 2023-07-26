@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 
 export const AuthContext = React.createContext([]);
@@ -9,22 +9,24 @@ export default function AuthProvider({
   getLocalDataValue,
   setLocalDataValue,
 }) {
-  const setToken = useCallback((accessToken) => {
-    setLocalDataValue(storageKey, 'accessToken', accessToken);
-  }, []);
-
   const getToken = useCallback(
     () => getLocalDataValue(storageKey, 'accessToken') || null,
     [],
   );
+  const [isAuthorized, setIsAuthorized] = useState(!!getToken());
+  const setToken = useCallback((accessToken) => {
+    setIsAuthorized(!!accessToken);
+    setLocalDataValue(storageKey, 'accessToken', accessToken);
+  }, []);
 
   const contextVal = useMemo(
     () => ({
       getAuthAccessToken: getToken,
       setAuthAccessToken: setToken,
-      isAuthorized: () => !!getToken(),
+      logOut: () => setToken(null),
+      isAuthorized,
     }),
-    [],
+    [isAuthorized],
   );
 
   return (

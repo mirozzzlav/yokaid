@@ -7,38 +7,21 @@ function resetSubmitted(modals) {
   return Object.fromEntries(modals.map(({ id }) => [id, false]));
 }
 
-export default function FormModals({ modals, baseUrl }) {
+export default function FormModals({ modals, shownFormId, setShownFormId }) {
   const [submitted, setSubmittedState] = useState(resetSubmitted(modals));
-  const navigate = useNavigate();
-  const { formId: urlFormId } = useParams();
 
-  const setIsShown = useCallback(
-    (isShown) => {
-      if (isShown) {
-        navigate(`${baseUrl}/${urlFormId}`);
-      } else {
-        navigate(baseUrl);
-      }
-    },
-    [urlFormId],
-  );
   const setIsSubmitted = useCallback(
     (isSubmitted) =>
       setSubmittedState((prevState) => ({
         ...prevState,
-        [urlFormId]: isSubmitted,
+        [shownFormId]: isSubmitted,
       })),
-    [urlFormId],
+    [shownFormId],
   );
 
   useEffect(() => {
     setSubmittedState(resetSubmitted(modals));
-    if (!urlFormId) {
-      navigate(baseUrl);
-      return;
-    }
-    navigate(`${baseUrl}${urlFormId}`);
-  }, [urlFormId]);
+  }, [shownFormId]);
 
   return (
     <>
@@ -46,14 +29,14 @@ export default function FormModals({ modals, baseUrl }) {
         <Modal
           key={id}
           {...modalProps}
-          isShown={id === urlFormId}
-          setIsShown={setIsShown}
+          isShown={id === shownFormId}
+          setIsShown={(isShown) => setShownFormId(isShown ? id : null)}
           setIsSubmitted={setIsSubmitted}
         >
           {React.createElement(form, {
-            isShown: id === urlFormId,
-            setIsShown,
-            isSubmitted: submitted[urlFormId] || false,
+            isShown: id === shownFormId,
+            setIsShown: (isShown) => setShownFormId(isShown ? id : null),
+            isSubmitted: submitted[shownFormId] || false,
             setIsSubmitted,
           })}
         </Modal>
@@ -62,9 +45,6 @@ export default function FormModals({ modals, baseUrl }) {
   );
 }
 
-FormModals.defaultProps = {
-  baseUrl: '/',
-};
 FormModals.prototype.propTypes = {
   modals: PropTypes.arrayOf(
     PropTypes.shape({
@@ -74,5 +54,6 @@ FormModals.prototype.propTypes = {
       form: PropTypes.node,
     }),
   ).isRequired,
-  baseUrl: PropTypes.string,
+  shownFormId: PropTypes.string.isRequired,
+  setShownFormId: PropTypes.func.isRequired,
 };

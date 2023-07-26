@@ -1,4 +1,11 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import MainLayout from 'src/layouts/MainLayout';
 import useMapSearch from 'src/hooks/useMapSearch';
 import { MapContext } from 'src/providers/MapProvider';
@@ -9,26 +16,30 @@ import {
   LoginForm,
   Map,
 } from 'src/components';
-import { useNavigate } from 'react-router-dom';
+import { useMenu } from 'src/hooks';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AuthContext } from 'src/providers';
 
 export default function HomePage() {
   const { setMapPosition } = useContext(MapContext);
+  const { menuItems: userMenuItems, buttonStyle: userMenuBtnStyle } = useMenu();
   const navigate = useNavigate();
-  const userMenuItems = useMemo(
-    () => [
-      {
-        onClick: () => navigate('/login'),
-        label: 'Login',
-        id: 'login',
-      },
-      {
-        onClick: () => navigate('/signup'),
-        label: 'Sign up',
-        id: 'signup',
-      },
-    ],
-    [],
-  );
+  const { action } = useParams();
+  const { logOut } = useContext(AuthContext);
+
+  const setShownFormId = useCallback((formId) => {
+    if (formId) {
+      navigate(`/${formId}`);
+    } else {
+      navigate('/');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (action === 'logout') {
+      logOut();
+    }
+  }, [action]);
 
   const modals = useMemo(
     () => [
@@ -60,9 +71,14 @@ export default function HomePage() {
         />
       }
       userMenuItems={userMenuItems}
+      userMenuBtnStyle={userMenuBtnStyle}
     >
       <Map />
-      <FormModals modals={modals} />
+      <FormModals
+        modals={modals}
+        shownFormId={action}
+        setShownFormId={setShownFormId}
+      />
     </MainLayout>
   );
 }

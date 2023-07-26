@@ -2,7 +2,7 @@ import useCall from 'src/hooks/useCall';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import useMapPosts from 'src/hooks/useMapPosts';
 import useForm from 'src/hooks/useForm';
-import { useLoginCall, useSignupCall } from 'src/hooks/useUserCall';
+import { useLoginCall, useSignupCall, useMenu } from 'src/hooks/useUser';
 
 export {
   useCall,
@@ -11,4 +11,5 @@ export {
   useForm,
   useLoginCall,
   useSignupCall,
+  useMenu,
 };

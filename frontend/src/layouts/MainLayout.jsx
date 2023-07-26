@@ -5,6 +5,7 @@ import { ReactComponent as Logo } from 'src/assets/logo.svg';
 import { Dropdown } from 'src/components';
 import { theme } from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
+import { unknownObjectValidator } from 'src/helpers';
 
 const loaderAnim = keyframes(`
   from {
@@ -37,7 +38,7 @@ const style = {
     '> *': {
       height: '100%',
       width: '0',
-      backgroundColor: `${theme.colors.blue['600']}`,
+      backgroundColor: theme.colors.blue['600'],
       ...(isLoading && { animation: `${loaderAnim} infinite 5s ease` }),
     },
   }),
@@ -46,7 +47,13 @@ const style = {
   },
 };
 
-function MainLayout({ children, mode, topContent, userMenuItems }) {
+function MainLayout({
+  children,
+  mode,
+  topContent,
+  userMenuItems,
+  userMenuBtnStyle,
+}) {
   const { isLoading } = useContext(LoaderContext);
 
   return (
@@ -69,7 +76,11 @@ function MainLayout({ children, mode, topContent, userMenuItems }) {
           buttonMeta={{
             content: <Avatar size="sm" />,
             variant: 'ghost',
-            style: { ':hover': { background: 'none' }, padding: 0 },
+            style: {
+              padding: 0,
+              borderRadius: '50%',
+              ...userMenuBtnStyle,
+            },
           }}
         />
       </Box>
@@ -79,6 +90,7 @@ function MainLayout({ children, mode, topContent, userMenuItems }) {
 }
 MainLayout.defaultProps = {
   mode: 'scroll',
+  userMenuBtnStyle: {},
 };
 
 MainLayout.propTypes = {
@@ -91,7 +103,8 @@ MainLayout.propTypes = {
       label: PropTypes.string,
       id: PropTypes.string,
     }),
-  ),
+  ).isRequired,
+  userMenuBtnStyle: unknownObjectValidator,
 };
 
 export default MainLayout;

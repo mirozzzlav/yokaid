@@ -38,6 +38,7 @@ const style = {
   listElem: {
     width: '100%',
     whiteSpace: 'nowrap',
+    textAlign: 'left',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     display: 'block',
