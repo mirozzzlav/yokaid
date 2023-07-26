@@ -15,6 +15,7 @@ export default function useCall(onCallFinish = null) {
 
   const call = useCallback(
     (url, method = 'get', payload = null, headers = null) => {
+      setState(callStates.loading);
       fetch(url, {
         method,
         headers: {

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Input,
   FormLabel,
@@ -8,7 +8,8 @@ import {
 } from '@chakra-ui/react';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import PropTypes from 'prop-types';
-import { useForm, useUser } from 'src/hooks';
+import { useForm, useSignupCall } from 'src/hooks';
+
 const successMessage =
   'sign up has been successful, please check your email for the account activation';
 
@@ -18,40 +19,25 @@ export default function SignupForm({
   isSubmitted,
   setIsSubmitted,
 }) {
-  const callHook = useCallback((onCallFinish) => {
-    const { signupUser } = useUser({ onSignupFinish: onCallFinish });
-    return signupUser;
-  }, []);
-
-  const { error, inputsErrors, inputs, updateInputs } = useForm(
-    isShown,
-    setIsShown,
-    isSubmitted,
-    setIsSubmitted,
-    callHook,
-    ['firstName', 'lastName', 'email'],
-    false,
-  );
+  const { isError, errorMsg, isSuccess, inputsErrors, inputs, updateInputs } =
+    useForm(
+      isShown,
+      setIsShown,
+      isSubmitted,
+      setIsSubmitted,
+      useSignupCall,
+      ['fullName', 'email'],
+      false,
+    );
   return (
     <Box>
       <FormControl isInvalid={inputsErrors?.fullName} mb="10px">
-        <FormLabel mb={0}>First name</FormLabel>
+        <FormLabel mb={0}>Full name</FormLabel>
         <Input
           type="text"
-          value={inputs.firstName}
+          value={inputs.fullName}
           onChange={(e) => {
-            updateInputs('firstName', e.target.value);
-          }}
-        />
-        <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
-      </FormControl>
-      <FormControl isInvalid={inputsErrors?.fullName} mb="10px">
-        <FormLabel mb={0}>First name</FormLabel>
-        <Input
-          type="text"
-          value={inputs.lastName}
-          onChange={(e) => {
-            updateInputs('lastName', e.target.value);
+            updateInputs('fullName', e.target.value);
           }}
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
@@ -68,8 +54,8 @@ export default function SignupForm({
         <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
       </FormControl>
 
-      {error ? <ErrorMessage message={error} /> : null}
-      {error === '' ? <SuccessMessage message={successMessage} /> : null}
+      {isError() ? <ErrorMessage message={errorMsg} /> : null}
+      {isSuccess() ? <SuccessMessage message={successMessage} /> : null}
     </Box>
   );
 }

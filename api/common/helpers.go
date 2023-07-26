@@ -201,6 +201,19 @@ func PasswordValidator(fl validator.FieldLevel) bool {
 	return num > 0 && upper > 0 && special > 0 && len(password) >= 8
 }
 
+func MultiWordsValidator(fl validator.FieldLevel) bool {
+	if fl.Field().Kind() != reflect.String {
+		return false
+	}
+	text := fl.Field().String()
+	if len(text) < 3 {
+		return false
+	}
+
+	textSplits := regexp.MustCompile(`\s[a-zA-Z]`).Split(text, -1)
+	return len(textSplits) >= 2
+}
+
 func ConvertToInt(val any) (int, error) {
 	switch v := val.(type) {
 	case int:

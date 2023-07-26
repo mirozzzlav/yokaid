@@ -9,7 +9,7 @@ type CreatePostRequest struct {
 }
 
 type RegisterUserRequest struct {
-	FullName any `json:"full_name" validate:"required,string,min=3"`
+	FullName any `json:"full_name" validate:"multiWords"`
 	Email    any `json:"email" validate:"required,email"`
 	Role     any `json:"role" validate:"required,publicRoles"`
 }

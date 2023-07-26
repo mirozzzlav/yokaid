@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import {
@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { theme } from 'src/style';
 import { ErrorMessage } from 'src/components/Messages';
-import { useUser, useForm } from 'src/hooks';
+import { useForm, useLoginCall } from 'src/hooks';
 
 export default function LoginForm({
   isShown,
@@ -19,17 +19,12 @@ export default function LoginForm({
   isSubmitted,
   setIsSubmitted,
 }) {
-  const callHook = useCallback((onCallFinish) => {
-    const { loginUser } = useUser({ onLoginFinish: onCallFinish });
-    return loginUser;
-  }, []);
-
-  const { error, inputsErrors, inputs, updateInputs } = useForm(
+  const { errorMsg, isError, inputsErrors, inputs, updateInputs } = useForm(
     isShown,
     setIsShown,
     isSubmitted,
     setIsSubmitted,
-    callHook,
+    useLoginCall,
     ['usernameOrEmail', 'password'],
   );
 
@@ -66,7 +61,7 @@ export default function LoginForm({
         <Link to="/forgot-password">Forgot password?</Link>
         <Link to="/signup">Sign up</Link>
       </Flex>
-      {error && <ErrorMessage message={error} />}
+      {isError() && <ErrorMessage message={errorMsg} />}
     </Box>
   );
 }

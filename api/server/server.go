@@ -47,6 +47,11 @@ func NewServer(queryRunner common.QueryRunner,
 		return nil, err
 	}
 
+	err = validate.RegisterValidation("multiWords", common.MultiWordsValidator)
+	if err != nil {
+		return nil, err
+	}
+
 	server := &server{
 		queryRunner:  queryRunner,
 		tokenMaker:   tokenMaker,

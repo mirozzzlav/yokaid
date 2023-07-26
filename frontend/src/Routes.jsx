@@ -9,8 +9,8 @@ const routes = [
     element: <HomePage />,
   },
   {
-    name: 'login',
-    route: ':action',
+    name: 'forms',
+    route: ':formId',
     element: <HomePage />,
   },
 ];

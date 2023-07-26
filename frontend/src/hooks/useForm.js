@@ -5,6 +5,7 @@ function mapValidationErrors(errors) {
     min: 'value is empty or not long enough',
     required: 'value is empty',
     email: 'email has wrong format',
+    multiWords: 'fill in at least 2 words',
   };
 
   return Object.fromEntries(
@@ -15,67 +16,75 @@ function mapValidationErrors(errors) {
   );
 }
 
+const formStates = {
+  initial: 'initial',
+  error: 'error',
+  success: 'success',
+};
 export default function useForm(
   isShown,
   setIsShown,
   isSubmitted,
   setIsSubmitted,
-  callHook,
+  useCallHook,
   fieldNames,
-  closeOnFinish = true,
+  closeOnSuccess = true,
 ) {
-  const [error, setError] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [state, setState] = useState(formStates.initial);
+
   const [inputsErrors, setInputsErrors] = useState(null);
+  const [inputs, setInputs] = useState(
+    (() => ({
+      ...Object.fromEntries(fieldNames.map((fN) => [fN, ''])),
+    }))(),
+  );
 
-  const call = callHook(
+  const resetInputs = useCallback(() => {
+    setInputs((prevData) =>
+      Object.fromEntries(Object.entries(prevData).map(([k]) => [k, ''])),
+    );
+  }, []);
+
+  const updateInputs = useCallback((name, val) => {
+    setInputs((prevData) => ({ ...prevData, [name]: val }));
+  }, []);
+
+  const call = useCallHook(
     useCallback((response) => {
-      setInputsErrors([]);
-      setError('');
-
       if (response.error) {
-        setError(response.error.msg || 'Login failed');
+        setState(formStates.error);
+        setErrorMsg(response.error.msg || 'Login failed');
         if (response.error.extra_data) {
           setInputsErrors(mapValidationErrors(response.error.extra_data));
         }
         return;
       }
 
-      if (closeOnFinish) {
+      setState(formStates.success);
+      resetInputs();
+      if (closeOnSuccess) {
         setIsShown(false);
       }
     }, []),
   );
 
-  const [inputs, setInputs] = useState(
-    (() => ({
-      ...Object.fromEntries(fieldNames.map((fN) => [fN, ''])),
-    }))(),
-  );
-  const updateInputs = useCallback((name, val) => {
-    setError(null);
-    setInputsErrors([]);
-    setIsSubmitted(false);
-    setInputs((prevData) => ({ ...prevData, [name]: val }));
-  }, []);
-
   useEffect(() => {
     if (isSubmitted) {
       call(inputs);
-    }
-  }, [isSubmitted, inputs]);
-
-  useEffect(() => {
-    if (isShown) {
-      setError(null);
+      setErrorMsg('');
+      setState(formStates.initial);
       setInputsErrors(null);
       setIsSubmitted(false);
     }
-  }, [isShown]);
+  }, [isSubmitted, inputs]);
 
   return {
-    error,
+    errorMsg,
     inputsErrors,
     inputs,
     updateInputs,
+    isError: () => state === formStates.error,
+    isSuccess: () => state === formStates.success,
   };
 }

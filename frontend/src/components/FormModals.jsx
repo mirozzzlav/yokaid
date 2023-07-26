@@ -10,32 +10,35 @@ function resetSubmitted(modals) {
 export default function FormModals({ modals, baseUrl }) {
   const [submitted, setSubmittedState] = useState(resetSubmitted(modals));
   const navigate = useNavigate();
-  const { action: urlAction } = useParams();
+  const { formId: urlFormId } = useParams();
 
-  const setIsShown = useCallback((formId, isShown) => {
-    if (isShown) {
-      navigate(`${baseUrl}/${urlAction}`);
-    } else {
-      navigate(baseUrl);
-    }
-  });
+  const setIsShown = useCallback(
+    (isShown) => {
+      if (isShown) {
+        navigate(`${baseUrl}/${urlFormId}`);
+      } else {
+        navigate(baseUrl);
+      }
+    },
+    [urlFormId],
+  );
   const setIsSubmitted = useCallback(
-    (formId, isSubmitted) =>
+    (isSubmitted) =>
       setSubmittedState((prevState) => ({
         ...prevState,
-        [formId]: isSubmitted,
+        [urlFormId]: isSubmitted,
       })),
-    [],
+    [urlFormId],
   );
 
   useEffect(() => {
     setSubmittedState(resetSubmitted(modals));
-    if (!urlAction) {
+    if (!urlFormId) {
       navigate(baseUrl);
       return;
     }
-    navigate(`${baseUrl}${urlAction}`);
-  }, [urlAction]);
+    navigate(`${baseUrl}${urlFormId}`);
+  }, [urlFormId]);
 
   return (
     <>
@@ -43,15 +46,15 @@ export default function FormModals({ modals, baseUrl }) {
         <Modal
           key={id}
           {...modalProps}
-          isShown={id === urlAction}
-          setIsShown={(isShown) => setIsShown(id, isShown)}
-          setIsSubmitted={(isSubmitted) => setIsSubmitted(id, isSubmitted)}
+          isShown={id === urlFormId}
+          setIsShown={setIsShown}
+          setIsSubmitted={setIsSubmitted}
         >
           {React.createElement(form, {
-            isShown: id === urlAction,
-            setIsShown: (isShown) => setIsShown(id, isShown),
-            isSubmitted: submitted[id],
-            setIsSubmitted: (isSubmitted) => setIsSubmitted(id, isSubmitted),
+            isShown: id === urlFormId,
+            setIsShown,
+            isSubmitted: submitted[urlFormId] || false,
+            setIsSubmitted,
           })}
         </Modal>
       ))}
