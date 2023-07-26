@@ -1,7 +1,23 @@
-import Login from 'src/components/Login';
-import Signup from 'src/components/Signup';
+import LoginForm from 'src/components/LoginForm';
+import SignupForm from 'src/components/SignupForm';
 import ForgotPassword from 'src/components/ForgotPassword';
 import NewPassword from 'src/components/NewPassword';
-import ErrorMessage from 'src/components/ErrorMessage';
+import { SuccessMessage, ErrorMessage } from 'src/components/Messages';
+import FormModals from 'src/components/FormModals';
+import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
+import Map from 'src/components/Map';
+import MapPost from 'src/components/MapPost';
 
-export { Login, Signup, ForgotPassword, NewPassword, ErrorMessage };
+export {
+  LoginForm,
+  FormModals,
+  SignupForm,
+  ForgotPassword,
+  NewPassword,
+  SuccessMessage,
+  ErrorMessage,
+  SearchDropdown,
+  Dropdown,
+  Map,
+  MapPost,
+};

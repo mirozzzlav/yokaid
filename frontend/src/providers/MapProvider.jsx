@@ -36,13 +36,13 @@ function calculateZoom(area) {
 
 export const MapContext = React.createContext([]);
 
-export default function MapProvider({ children, mapPostsGetter }) {
+export default function MapProvider({ children, searchMapPostsHook }) {
   const mapRef = useRef(null);
   const mapElementRef = useRef(null);
   const centerRef = useRef(null);
   const zoomRef = useRef(defaultZoom);
   const clusterGroupRef = useRef(null);
-  const { mapPostsCall, mapPosts: newMapPosts } = mapPostsGetter();
+  const { mapPostsCall, mapPosts: newMapPosts } = searchMapPostsHook();
   const mapPostsIdsRef = useRef([]);
 
   const getBounds = useCallback(() => {
@@ -62,7 +62,7 @@ export default function MapProvider({ children, mapPostsGetter }) {
     ) {
       centerRef.current = center;
       zoomRef.current = mapRef.current.getZoom();
-      mapPostsCall({ bounds });
+      mapPostsCall(bounds);
     }
 
     if (
@@ -71,12 +71,24 @@ export default function MapProvider({ children, mapPostsGetter }) {
       Math.abs(center.lng - centerRef.current.lng) > 0.01
     ) {
       centerRef.current = center;
-      mapPostsCall({ bounds });
+      mapPostsCall(bounds);
     }
   }, [centerRef, zoomRef]);
 
+  const initClusterGroup = useCallback(() => {
+    clusterGroupRef.current = L.markerClusterGroup({
+      iconCreateFunction(cluster) {
+        return L.divIcon({
+          className: css(mapClusterStyle),
+          html: cluster.getChildCount(),
+        });
+      },
+    });
+    mapRef.current.addLayer(clusterGroupRef.current);
+  }, [mapRef]);
+
   useEffect(() => {
-    if (mapRef.current) {
+    if (mapRef.current || !mapElementRef.current) {
       return;
     }
     const map = L.map(mapElementRef.current, {
@@ -97,27 +109,13 @@ export default function MapProvider({ children, mapPostsGetter }) {
 
     mapRef.current = map;
     mapRef.current.setView(defaultPosition, defaultZoom);
+    initClusterGroup();
     mapRef.current.on('zoomend', onZoomOrMove);
     mapRef.current.on('moveend', onZoomOrMove);
   }, [mapElementRef, mapRef, onZoomOrMove]);
 
   useEffect(() => {
-    if (!mapRef.current || clusterGroupRef.current) {
-      return;
-    }
-    clusterGroupRef.current = L.markerClusterGroup({
-      iconCreateFunction(cluster) {
-        return L.divIcon({
-          className: css(mapClusterStyle),
-          html: cluster.getChildCount(),
-        });
-      },
-    });
-    mapRef.current.addLayer(clusterGroupRef.current);
-  }, [mapRef, clusterGroupRef]);
-
-  useEffect(() => {
-    if (!mapRef.current || !clusterGroupRef.current) {
+    if (!newMapPosts || !clusterGroupRef.current) {
       return;
     }
 
@@ -139,14 +137,21 @@ export default function MapProvider({ children, mapPostsGetter }) {
         );
         clusterGroupRef.current.addLayer(marker);
       });
-  }, [newMapPosts, mapPostsIdsRef, clusterGroupRef, mapRef]);
+  }, [newMapPosts, mapPostsIdsRef, clusterGroupRef]);
 
-  useEffect(() => mapPostsCall({ bounds: getBounds() }), []);
+  useEffect(() => {
+    if (mapRef.current) {
+      mapPostsCall(getBounds());
+    }
+  }, [mapRef]);
 
   const contextVal = useMemo(
     () => ({
       mapElementRef,
-      setMapPosition({ position, area = null }) {
+      setMapPosition: ({ position, area = null }) => {
+        if (!mapRef.current) {
+          return;
+        }
         mapRef.current.setView(
           position,
           area === null ? defaultZoom : calculateZoom(area),
@@ -163,5 +168,5 @@ export default function MapProvider({ children, mapPostsGetter }) {
 
 MapProvider.propTypes = {
   children: PropTypes.node.isRequired,
-  mapPostsGetter: PropTypes.func.isRequired,
+  searchMapPostsHook: PropTypes.func.isRequired,
 };

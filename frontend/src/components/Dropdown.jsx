@@ -58,23 +58,23 @@ function useDropdownItemClick(
     handler: () => setIsShown(false),
   });
 
-  return useMemo(
-    () => ({
-      items: items.map((item) => ({
-        ...item,
-        onClick: (value) => {
-          if (item.onClick) {
-            item.onClick(value);
-          }
-          if (onItemClick) {
-            onItemClick(value);
-          }
-          setIsShown(false);
-        },
-      })),
-    }),
-    [items, onItemClick],
-  );
+  return useMemo(() => {
+    if (!items) {
+      return null;
+    }
+    return items.map((item) => ({
+      ...item,
+      onClick: (value) => {
+        if (item.onClick) {
+          item.onClick(value);
+        }
+        if (onItemClick) {
+          onItemClick(value);
+        }
+        setIsShown(false);
+      },
+    }));
+  }, [items, onItemClick]);
 }
 
 function useDropdownPosition(dropdownRef, wrapperRef, isShown, positionSetup) {
@@ -108,12 +108,7 @@ function Dropdown({ items: itemsRaw, buttonMeta, positionSetup }) {
   const wrapperRef = useRef();
   const dropdownRef = useRef();
   const [isShown, setIsShown] = useState(false);
-  const { items } = useDropdownItemClick(
-    wrapperRef,
-    itemsRaw,
-    isShown,
-    setIsShown,
-  );
+  const items = useDropdownItemClick(wrapperRef, itemsRaw, isShown, setIsShown);
 
   const position = useDropdownPosition(
     dropdownRef,
@@ -132,12 +127,14 @@ function Dropdown({ items: itemsRaw, buttonMeta, positionSetup }) {
         {buttonMeta.content}
       </Button>
 
-      <DropdownList
-        items={items}
-        ref={dropdownRef}
-        position={position}
-        isShown={isShown}
-      />
+      {items ? (
+        <DropdownList
+          items={items}
+          ref={dropdownRef}
+          position={position}
+          isShown={isShown}
+        />
+      ) : null}
     </Box>
   );
 }
@@ -220,19 +217,18 @@ DropdownList.propTypes = {
 
 function SearchDropdown({
   placeholder,
-  searchResponseGetter,
+  searchHook,
   icon,
   onItemClick,
   positionSetup,
   showLoader,
 }) {
   const valueRef = useRef('');
-
-  const { foundItems, searchCall, responseMeta } = searchResponseGetter();
+  const [isShown, setIsShown] = useState(false);
+  const { searchCall, searchResults } = searchHook(() => setIsShown(true));
   const { isLoading } = useContext(LoaderContext);
   const timeout = useRef(null);
   const wrapperRef = useRef();
-  const [isShown, setIsShown] = useState(false);
   const dropdownRef = useRef(0);
   const position = useDropdownPosition(
     dropdownRef,
@@ -257,20 +253,13 @@ function SearchDropdown({
     }, 500);
   }, []);
 
-  const { items } = useDropdownItemClick(
+  const items = useDropdownItemClick(
     wrapperRef,
-    foundItems,
+    searchResults,
     isShown,
     setIsShown,
     onItemClick,
   );
-
-  useEffect(() => {
-    setIsShown(false);
-    if (responseMeta.isFinished) {
-      setIsShown(true);
-    }
-  }, [JSON.stringify(items), responseMeta]);
 
   return (
     <Box sx={style.dropdownContainer} ref={wrapperRef}>
@@ -285,12 +274,14 @@ function SearchDropdown({
           </InputRightElement>
         )}
       </InputGroup>
-      <DropdownList
-        position={position}
-        items={items}
-        isShown={isShown}
-        ref={dropdownRef}
-      />
+      {items ? (
+        <DropdownList
+          position={position}
+          items={items}
+          isShown={isShown}
+          ref={dropdownRef}
+        />
+      ) : null}
     </Box>
   );
 }
@@ -303,7 +294,7 @@ SearchDropdown.defaultProps = {
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
-  searchResponseGetter: PropTypes.func.isRequired,
+  searchHook: PropTypes.func.isRequired,
   icon: PropTypes.node,
   onItemClick: PropTypes.func.isRequired,
   positionSetup: PropTypes.string,

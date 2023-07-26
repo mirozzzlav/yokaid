@@ -9,20 +9,20 @@ type CreatePostRequest struct {
 }
 
 type RegisterUserRequest struct {
-	FullName any `json:"full_name" validate:"required,string,min=3"`
+	FullName any `json:"full_name" validate:"multiWords"`
 	Email    any `json:"email" validate:"required,email"`
 	Role     any `json:"role" validate:"required,publicRoles"`
 }
 
 type UpdateUserRequest struct {
 	Username any `json:"username" validate:"required,string,min=3"`
-	FullName any `json:"full_name" validate:"required,string"`
+	FullName any `json:"full_name" validate:"required,string,min=3"`
 	Email    any `json:"email" validate:"required,email"`
 }
 
 type LoginUserRequest struct {
-	UsernameOrEmail any `json:"username_or_email" validate:"required,string"`
-	Password        any `json:"password" validate:"required,string"`
+	UsernameOrEmail any `json:"username_or_email" validate:"required,string,min=3"`
+	Password        any `json:"password" validate:"required,string,min=1"`
 }
 
 type CreatePasswordChangeRequest struct {

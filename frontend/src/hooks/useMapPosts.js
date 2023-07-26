@@ -1,21 +1,25 @@
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function useMapPosts() {
-  const { response, responseMeta, call } = useCall();
+  const [mapPosts, setMapPosts] = useState(null);
 
-  return useMemo(() => {
-    return {
-      mapPosts: responseMeta.isReady ? response.data || [] : [],
-      mapPostsCall({ bounds }) {
+  const call = useCall((response) => {
+    setMapPosts(!response.error ? response.data : null);
+  });
+
+  return useMemo(
+    () => ({
+      mapPosts,
+      mapPostsCall: (bounds) =>
         call(
           `${config.api.endPointsURLs.getMapPosts}/${encodeURI(
             `latitude>=${bounds[0]};latitude<=${bounds[2]};longitude>=${bounds[1]};longitude<=${bounds[3]}`,
           )}`,
           'get',
-        );
-      },
-    };
-  }, [response, responseMeta]);
+        ),
+    }),
+    [mapPosts],
+  );
 }

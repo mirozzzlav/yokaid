@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useCall } from 'src/hooks/index';
 
 // function useDelayedCall(useCall) {
@@ -20,28 +20,28 @@ import { useCall } from 'src/hooks/index';
 //   return { call, state, response };
 // }
 
-export default function useMapSearch() {
-  const { response, responseMeta, call } = useCall();
+export default function useMapSearch(onSearchFinish) {
+  const [searchResults, setSearchResults] = useState(null);
+  const getMapResults = useCallback((response) => {
+    setSearchResults(
+      response.data.map((place) => ({
+        id: place.place_id,
+        label: place.display_name,
+        value: { position: [place.lat, place.lon], area: place.boundingbox },
+      })),
+    );
+    onSearchFinish(response.data);
+  }, []);
 
+  const call = useCall(getMapResults);
   const searchCall = useCallback((searchedTerm) => {
     call(
       `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
     );
   }, []);
 
-  const foundItems = useMemo(() => {
-    if (responseMeta.isReady) {
-      return response.data.map((place) => ({
-        id: place.place_id,
-        label: place.display_name,
-        value: { position: [place.lat, place.lon], area: place.boundingbox },
-      }));
-    }
-    return [];
-  }, [response, responseMeta]);
   return {
-    responseMeta,
     searchCall,
-    foundItems,
+    searchResults,
   };
 }

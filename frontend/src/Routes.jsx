@@ -8,6 +8,11 @@ const routes = [
     route: '',
     element: <HomePage />,
   },
+  {
+    name: 'forms',
+    route: ':formId',
+    element: <HomePage />,
+  },
 ];
 
 export function isPublicRoute(routeToCheck) {

@@ -1,4 +1,10 @@
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal as ModalChakra,
@@ -12,24 +18,30 @@ import {
 } from '@chakra-ui/react';
 
 export default function Modal({
-  show,
-  onClose,
+  isShown,
+  setIsShown,
+  setIsSubmitted,
   title,
+  submitButtonLabel,
   children,
-  submit: { label, action },
 }) {
   return (
-    <ModalChakra isOpen={show} onClose={onClose}>
+    <ModalChakra isOpen={isShown} onClose={() => setIsShown(false)}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>{children}</ModalBody>
         <ModalFooter>
-          <Button variant="solid" colorScheme="blue" mr={3} onClick={action}>
-            {label}
+          <Button
+            variant="solid"
+            colorScheme="blue"
+            mr={3}
+            onClick={() => setIsSubmitted(true)}
+          >
+            {submitButtonLabel}
           </Button>
-          <Button onClick={onClose} variant="ghost">
+          <Button onClick={() => setIsShown(false)} variant="ghost">
             Close
           </Button>
         </ModalFooter>
@@ -38,20 +50,11 @@ export default function Modal({
   );
 }
 
-Modal.defaultProps = {
-  submit: {
-    label: 'submit',
-    action: () => {},
-  },
-};
-
 Modal.propTypes = {
-  show: PropTypes.bool.isRequired,
+  isShown: PropTypes.bool.isRequired,
+  setIsShown: PropTypes.func.isRequired,
+  setIsSubmitted: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
-  submit: PropTypes.shape({
-    label: PropTypes.string,
-    action: PropTypes.func,
-  }),
-  onClose: PropTypes.func.isRequired,
+  submitButtonLabel: PropTypes.string.isRequired,
 };
