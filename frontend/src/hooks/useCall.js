@@ -1,6 +1,9 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { callStates } from 'src/constants';
 import { LoaderContext } from 'src/providers/LoaderProvider';
+import { AuthContext } from 'src/providers';
+import config from 'src/config';
+import { getTokenFromResponse } from 'src/helpers';
 
 const initialResponse = {
   error: null,
@@ -66,4 +69,20 @@ export default function useCall(onCallFinish = null) {
   }, [state, response, httpResponseCode]);
 
   return call;
+}
+
+export function useAuthorizedCall(onCallFinish) {
+  const { getAuthAccessToken, setAuthAccessToken } = useContext(AuthContext);
+  const call = useCall((response, httpErrorCode) => {
+    setAuthAccessToken(getTokenFromResponse(response, httpErrorCode));
+    onCallFinish(response, httpErrorCode);
+  });
+
+  return (endpointURL, method = 'get', data = null) => {
+    const accessToken = getAuthAccessToken();
+    const headers = {
+      Authorization: `${config.auth.tokenType} ${accessToken}`,
+    };
+    call(endpointURL, method, data, headers);
+  };
 }

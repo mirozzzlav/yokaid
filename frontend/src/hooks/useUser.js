@@ -1,26 +1,10 @@
-import { createContext, useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-import { objToSnakeCase } from 'src/helpers';
+import { objToSnakeCase, getTokenFromResponse } from 'src/helpers';
 import { AuthContext } from 'src/providers';
 import { useNavigate } from 'react-router-dom';
 import { theme } from 'src/style';
-
-function getTokenFromResponse(response, httpErrorCode) {
-  if (response.error || httpErrorCode === '401') {
-    return null;
-  }
-
-  if (response?.data.access_token) {
-    return response?.data.access_token;
-  }
-
-  if (response.refresh_token) {
-    return response.refresh_token;
-  }
-
-  return null;
-}
 
 export function useLoginCall(onCallFinish) {
   const { setAuthAccessToken } = useContext(AuthContext);
@@ -44,7 +28,7 @@ export function useSignupCall(onCallFinish) {
 }
 
 export function useMenu() {
-  const { isAuthorized, logOut } = useContext(AuthContext);
+  const { isAuthorized } = useContext(AuthContext);
   const navigate = useNavigate();
   return useMemo(() => {
     let menuItems = [
@@ -88,20 +72,4 @@ export function useMenu() {
       buttonStyle,
     };
   }, [isAuthorized]);
-}
-
-export function useAuthorizedCall(onCallFinish) {
-  const { getAuthAccessToken, setAuthAccessToken } = useContext(AuthContext);
-  const call = useCall((response, httpErrorCode) => {
-    setAuthAccessToken(getTokenFromResponse(response, httpErrorCode));
-    onCallFinish(response, httpErrorCode);
-  });
-
-  return (endpointURL, method = 'get', data = null) => {
-    const accessToken = getAuthAccessToken();
-    const headers = {
-      Authorization: `${config.auth.tokenType} ${accessToken}`,
-    };
-    call(endpointURL, method, data, headers);
-  };
 }

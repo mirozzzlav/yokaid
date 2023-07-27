@@ -1,4 +1,4 @@
-import useCall from 'src/hooks/useCall';
+import useCall, { useAuthorizedCall } from 'src/hooks/useCall';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import useMapPosts from 'src/hooks/useMapPosts';
 import useForm from 'src/hooks/useForm';
@@ -12,4 +12,5 @@ export {
   useLoginCall,
   useSignupCall,
   useMenu,
+  useAuthorizedCall,
 };

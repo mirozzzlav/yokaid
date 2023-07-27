@@ -20,4 +20,25 @@ function unknownObjectValidator(props, propName, componentName) {
   return null;
 }
 
-export { unknownObjectValidator, toSnakeCase, objToSnakeCase };
+function getTokenFromResponse(response, httpErrorCode) {
+  if (response.error || httpErrorCode === '401') {
+    return null;
+  }
+
+  if (response?.data.access_token) {
+    return response?.data.access_token;
+  }
+
+  if (response.refresh_token) {
+    return response.refresh_token;
+  }
+
+  return null;
+}
+
+export {
+  unknownObjectValidator,
+  toSnakeCase,
+  objToSnakeCase,
+  getTokenFromResponse,
+};
