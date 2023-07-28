@@ -86,7 +86,7 @@ func (s *server) initRouter() {
 		panicMiddleware(s),
 		auth.Middleware(s),
 	)
-
+	router.Static(common.Config.AssetsUrl, common.Config.AssetsFolder)
 	s.routes = routes.GetRoutes(s)
 	for _, route := range s.routes {
 		router.Handle(route.Method, route.Path, route.Handler)

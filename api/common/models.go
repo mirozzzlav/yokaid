@@ -31,13 +31,21 @@ type User struct {
 }
 
 type post struct {
-	Id        int
-	Author    string
-	Latitude  float64
-	Longitude float64
-	Text      string
-	CreatedAt timeCustom
-	Headline  string
+	Id              int
+	Author          string
+	Latitude        float64
+	Longitude       float64
+	Text            string
+	CreatedAt       timeCustom
+	Headline        string
+	RentDateFrom    timeCustom
+	RentDateTo      timeCustom
+	Price           float64
+	ItemName        string
+	ItemDescription string
+	ItemSpec        map[string]any
+	Category        string
+	ImagePaths      []string
 }
 
 type passwordChangeRequest struct {

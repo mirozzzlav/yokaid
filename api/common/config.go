@@ -22,6 +22,8 @@ type config struct {
 	TokenSymmetricKey   string
 	AccessTokenDuration time.Duration
 	Url                 string
+	AssetsFolder        string
+	AssetsUrl           string
 	Policy              AuthPolicyConfig
 	Logs                logsConfig
 	PublicRoles         []string
@@ -66,6 +68,8 @@ var Config, _ = func(mode string) (config, error) {
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMMETRIC_KEY"),
 		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
+		AssetsFolder:        "./assets",
+		AssetsUrl:           "/assets",
 		Policy: AuthPolicyConfig{
 			Model: `
 				[request_definition]

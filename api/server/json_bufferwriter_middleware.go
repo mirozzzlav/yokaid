@@ -3,7 +3,9 @@ package server
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"rental-app/api/common"
 	"strconv"
+	"strings"
 )
 
 type bufferWriter struct {
@@ -58,6 +60,11 @@ func (w *bufferWriter) flushBuffer() error {
 
 func jsonbBufferWriterMiddleware(s *server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
+		if strings.Contains(ctx.Request.RequestURI, common.Config.AssetsUrl) {
+			ctx.Next()
+			return
+		}
+
 		writer := &bufferWriter{ResponseWriter: ctx.Writer}
 
 		ctx.Writer = writer

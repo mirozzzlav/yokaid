@@ -1,6 +1,6 @@
 /frontend/node_modules/
 /api/logs/*
-
+/api/assets/*
 .DS_Store
 .DS_Store?
 ._*
