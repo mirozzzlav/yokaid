@@ -54,8 +54,5 @@ cleanup:
 	@if [ "$(ADMINER)" ]; then docker rm -f $(ADMINER); fi;
 	@echo "--- CLEANUP FINISHED ---"
 
-sqlc:
-	cd ./api/db && sqlc generate
-
 server:
-	go run main.go config.go
+	cd ./api && go run . mode=$(ENV)
