@@ -9,12 +9,13 @@ CREATE TABLE "items" (
     "name" character varying(256) NOT NULL,
     "description" text,
     "category_id" integer NOT NULL,
-    "spec" json,
+    "spec" jsonb,
     CONSTRAINT "items_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
 CREATE TABLE "rental_posts" (
     "post_id" integer NOT NULL,
+    "item_id" integer NOT NULL,
     "rent_date_from" timestamp NOT NULL,
     "rent_date_to" timestamp NOT NULL,
     "price" real NOT NULL,
@@ -49,7 +50,8 @@ CREATE TABLE "user_items" (
 
 
 ALTER TABLE ONLY "items" ADD CONSTRAINT "items_category_id_fkey" FOREIGN KEY (category_id) REFERENCES item_categories(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "rental_posts" ADD CONSTRAINT "rental_posts_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES posts(id) NOT DEFERRABLE;
+ALTER TABLE ONLY "rental_posts" ADD CONSTRAINT "rental_posts_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES posts(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "rental_posts" ADD CONSTRAINT "rental_posts_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES items(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "item_images" ADD CONSTRAINT "item_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "item_images" ADD CONSTRAINT "item_images_item_id_fkey" FOREIGN KEY (item_id) REFERENCES items(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "post_images" ADD CONSTRAINT "post_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
