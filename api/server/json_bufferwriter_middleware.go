@@ -60,7 +60,7 @@ func (w *bufferWriter) flushBuffer() error {
 
 func jsonbBufferWriterMiddleware(s *server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		if strings.Contains(ctx.Request.RequestURI, common.Config.AssetsUrl) {
+		if strings.Contains(ctx.Request.RequestURI, common.Config.AssetsRelativeUrl) {
 			ctx.Next()
 			return
 		}

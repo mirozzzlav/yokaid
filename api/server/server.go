@@ -86,7 +86,7 @@ func (s *server) initRouter() {
 		panicMiddleware(s),
 		auth.Middleware(s),
 	)
-	router.Static(common.Config.AssetsUrl, common.Config.AssetsFolder)
+	router.Static(common.Config.AssetsRelativeUrl, common.Config.AssetsFolder)
 	s.routes = routes.GetRoutes(s)
 	for _, route := range s.routes {
 		router.Handle(route.Method, route.Path, route.Handler)
@@ -104,7 +104,7 @@ func (s *server) initRouter() {
 
 func (s *server) Start() error {
 	// server needs an url without http/https
-	r := regexp.MustCompile("https://?")
+	r := regexp.MustCompile("https?://")
 	return s.router.Run(r.ReplaceAllString(common.Config.Url, ""))
 }
 

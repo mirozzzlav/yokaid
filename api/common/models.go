@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type imagePath string
+
+func (i *imagePath) UnmarshalJSON(b []byte) error {
+	var path string
+	json.Unmarshal(b, &path)
+	*i = imagePath(Config.Url + Config.AssetsRelativeUrl + "/" + path)
+	return nil
+}
+
 type timeCustom struct {
 	time.Time
 }
@@ -45,7 +54,7 @@ type post struct {
 	ItemDescription string
 	ItemSpec        map[string]any
 	Category        string
-	ImagePaths      []string
+	ImagePaths      []imagePath
 }
 
 type passwordChangeRequest struct {

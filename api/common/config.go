@@ -23,7 +23,7 @@ type config struct {
 	AccessTokenDuration time.Duration
 	Url                 string
 	AssetsFolder        string
-	AssetsUrl           string
+	AssetsRelativeUrl   string
 	Policy              AuthPolicyConfig
 	Logs                logsConfig
 	PublicRoles         []string
@@ -69,7 +69,7 @@ var Config, _ = func(mode string) (config, error) {
 		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
 		AssetsFolder:        "./assets",
-		AssetsUrl:           "/assets",
+		AssetsRelativeUrl:   "/assets",
 		Policy: AuthPolicyConfig{
 			Model: `
 				[request_definition]
