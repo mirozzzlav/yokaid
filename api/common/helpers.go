@@ -250,3 +250,12 @@ func ConvertToInt(val any) (int, error) {
 		return 0, fmt.Errorf("conversion failed")
 	}
 }
+
+func IsNumeric(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
+func IsFloat(s string) bool {
+	return IsNumeric(s) && strings.Contains(s, ".")
+}

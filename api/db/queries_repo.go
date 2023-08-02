@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"rental-app/api/common"
+	"strconv"
 	"strings"
 )
 
@@ -29,6 +30,17 @@ func (q dbQuery) GetQuery() (string, []any) {
 	for _, partial := range q.partials {
 		qStrings = append(qStrings, partial.Query)
 		params = append(params, partial.Params...)
+	}
+	for i, param := range params {
+		paramStr := param.(string)
+
+		if common.IsFloat(paramStr) {
+			params[i], _ = strconv.ParseFloat(paramStr, 64)
+			continue
+		}
+		if common.IsNumeric(paramStr) {
+			params[i], _ = common.ConvertToInt(paramStr)
+		}
 	}
 
 	return prepareQueryString(strings.Join(qStrings, " ")), params
