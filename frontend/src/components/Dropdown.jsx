@@ -174,7 +174,7 @@ const DropdownList = forwardRef(({ items, isShown, position }, ref) => {
         ...style.list,
         left: position,
         overflow: 'hidden',
-        ...(!isShown ? { opacity: 0, maxHeight: 0 } : null),
+        ...(!isShown ? { display: 'none' } : null),
       }}
     >
       {items.length === 0 ? (
@@ -228,7 +228,6 @@ function SearchDropdown({
   const [isShown, setIsShown] = useState(false);
   const { searchCall, searchResults } = searchHook(() => setIsShown(true));
   const { isLoading } = useContext(LoaderContext);
-  const timeout = useRef(null);
   const wrapperRef = useRef();
   const dropdownRef = useRef(0);
   const position = useDropdownPosition(
@@ -244,14 +243,7 @@ function SearchDropdown({
       setIsShown(false);
       return;
     }
-    if (timeout.current) {
-      return;
-    }
-
-    timeout.current = setTimeout(() => {
-      searchCall(valueRef.current);
-      timeout.current = null;
-    }, 500);
+    searchCall(valueRef.current);
   }, []);
 
   const items = useDropdownItemClick(
