@@ -42,7 +42,7 @@ export default function MapProvider({ children, searchMapPostsHook }) {
   const centerRef = useRef(null);
   const zoomRef = useRef(defaultZoom);
   const clusterGroupRef = useRef(null);
-  const { mapPostsCall, mapPosts: newMapPosts } = searchMapPostsHook();
+  const { mapPostsCall, mapPosts } = searchMapPostsHook();
   const mapPostsIdsRef = useRef([]);
 
   const getBounds = useCallback(() => {
@@ -77,12 +77,11 @@ export default function MapProvider({ children, searchMapPostsHook }) {
 
   const initClusterGroup = useCallback(() => {
     clusterGroupRef.current = L.markerClusterGroup({
-      iconCreateFunction(cluster) {
-        return L.divIcon({
+      iconCreateFunction: (cluster) =>
+        L.divIcon({
           className: css(mapClusterStyle),
           html: cluster.getChildCount(),
-        });
-      },
+        }),
     });
     mapRef.current.addLayer(clusterGroupRef.current);
   }, [mapRef]);
@@ -115,11 +114,10 @@ export default function MapProvider({ children, searchMapPostsHook }) {
   }, [mapElementRef, mapRef, onZoomOrMove]);
 
   useEffect(() => {
-    if (!newMapPosts || !clusterGroupRef.current) {
+    if (!mapPosts || !clusterGroupRef.current) {
       return;
     }
-
-    newMapPosts
+    mapPosts
       .filter(({ Id }) => !mapPostsIdsRef.current.includes(Id))
       .forEach((mapPost) => {
         mapPostsIdsRef.current = [...mapPostsIdsRef.current, mapPost.Id];
@@ -129,15 +127,34 @@ export default function MapProvider({ children, searchMapPostsHook }) {
         }).bindPopup(
           renderToStaticMarkup(
             <MapPost
-              imageSrc="https://i.pinimg.com/originals/91/9a/c3/919ac30002e753944a20d26724c51e6d.jpg"
+              id={mapPost.Id}
+              images={mapPost.ImagePaths}
               text={mapPost.Text}
               headline={mapPost.Headline}
+              item={
+                mapPost.ItemName && {
+                  name: mapPost.ItemName,
+                  description: mapPost.ItemDescription,
+                }
+              }
+              rent={
+                mapPost.ItemName && {
+                  dateFrom: mapPost.RentDateFrom,
+                  dateTo: mapPost.RentDateTo,
+                  price: mapPost.Price,
+                }
+              }
             />,
           ),
+          {
+            className: css({
+              maxWidth: '230px',
+            }),
+          },
         );
         clusterGroupRef.current.addLayer(marker);
       });
-  }, [newMapPosts, mapPostsIdsRef, clusterGroupRef]);
+  }, [mapPosts, mapPostsIdsRef, clusterGroupRef]);
 
   useEffect(() => {
     if (mapRef.current) {

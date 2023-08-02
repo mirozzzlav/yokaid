@@ -36,9 +36,18 @@ function getTokenFromResponse(response, httpErrorCode) {
   return null;
 }
 
+function toLocalDate(dateStr) {
+  return new Date(dateStr).toLocaleString('sk-SK', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  });
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
   objToSnakeCase,
   getTokenFromResponse,
+  toLocalDate,
 };
