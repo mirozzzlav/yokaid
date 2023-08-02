@@ -8,6 +8,9 @@ import (
 type imagePath string
 
 func (i *imagePath) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
 	var path string
 	json.Unmarshal(b, &path)
 	*i = imagePath(Config.Url + Config.AssetsRelativeUrl + "/" + path)
@@ -81,6 +84,9 @@ func PostsModelLoader() (*[]post, func(rowBytes []byte)) {
 	return &posts, func(rowBytes []byte) {
 		var post post
 		_ = json.Unmarshal(rowBytes, &post)
+		if len(post.ImagePaths) == 1 && post.ImagePaths[0] == "" {
+			post.ImagePaths = []imagePath{}
+		}
 		posts = append(posts, post)
 	}
 }

@@ -128,10 +128,10 @@ function ImageSlider({ id, wrapperStyle, images }) {
         >
           {images.map((imgSrc) => (
             <img
-              key={imgSrc}
-              alt="test"
+              key={`${imgSrc}`}
+              alt={`${imgSrc}`}
               className={css(sliderStyle.img)}
-              src={imgSrc}
+              src={`${imgSrc}`}
             />
           ))}
         </div>
@@ -207,7 +207,7 @@ export default function MapPost({ id, headline, text, images, item, rent }) {
   return (
     <div className={css(style.wrapper)}>
       <h4 className={css(style.hl)}>{headline}</h4>
-      <ImageSlider images={images} id={id} />
+      {images.length > 0 && <ImageSlider images={images} id={id} />}
       <div className={css(style.text)}>{text}</div>
 
       {item && <RentalPost item={item} rent={rent} />}
