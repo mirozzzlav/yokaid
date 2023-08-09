@@ -63,12 +63,20 @@ export default function HomePage() {
     <MainLayout
       mode="fullscreen"
       topContent={
-        <SearchDropdown
-          searchHook={useMapSearch}
-          onItemClick={setMapPosition}
-          positionSetup="center"
-          placeholder="Where?"
-        />
+        <>
+          <SearchDropdown
+            searchHook={useMapSearch}
+            onItemClick={setMapPosition}
+            positionSetup="center"
+            placeholder="Where?"
+          />
+          <SearchDropdown
+            searchHook={useMapSearch}
+            onItemClick={() => {}}
+            positionSetup="center"
+            placeholder="What?"
+          />
+        </>
       }
       userMenuItems={userMenuItems}
       userMenuBtnStyle={userMenuBtnStyle}

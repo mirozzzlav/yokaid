@@ -1,9 +1,10 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 	"log"
 	"rental-app/api/common"
 )
@@ -45,82 +46,79 @@ func createDataElement(colNames []string, colValues []any) any {
 	return resultElem
 }
 
-func NewQueryRunner() *QueryRunner {
+func NewQueryRunner(ctx *gin.Context) common.QueryRunner {
+	qrAny, qrExist := ctx.Get("queryRunner")
+	var qr queryRunner
+	if qrExist {
+		return qrAny.(*queryRunner)
+	}
+
 	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	return &QueryRunner{
-		db: db,
-	}
+	qr = queryRunner{db: db}
+	ctx.Set("queryRunner", &qr)
+	return &qr
 }
 
-type QueryRunner struct {
-	db  *sql.DB
-	ctx context.Context
-	tx  *sql.Tx
+type queryRunner struct {
+	db *sql.DB
+	tx *sql.Tx
 }
 
-func (qr *QueryRunner) Begin() {
-	if qr.ctx != nil {
-		qr.Commit()
+func (qr *queryRunner) Begin() error {
+	if qr.tx != nil {
+		return nil
 	}
-
-	qr.ctx = context.Background()
 
 	txOptions := &sql.TxOptions{
-		Isolation: sql.LevelDefault,
+		Isolation: sql.LevelReadCommitted,
 		ReadOnly:  false,
 	}
-
-	var err error
-	qr.tx, err = qr.db.BeginTx(qr.ctx, txOptions)
-
+	tx, err := qr.db.BeginTx(context.Background(), txOptions)
 	if err != nil {
-		qr.ctx = nil
-		common.CheckErrAndPanic(err)
+		return err
 	}
+	qr.tx = tx
+	return nil
 }
 
-func (qr *QueryRunner) Rollback() {
-	if qr.tx != nil {
-		if err := qr.tx.Rollback(); err != nil {
-			log.Printf("Rollback error: %v\n", err)
-		}
-		qr.ctx = nil
-		qr.tx = nil
+func (qr *queryRunner) Rollback() error {
+	if qr.tx == nil {
+		return nil
 	}
+	err := qr.tx.Rollback()
+	if err != nil {
+		return err
+	}
+	qr.tx = nil
+	return nil
 }
 
-func (qr *QueryRunner) Commit() {
-
-	defer func() {
-		qr.ctx = nil
-		qr.tx = nil
-	}()
-
-	if err := qr.tx.Commit(); err != nil {
-		common.CheckErrAndPanic(err)
+func (qr *queryRunner) Commit() error {
+	if qr.tx == nil {
+		return nil
 	}
+	err := qr.tx.Commit()
+	if err != nil {
+		return err
+	}
+	qr.tx = nil
+	return nil
 }
 
-func (qr *QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArrayOfArrays bool) error {
-
-	if qr.ctx == nil {
-		qr.Begin()
-	}
+func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArrayOfArrays bool) error {
 
 	qString, qParams := q.GetQuery()
 
-	rows, err := qr.tx.QueryContext(qr.ctx, qString, qParams...)
+	rows, err := qr.tx.Query(qString, qParams...)
 	if err != nil {
-		qr.Rollback()
 		return err
 	}
 
 	columns, err := rows.Columns()
 	if err != nil {
-		qr.Rollback()
 		return err
 	}
 
@@ -133,14 +131,12 @@ func (qr *QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 	for rows.Next() {
 		err := rows.Scan(pointers...)
 		if err != nil {
-			qr.Rollback()
 			return err
 		}
 
 		if asArrayOfArrays {
 			elemBytes, err := json.Marshal(createDataElementAsArray(values))
 			if err != nil {
-				qr.Rollback()
 				return err
 			}
 			fn(elemBytes)
@@ -148,7 +144,6 @@ func (qr *QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 			elemBytes, err := json.Marshal(createDataElement(columns, values))
 
 			if err != nil {
-				qr.Rollback()
 				return err
 			}
 			fn(elemBytes)
@@ -156,14 +151,13 @@ func (qr *QueryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 	}
 
 	if err := rows.Err(); err != nil {
-		qr.Rollback()
 		return err
 	}
 
 	return nil
 }
 
-func (qr *QueryRunner) GetScalar(q common.Query) (int, error) {
+func (qr *queryRunner) GetScalar(q common.Query) (int, error) {
 	qString, qParams := q.GetQuery()
 	var scalar int
 	err := qr.db.QueryRow(qString, qParams...).Scan(&scalar)
@@ -178,35 +172,33 @@ func (qr *QueryRunner) GetScalar(q common.Query) (int, error) {
 	return scalar, nil
 }
 
-func (qr *QueryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *queryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn, false)
 }
 
-func (qr *QueryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *queryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn, true)
 }
 
-func (qr *QueryRunner) Create(q common.Query, IdColumnName string) (any, error) {
+func (qr *queryRunner) Create(q common.Query, IdColumnName string) (any, error) {
 
-	if qr.ctx == nil {
-		qr.Begin()
+	err := qr.Begin()
+	if err != nil {
+		return 0, err
 	}
-
 	var queryRes any
 
 	qString, qParams := q.GetQuery()
 
 	if IdColumnName == "" {
-		_, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
+		_, err := qr.tx.Exec(qString, qParams...)
 		if err != nil {
-			qr.Rollback()
 			return 0, err
 		}
 	} else {
-		err := qr.tx.QueryRowContext(qr.ctx, qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
+		err := qr.tx.QueryRow(qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
 
 		if err != nil {
-			qr.Rollback()
 			return 0, err
 		}
 	}
@@ -214,17 +206,17 @@ func (qr *QueryRunner) Create(q common.Query, IdColumnName string) (any, error) 
 	return queryRes, nil
 }
 
-func (qr *QueryRunner) Update(q common.Query) error {
-	if qr.ctx == nil {
-		qr.Begin()
+func (qr *queryRunner) Update(q common.Query) error {
+	err := qr.Begin()
+	if err != nil {
+		return err
 	}
 
 	qString, qParams := q.GetQuery()
 
-	result, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
+	result, err := qr.tx.Exec(qString, qParams...)
 
 	if err != nil {
-		qr.Rollback()
 		return err
 	}
 
@@ -237,16 +229,16 @@ func (qr *QueryRunner) Update(q common.Query) error {
 	return nil
 }
 
-func (qr *QueryRunner) Delete(q common.Query) error {
-	if qr.ctx == nil {
-		qr.Begin()
+func (qr *queryRunner) Delete(q common.Query) error {
+	err := qr.Begin()
+	if err != nil {
+		return err
 	}
 
 	qString, qParams := q.GetQuery()
 
-	result, err := qr.tx.ExecContext(qr.ctx, qString, qParams...)
+	result, err := qr.tx.Exec(qString, qParams...)
 	if err != nil {
-		qr.Rollback()
 		return err
 	}
 

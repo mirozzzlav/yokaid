@@ -46,9 +46,9 @@ func (q dbQuery) GetQuery() (string, []any) {
 	return prepareQueryString(strings.Join(qStrings, " ")), params
 }
 
-type QueriesRepo struct{}
+type queriesRepo struct{}
 
-func (qr QueriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -60,7 +60,7 @@ func (qr QueriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Quer
 	}
 }
 
-func (qr QueriesRepo) UpdateUsersQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
+func (qr queriesRepo) UpdateUsersQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
 	filter.Query = " where " + filter.Query
 	return dbQuery{
 		partials: []common.QueryPartial{
@@ -74,7 +74,7 @@ func (qr QueriesRepo) UpdateUsersQuery(data common.QueryPartial, filter common.Q
 	}
 }
 
-func (qr QueriesRepo) ListPoliciesQuery() common.Query {
+func (qr queriesRepo) ListPoliciesQuery() common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -86,7 +86,7 @@ func (qr QueriesRepo) ListPoliciesQuery() common.Query {
 
 }
 
-func (qr QueriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -98,7 +98,7 @@ func (qr QueriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr QueriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
 
 	query := "SELECT posts.id as id, users.full_name as author, posts.latitude, posts.longitude, posts.text, " +
 		"posts.created_at, posts.headline , rental_posts_sql.rent_date_from, rental_posts_sql.rent_date_to, " +
@@ -148,7 +148,7 @@ func (qr QueriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
 
 }
 
-func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -159,3 +159,16 @@ func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 		},
 	}
 }
+
+func (qr queriesRepo) ListItemCategoriesQuery() common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "SELECT name FROM item_categories",
+				Params: []any{},
+			},
+		},
+	}
+}
+
+var QueriesRepo = queriesRepo{}

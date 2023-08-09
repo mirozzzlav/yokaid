@@ -259,3 +259,18 @@ func IsNumeric(s string) bool {
 func IsFloat(s string) bool {
 	return IsNumeric(s) && strings.Contains(s, ".")
 }
+
+func SetStoreHelpers(
+	ctx *gin.Context,
+	storeHelpers StoreHelpers,
+) {
+	ctx.Set("storeHelpers", &storeHelpers)
+}
+
+func GetStoreHelpers(ctx *gin.Context) StoreHelpers {
+	sH, sHExist := ctx.Get("storeHelpers")
+	if !sHExist {
+		return nil
+	}
+	return *(sH.(*StoreHelpers))
+}

@@ -28,6 +28,7 @@ func panicMiddleware(s *server) gin.HandlerFunc {
 			} else {
 				s.logError(ctx, errors.New(fmt.Sprintf("%s", r)))
 			}
+			s.GetQueryRunner(ctx).Rollback()
 
 		}()
 		ctx.Next()

@@ -12,20 +12,24 @@ import (
 )
 
 type server struct {
-	tokenMaker   common.Maker
-	router       *gin.Engine
-	logError     func(ctx *gin.Context, err error)
-	routes       []common.Route
-	authUser     *common.AuthUser
-	queryRunner  common.QueryRunner
-	queriesRepo  common.QueriesRepo
-	validate     *validator.Validate
-	storeHelpers common.StoreHelpers
-	notifier     common.Notifier
+	tokenMaker              common.Maker
+	router                  *gin.Engine
+	logError                func(ctx *gin.Context, err error)
+	routes                  []common.Route
+	authUser                *common.AuthUser
+	queriesRepo             common.QueriesRepo
+	validate                *validator.Validate
+	notifier                common.Notifier
+	queryRunnerInitializer  func(ctx *gin.Context) common.QueryRunner
+	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers
 }
 
-func NewServer(queryRunner common.QueryRunner,
-	repo common.QueriesRepo, sH common.StoreHelpers, notifier common.Notifier) (common.Server, error) {
+func NewServer(
+	repo common.QueriesRepo,
+	queryRunnerInitializer func(ctx *gin.Context) common.QueryRunner,
+	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers,
+	notifier common.Notifier,
+) (common.Server, error) {
 
 	tokenMaker, err := auth.NewPasetoMaker(common.Config.TokenSymmetricKey)
 	if err != nil {
@@ -53,12 +57,12 @@ func NewServer(queryRunner common.QueryRunner,
 	}
 
 	server := &server{
-		queryRunner:  queryRunner,
-		tokenMaker:   tokenMaker,
-		queriesRepo:  repo,
-		validate:     validate,
-		storeHelpers: sH,
-		notifier:     notifier,
+		tokenMaker:              tokenMaker,
+		queriesRepo:             repo,
+		validate:                validate,
+		notifier:                notifier,
+		queryRunnerInitializer:  queryRunnerInitializer,
+		storeHelpersInitializer: storeHelpersInitializer,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -67,6 +71,13 @@ func NewServer(queryRunner common.QueryRunner,
 	}
 
 	return server, nil
+}
+func (s *server) GetQueryRunner(ctx *gin.Context) common.QueryRunner {
+	return s.queryRunnerInitializer(ctx)
+}
+
+func (s *server) GetStoreHelpers(ctx *gin.Context) common.StoreHelpers {
+	return s.storeHelpersInitializer(s.GetQueryRunner(ctx), s.queriesRepo)
 }
 
 func (s *server) initRouter() {
@@ -85,6 +96,12 @@ func (s *server) initRouter() {
 		jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
 		panicMiddleware(s),
 		auth.Middleware(s),
+		func(ctx *gin.Context) {
+			// init repo + store helper
+			qRunner := s.queryRunnerInitializer(ctx)
+			s.storeHelpersInitializer(qRunner, s.queriesRepo)
+			ctx.Next()
+		},
 	)
 	router.Static(common.Config.AssetsRelativeUrl, common.Config.AssetsFolder)
 	s.routes = routes.GetRoutes(s)
@@ -108,9 +125,9 @@ func (s *server) Start() error {
 	return s.router.Run(r.ReplaceAllString(common.Config.Url, ""))
 }
 
-func (s *server) GetQueryRunner() common.QueryRunner {
-	return s.queryRunner
-}
+//func (s *server) GetQueryRunner() common.QueryRunner {
+//	return s.queryRunner
+//}
 
 func (s *server) GetQueriesRepo() common.QueriesRepo {
 	return s.queriesRepo
@@ -145,9 +162,9 @@ func (s *server) GetValidate() *validator.Validate {
 	return s.validate
 }
 
-func (s *server) GetStoreHelpers() common.StoreHelpers {
-	return s.storeHelpers
-}
+//func (s *server) GetStoreHelpers() common.StoreHelpers {
+//	return s.storeHelpers
+//}
 
 func (s *server) GetNotifier() common.Notifier {
 	return s.notifier

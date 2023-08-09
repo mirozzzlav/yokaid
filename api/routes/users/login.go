@@ -23,7 +23,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
-		user, err := server.GetStoreHelpers().GetUserAndVerifyPassword(
+		user, err := server.GetStoreHelpers(ctx).GetUserAndVerifyPassword(
 			req.UsernameOrEmail.(string), req.Password.(string),
 		)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, Msg: credentialsErrMsg})

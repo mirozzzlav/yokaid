@@ -25,14 +25,14 @@ func register(server common.Server) func(ctx *gin.Context) {
 		email := req.Email.(string)
 		fullName := req.FullName.(string)
 
-		usersCount, err := server.GetStoreHelpers().GetUsersCount(email)
+		usersCount, err := server.GetStoreHelpers(ctx).GetUsersCount(email)
 		common.CheckErrAndPanic(err)
 
 		if usersCount != 0 {
 			panic(common.NewHttpError(nil, badReqMeta))
 		}
 
-		activationToken, err := server.GetStoreHelpers().RegisterUser(req)
+		activationToken, err := server.GetStoreHelpers(ctx).RegisterUser(req)
 		common.CheckErrAndPanic(err)
 
 		err = server.GetNotifier().SendUserActivation(

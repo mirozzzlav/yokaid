@@ -1,22 +1,11 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"rental-app/api/auth"
 	"rental-app/api/common"
 	"strings"
 )
-
-func closeRows(rows *sql.Rows) error {
-	if err := rows.Close(); err != nil {
-		return err
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	return nil
-}
 
 func columnNameToObjName(colName string) string {
 	if colName == "id" {
@@ -34,7 +23,16 @@ type StoreHelpers struct {
 	QueriesRepo common.QueriesRepo
 }
 
-func (sH StoreHelpers) GenerateUserName(fullName string) (string, error) {
+func NewStoreHelpers(qRunner common.QueryRunner, qRepo common.QueriesRepo) common.StoreHelpers {
+
+	return &StoreHelpers{
+		QueryRunner: qRunner,
+		QueriesRepo: qRepo,
+	}
+
+}
+
+func (sH *StoreHelpers) GenerateUserName(fullName string) (string, error) {
 	tempUsername := getUsernameBase(fullName)
 	q := sH.QueriesRepo.GetUsersCountQuery(common.QueryPartial{
 		Query:  "username LIKE ?",
@@ -56,11 +54,11 @@ func (sH StoreHelpers) GenerateUserName(fullName string) (string, error) {
 	return tempUsername + usernameSuffix, nil
 }
 
-func (_ StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) {
+func (_ *StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) {
 	return handleFilter(filter)
 }
 
-func (sH StoreHelpers) ChangeUserPassword(userId int, pass string) error {
+func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 
 	hashedPass, err := auth.HashPassword(pass)
 	if err != nil {
@@ -98,7 +96,7 @@ func (sH StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 	return err
 }
 
-func (sH StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, error) {
+func (sH *StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, error) {
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -122,7 +120,7 @@ func (sH StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, erro
 }
 
 // CreatePasswordChangeRequest create new pass change query and delete old one if exist
-func (sH StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) {
+func (sH *StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) {
 	q := sH.QueriesRepo.DeletePasswordChangeRequestsQuery(
 		common.QueryPartial{
 			Query:  "user_id = ?",
@@ -148,7 +146,7 @@ func (sH StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) {
 	return token.(string), err
 }
 
-func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
+func (sH *StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	q := sH.QueriesRepo.GetUsersCountQuery(common.QueryPartial{
 		Query:  "email = ? or username = ?",
 		Params: []any{emailOrUsername, emailOrUsername},
@@ -160,7 +158,7 @@ func (sH StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	return usersCount, nil
 }
 
-func (sH StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, error) {
+func (sH *StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, error) {
 	username, err := sH.GenerateUserName(req.FullName.(string))
 	common.CheckErrAndPanic(err)
 
@@ -186,7 +184,7 @@ func (sH StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, err
 
 }
 
-func (sH StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
+func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 
 	usersRef, UsersModelLoader := common.UsersModelLoader()
 	q := dbQuery{
@@ -209,7 +207,7 @@ func (sH StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 	return &user, nil
 }
 
-func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
+func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
 	user, err := sH.GetUser(usernameOrEmail)
 	if err != nil {
 		return nil, err
@@ -224,12 +222,15 @@ func (sH StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password
 		return nil, err
 	}
 
-	sH.QueryRunner.Commit()
+	err = sH.QueryRunner.Commit()
+	if err != nil {
+		return nil, err
+	}
 
 	return user, nil
 }
 
-func (sH StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (int, error) {
+func (sH *StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (int, error) {
 
 	q := dbQuery{
 		partials: []common.QueryPartial{

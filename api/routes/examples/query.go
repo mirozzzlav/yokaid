@@ -17,7 +17,7 @@ func query(server common.Server) func(ctx *gin.Context) {
 			},
 		)
 		users, usersLoader := common.UsersModelLoader()
-		err := server.GetQueryRunner().GetRows(q, usersLoader)
+		err := server.GetQueryRunner(ctx).GetRows(q, usersLoader)
 
 		if err != nil {
 			fmt.Println(err)

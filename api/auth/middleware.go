@@ -44,7 +44,8 @@ func checkPolicies(server common.Server, ctx *gin.Context, authUser common.AuthU
 	}
 
 	policies, policiesModelLoader := common.PoliciesModelLoader()
-	err = server.GetQueryRunner().GetRowsAsArrayOfArrays(server.GetQueriesRepo().ListPoliciesQuery(), policiesModelLoader)
+
+	err = server.GetQueryRunner(ctx).GetRowsAsArrayOfArrays(server.GetQueriesRepo().ListPoliciesQuery(), policiesModelLoader)
 	if err != nil {
 		return err, false
 	}

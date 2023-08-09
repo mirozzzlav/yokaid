@@ -12,7 +12,7 @@ func activate(server common.Server) func(ctx *gin.Context) {
 		if !tokenParamExist {
 			panic(common.NewHttpError(nil, errMeta["badRequest"]))
 		}
-		userId, err := server.GetStoreHelpers().GetUserFromPasswordChangeRequest(token)
+		userId, err := server.GetStoreHelpers(ctx).GetUserFromPasswordChangeRequest(token)
 		if err == common.ErrNoRows {
 			panic(common.NewHttpError(nil, errMeta["badRequestExpired"]))
 		}
@@ -25,7 +25,7 @@ func activate(server common.Server) func(ctx *gin.Context) {
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
-		err = server.GetStoreHelpers().ChangeUserPassword(userId, req.Password.(string))
+		err = server.GetStoreHelpers(ctx).ChangeUserPassword(userId, req.Password.(string))
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "user is activated")

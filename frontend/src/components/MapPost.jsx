@@ -1,5 +1,5 @@
 import React from 'react';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import PropTypes from 'prop-types';
 import { theme } from 'src/style';
 import { unknownObjectValidator, toLocalDate } from 'src/helpers';
@@ -11,16 +11,21 @@ const style = {
     display: 'flex',
     flexDirection: 'column',
   },
-  rentContent: {
-    fontSize: '0.9rem',
+  boxContent: {
+    background: 'rgba(0, 0, 0, 0.01)',
+    borderRadius: theme.radii.md,
+    border: '1px solid rgba(0,0,0,0.1)',
+    margin: '3px -10px 3px -10px',
+    padding: '10px',
   },
   slider: {
     marginBottom: '10px',
   },
   hl: {
     marginBottom: '10px',
+    fontSize: '1.2rem',
     textAlign: 'center',
-    fontWeight: theme.fontWeights.medium,
+    fontWeight: theme.fontWeights.light,
   },
   subhl: {
     marginBottom: '5px',
@@ -30,17 +35,22 @@ const style = {
     display: 'flex',
     '> :first-child': {
       flexBasis: '40px',
-      fontWeight: theme.fontWeights.light,
       marginRight: '5px',
     },
+    '> :last-child': {
+      fontWeight: theme.fontWeights.light,
+    },
+  },
+  textWrapper: {
+    overflow: 'hidden',
+    padding: 0,
   },
   text: {
-    padding: '10px',
-    background: 'rgba(0, 0, 0, 0.02)',
-    margin: '5px -10px 5px -10px',
+    minHeight: '80px',
     maxHeight: '150px',
-    overflow: 'auto',
     fontWeight: theme.fontWeights.light,
+    overflowY: 'auto',
+    padding: '10px',
     scrollbarWidth: 'thin',
     scrollbarColor: `${theme.colors.black} ${theme.colors.blackAlpha['50']}`,
   },
@@ -71,22 +81,24 @@ const sliderStyle = {
   },
   buttons: {
     display: 'flex',
+    padding: '10px 0',
     justifyContent: 'center',
     button: {
       '&[data-active="1"]': {
         opacity: 1,
+        background: theme.colors.blackAlpha['600'],
       },
-      opacity: 0.5,
-      width: '20px',
-      fontSize: '1.5rem',
-      '> *': {
-        pointerEvents: 'none',
-      },
+      background: theme.colors.blackAlpha['200'],
+      width: '12px',
+      height: '12px',
+      margin: '0px 3px',
+      borderRadius: theme.radii.sm,
     },
   },
 };
 
-function ImageSlider({ id, wrapperStyle, images }) {
+function ImageSlider({ id, wrapperStyle, images, maxImages }) {
+  const imagesSliced = images.slice(0, maxImages);
   const onClick = (e) => {
     if (!e.target.dataset.sliderid) {
       return;
@@ -123,10 +135,10 @@ function ImageSlider({ id, wrapperStyle, images }) {
           id={`slider-${id}`}
           className={css({
             ...sliderStyle.slider,
-            width: `${images.length * 100}%`,
+            width: `${imagesSliced.length * 100}%`,
           })}
         >
-          {images.map((imgSrc) => (
+          {imagesSliced.map((imgSrc) => (
             <img
               key={`${imgSrc}`}
               alt={`${imgSrc}`}
@@ -137,16 +149,14 @@ function ImageSlider({ id, wrapperStyle, images }) {
         </div>
       </div>
       <div className={css(sliderStyle.buttons)} id={`buttons-${id}`}>
-        {images.map((imgSrc, index) => (
+        {imagesSliced.map((imgSrc, index) => (
           <button
             key={imgSrc}
             type="button"
             data-imagenumber={index + 1}
             data-sliderid={id}
             data-active={index === 0 ? '1' : '0'}
-          >
-            &#9679;
-          </button>
+          />
         ))}
       </div>
     </div>
@@ -156,6 +166,7 @@ ImageSlider.onClickAttached = false;
 
 ImageSlider.defaultProps = {
   wrapperStyle: null,
+  maxImages: 8,
 };
 ImageSlider.prototype.propTypes = {
   id: PropTypes.number.isRequired,
@@ -164,29 +175,28 @@ ImageSlider.prototype.propTypes = {
     PropTypes.oneOf([null]),
   ]),
   images: PropTypes.arrayOf(PropTypes.string).isRequired,
+  maxImages: PropTypes.number,
 };
 
 function RentalPost({ item, rent }) {
   return (
-    <>
+    <div className={css(style.boxContent)}>
       <h6 className={css(style.subhl)}>{item.name}</h6>
-      <div className={css(style.rentContent)}>
-        <div className={css(style.dataRow)}>
-          <div>From</div>
-          <div>{toLocalDate(rent.dateFrom)}</div>
-        </div>
-        {rent.dateTo && (
-          <div className={css(style.dataRow)}>
-            <div>To</div>
-            <div>{toLocalDate(rent.dateTo)}</div>
-          </div>
-        )}
-        <div className={css(style.dataRow)}>
-          <span>Price</span>
-          <span>{rent.price}</span>
-        </div>
+      <div className={css(style.dataRow)}>
+        <div>From</div>
+        <div>{toLocalDate(rent.dateFrom)}</div>
       </div>
-    </>
+      {rent.dateTo && (
+        <div className={css(style.dataRow)}>
+          <div>To</div>
+          <div>{toLocalDate(rent.dateTo)}</div>
+        </div>
+      )}
+      <div className={css(style.dataRow)}>
+        <span>Price</span>
+        <span>{rent.price}</span>
+      </div>
+    </div>
   );
 }
 
@@ -208,8 +218,9 @@ export default function MapPost({ id, headline, text, images, item, rent }) {
     <div className={css(style.wrapper)}>
       <h4 className={css(style.hl)}>{headline}</h4>
       {images.length > 0 && <ImageSlider images={images} id={id} />}
-      <div className={css(style.text)}>{text}</div>
-
+      <div className={cx(css(style.boxContent), css(style.textWrapper))}>
+        <div className={css(style.text)}>{text}</div>
+      </div>
       {item && <RentalPost item={item} rent={rent} />}
     </div>
   );

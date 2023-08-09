@@ -15,7 +15,7 @@ func createRequestForPasswordChange(server common.Server) func(ctx *gin.Context)
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
-		user, err := server.GetStoreHelpers().GetUser(req.Email.(string))
+		user, err := server.GetStoreHelpers(ctx).GetUser(req.Email.(string))
 		// we don't want to hacker know that we don't have the user, so we ignore 0 rows error
 
 		if err != nil && err != common.ErrNoRows {
@@ -23,7 +23,7 @@ func createRequestForPasswordChange(server common.Server) func(ctx *gin.Context)
 		}
 
 		if user != nil && user.Active {
-			token, err := server.GetStoreHelpers().CreatePasswordChangeRequest(user.ID)
+			token, err := server.GetStoreHelpers(ctx).CreatePasswordChangeRequest(user.ID)
 			common.CheckErrAndPanic(err)
 
 			err = server.GetNotifier().SendPasswordChangeRequest(
@@ -43,7 +43,7 @@ func passwordChange(server common.Server) func(ctx *gin.Context) {
 		if !tokenParamExist {
 			panic(common.NewHttpError(nil, errMeta["badRequest"]))
 		}
-		userId, err := server.GetStoreHelpers().GetUserFromPasswordChangeRequest(token)
+		userId, err := server.GetStoreHelpers(ctx).GetUserFromPasswordChangeRequest(token)
 		if err == common.ErrNoRows {
 			panic(common.NewHttpError(err, errMeta["badRequestExpired"]))
 		}
@@ -55,7 +55,7 @@ func passwordChange(server common.Server) func(ctx *gin.Context) {
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
-		err = server.GetStoreHelpers().ChangeUserPassword(userId, req.Password.(string))
+		err = server.GetStoreHelpers(ctx).ChangeUserPassword(userId, req.Password.(string))
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "user's password has been changed")

@@ -9,11 +9,12 @@ import (
 )
 
 func main() {
-	queryRunner := dbPkg.NewQueryRunner()
-	queriesRepo := dbPkg.QueriesRepo{}
-	storeHelpers := dbPkg.StoreHelpers{QueryRunner: queryRunner, QueriesRepo: queriesRepo}
-	// creating new server instance
-	server, err := serverPkg.NewServer(queryRunner, queriesRepo, storeHelpers, mail.Notifier{})
+	// creating new server instanc
+	server, err := serverPkg.NewServer(
+		dbPkg.QueriesRepo,
+		dbPkg.NewQueryRunner,
+		dbPkg.NewStoreHelpers,
+		mail.Notifier{})
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}

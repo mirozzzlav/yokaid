@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"time"
 )
@@ -13,9 +14,7 @@ type Maker interface {
 
 type Server interface {
 	GetTokenMaker() Maker
-	GetQueryRunner() QueryRunner
 	GetQueriesRepo() QueriesRepo
-	GetStoreHelpers() StoreHelpers
 	SetAuthUser(u AuthUser)
 	GetAuthUser() *AuthUser
 	IsPrivateRoute(path string) bool
@@ -23,17 +22,20 @@ type Server interface {
 	GetNotifier() Notifier
 	Start() error
 	Close()
+	GetQueryRunner(ctx *gin.Context) QueryRunner
+	GetStoreHelpers(ctx *gin.Context) StoreHelpers
 }
 
 type QueryRunner interface {
 	GetScalar(q Query) (int, error)
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
-	Begin()
-	Commit()
+	Begin() error
+	Commit() error
 	Update(q Query) error
 	Create(q Query, IdColumnName string) (any, error)
 	Delete(q Query) error
+	Rollback() error
 }
 
 type Query interface {
@@ -47,6 +49,7 @@ type QueriesRepo interface {
 	ListPostsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
+	ListItemCategoriesQuery() Query
 }
 
 type StoreHelpers interface {

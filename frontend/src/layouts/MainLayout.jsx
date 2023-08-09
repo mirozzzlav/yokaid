@@ -32,6 +32,10 @@ const style = {
     alignItems: 'center',
     padding: '1rem 1rem 1rem 1rem',
   },
+  topContent: {
+    display: 'flex',
+    gap: '0.5rem',
+  },
   loader: (isLoading) => ({
     height: '2px',
     width: '100%',
@@ -70,7 +74,7 @@ function MainLayout({
             icon={<Icon width="6rem" height="2rem" as={Logo} />}
           />
         </Box>
-        <Box>{topContent}</Box>
+        <Box sx={style.topContent}>{topContent}</Box>
         <Dropdown
           items={userMenuItems}
           buttonMeta={{

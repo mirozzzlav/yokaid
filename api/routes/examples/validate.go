@@ -30,7 +30,7 @@ func validate(server common.Server) func(ctx *gin.Context) {
 			},
 		)
 
-		err = server.GetQueryRunner().Update(q)
+		err = server.GetQueryRunner(ctx).Update(q)
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "user successfully updated")

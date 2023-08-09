@@ -13,12 +13,7 @@ export default function useMapPosts() {
     () => ({
       mapPosts,
       mapPostsCall: (bounds) =>
-        call(
-          `${config.api.endPointsURLs.getMapPosts}/${encodeURI(
-            `latitude>=${bounds[0]};latitude<=${bounds[2]};longitude>=${bounds[1]};longitude<=${bounds[3]}`,
-          )}`,
-          'get',
-        ),
+        call(`${config.api.endPointsURLs.getMapPosts}`, 'get'),
     }),
     [mapPosts],
   );

@@ -11,6 +11,7 @@ export default {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
       getMapPosts: `${apiUrl}/posts/list`,
+      getInitialData: `${apiUrl}/frontend-data/get`,
     },
   },
 };

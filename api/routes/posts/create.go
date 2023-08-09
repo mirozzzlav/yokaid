@@ -17,7 +17,7 @@ func create(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
 		authUser := server.GetAuthUser()
-		_, err = server.GetStoreHelpers().CreatePost(authUser.ID, req)
+		_, err = server.GetStoreHelpers(ctx).CreatePost(authUser.ID, req)
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "post has been successfully created")

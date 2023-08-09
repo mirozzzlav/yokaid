@@ -11,12 +11,14 @@ func list(server common.Server) gin.HandlerFunc {
 		var err error
 		filter, _ := ctx.Params.Get("filter")
 
-		filterQP, err := server.GetStoreHelpers().HandleFilter(filter)
+		filterQP, err := server.GetStoreHelpers(ctx).HandleFilter(filter)
 		common.CheckErrAndPanic(err)
 
 		dbQuery := server.GetQueriesRepo().ListPostsQuery(filterQP)
-		err = server.GetQueryRunner().GetRows(dbQuery, postsModelLoader)
-
+		server.GetQueryRunner(ctx).Begin()
+		err = server.GetQueryRunner(ctx).GetRows(dbQuery, postsModelLoader)
+		common.CheckErrAndPanic(err)
+		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, posts)
 	}

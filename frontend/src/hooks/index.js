@@ -1,4 +1,5 @@
-import useCall, { useAuthorizedCall } from 'src/hooks/useCall';
+import useCall from 'src/hooks/useCall';
+import useAuthorizedCall from 'src/hooks/useAuthorizedCall';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import useMapPosts from 'src/hooks/useMapPosts';
 import useForm from 'src/hooks/useForm';

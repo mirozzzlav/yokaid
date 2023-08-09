@@ -111,3 +111,14 @@ func PasswordChangeRequestsModelLoader() (*[]passwordChangeRequest, func(rowByte
 		requests = append(requests, req)
 	}
 }
+
+func ColummModalLoader(columnName string) (*[]string, func(rowBytes []byte)) {
+	var strings []string
+
+	return &strings, func(rowBytes []byte) {
+		var m map[string]any
+		_ = json.Unmarshal(rowBytes, &m)
+
+		strings = append(strings, m[columnName].(string))
+	}
+}

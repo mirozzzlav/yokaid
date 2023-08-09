@@ -19,7 +19,7 @@ func transaction(server common.Server) func(ctx *gin.Context) {
 		)
 
 		users1, usersLoader := common.UsersModelLoader()
-		err1 := server.GetQueryRunner().GetRows(query1, usersLoader)
+		err1 := server.GetQueryRunner(ctx).GetRows(query1, usersLoader)
 		common.CheckErrAndPanic(err1)
 
 		query2 := server.GetQueriesRepo().QueryUserTest(
@@ -30,7 +30,7 @@ func transaction(server common.Server) func(ctx *gin.Context) {
 		)
 
 		users2, usersLoader2 := common.UsersModelLoader()
-		err2 := server.GetQueryRunner().GetRows(query2, usersLoader2)
+		err2 := server.GetQueryRunner(ctx).GetRows(query2, usersLoader2)
 		common.CheckErrAndPanic(err2)
 
 		fmt.Println(users1)
@@ -45,7 +45,7 @@ func secondTransaction(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		username, _ := ctx.Params.Get("username")
 
-		server.GetQueryRunner().Begin()
+		server.GetQueryRunner(ctx).Begin()
 		q := server.GetQueriesRepo().QueryUserTest(
 			common.QueryPartial{
 				Query:  " WHERE username= ?",
@@ -54,9 +54,11 @@ func secondTransaction(server common.Server) func(ctx *gin.Context) {
 		)
 
 		users, usersLoader := common.UsersModelLoader()
-		err := server.GetQueryRunner().GetRows(q, usersLoader)
+		err := server.GetQueryRunner(ctx).GetRows(q, usersLoader)
 		common.CheckErrAndPanic(err)
-		server.GetQueryRunner().Commit()
+
+		err = server.GetQueryRunner(ctx).Commit()
+		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, users)
 	}
@@ -65,10 +67,10 @@ func secondTransaction(server common.Server) func(ctx *gin.Context) {
 func thirdTransaction(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
-		id := server.GetStoreHelpers().Insert()
-		server.GetStoreHelpers().Update(id)
-		server.GetStoreHelpers().Delete(id)
+		id := server.GetStoreHelpers(ctx).Insert()
+		server.GetStoreHelpers(ctx).Update(id)
+		server.GetStoreHelpers(ctx).Delete(id)
 
-		server.GetQueryRunner().Commit()
+		server.GetQueryRunner(ctx).Commit()
 	}
 }
