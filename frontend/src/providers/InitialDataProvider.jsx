@@ -3,16 +3,27 @@ import PropTypes from 'prop-types';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 
-export const InitialDAtaContext = React.createContext([]);
+export const InitialDataContext = React.createContext([]);
 
 export default function InitialDataProvider({ children }) {
-  const [initialData, setInitialData] = useState(null);
+  const [initialData, setInitialData] = useState({
+    itemCategories: null,
+    itemCategoriesDropdown: null,
+  });
   const onDataArrived = useCallback((response) => {
     if (response.error) {
       return;
     }
+
     setInitialData({
-      itemCategories: response.data.ItemCategories,
+      itemCategories: response.data.ItemCategories || null,
+      itemCategoriesDropdown: response.data.ItemCategories
+        ? response.data.ItemCategories.map((catName) => ({
+            id: catName,
+            label: catName,
+            value: catName,
+          }))
+        : null,
     });
   }, []);
   const call = useCall(onDataArrived);
@@ -20,9 +31,9 @@ export default function InitialDataProvider({ children }) {
   useEffect(() => call(config.api.endPointsURLs.getInitialData, 'get'), []);
 
   return (
-    <InitialDAtaContext.Provider value={initialData}>
+    <InitialDataContext.Provider value={initialData}>
       {children}
-    </InitialDAtaContext.Provider>
+    </InitialDataContext.Provider>
   );
 }
 

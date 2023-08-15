@@ -20,28 +20,28 @@ import { useCall } from 'src/hooks/index';
 //   return { call, state, response };
 // }
 
+export function useMapSearchRaw(onSearchFinish) {
+  const call = useCall(onSearchFinish);
+  return useCallback(
+    (searchedTerm) =>
+      call(
+        `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
+      ),
+    [call],
+  );
+}
+
+function mapResposneToMapResults(response) {
+  return response.data.map((place) => ({
+    id: place.place_id,
+    label: place.display_name,
+    value: { position: [place.lat, place.lon], area: place.boundingbox },
+  }));
+}
+
 export default function useMapSearch(onSearchFinish) {
-  const [searchResults, setSearchResults] = useState(null);
-  const getMapResults = useCallback((response) => {
-    setSearchResults(
-      response.data.map((place) => ({
-        id: place.place_id,
-        label: place.display_name,
-        value: { position: [place.lat, place.lon], area: place.boundingbox },
-      })),
-    );
-    onSearchFinish(response.data);
-  }, []);
-
-  const call = useCall(getMapResults);
-  const searchCall = useCallback((searchedTerm) => {
-    call(
-      `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
-    );
-  }, []);
-
-  return {
-    searchCall,
-    searchResults,
-  };
+  return useMapSearchRaw((response) => {
+    const mapResults = mapResposneToMapResults(response);
+    onSearchFinish(mapResults);
+  });
 }

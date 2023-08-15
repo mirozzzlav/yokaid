@@ -160,13 +160,14 @@ func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 	}
 }
 
-func (qr queriesRepo) ListItemCategoriesQuery() common.Query {
+func (qr queriesRepo) ListItemCategoriesQuery(limit common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  "SELECT name FROM item_categories",
 				Params: []any{},
 			},
+			limit,
 		},
 	}
 }
