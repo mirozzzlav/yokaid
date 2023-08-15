@@ -77,6 +77,7 @@ function MainLayout({
         <Box sx={style.topContent}>{topContent}</Box>
         <Dropdown
           items={userMenuItems}
+          width="110px"
           buttonMeta={{
             content: <Avatar size="sm" />,
             variant: 'ghost',

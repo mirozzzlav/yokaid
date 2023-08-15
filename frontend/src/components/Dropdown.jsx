@@ -7,13 +7,7 @@ import {
   Spinner,
   useOutsideClick,
 } from '@chakra-ui/react';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { SearchIcon } from '@chakra-ui/icons';
 import { theme } from 'src/style';
@@ -25,13 +19,13 @@ const style = {
   dropdownContainer: {
     position: 'relative',
   },
-  list: (isShown, positionSetup) => {
-    let position = { left: 0 };
-    if (positionSetup === 'center') {
-      position = { left: 'calc(50% - 300px/2)' };
+  list: (isShown, position, width) => {
+    let positionStyle = { left: 0 };
+    if (position === 'center') {
+      positionStyle = { left: 'calc(50% - 300px/2)' };
     }
-    if (positionSetup === 'right') {
-      position = { right: 0 };
+    if (position === 'right') {
+      positionStyle = { right: 0 };
     }
     return {
       marginTop: '5px',
@@ -40,8 +34,8 @@ const style = {
       padding: '1rem 0',
       borderRadius: theme.radii.md,
       boxShadow: theme.shadows.md,
-      width: '300px',
-      ...position,
+      width,
+      ...positionStyle,
       overflow: 'hidden',
       ...(!isShown ? { display: 'none' } : null),
     };
@@ -63,12 +57,13 @@ function DropdownList({
   onItemClick,
   setIsShown,
   isShown,
-  positionSetup,
+  position,
+  width,
 }) {
   return (
     <Box
       sx={{
-        ...style.list(isShown, positionSetup),
+        ...style.list(isShown, position, width),
       }}
     >
       {items.length === 0 ? (
@@ -117,11 +112,12 @@ DropdownList.propTypes = {
   items: itemsPropType.isRequired,
   onItemClick: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
   setIsShown: PropTypes.func.isRequired,
-  positionSetup: PropTypes.string.isRequired,
+  position: PropTypes.string.isRequired,
   isShown: PropTypes.bool.isRequired,
+  width: PropTypes.string.isRequired,
 };
 
-function Dropdown({ items, buttonMeta, positionSetup }) {
+function Dropdown({ items, buttonMeta, position, width }) {
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
   useOutsideClick({
@@ -142,8 +138,9 @@ function Dropdown({ items, buttonMeta, positionSetup }) {
       <DropdownList
         items={items}
         setIsShown={setIsShown}
-        positionSetup={positionSetup}
+        position={position}
         isShown={isShown}
+        width={width}
       />
     </Box>
   );
@@ -151,7 +148,8 @@ function Dropdown({ items, buttonMeta, positionSetup }) {
 
 Dropdown.defaultProps = {
   items: null,
-  positionSetup: 'right',
+  position: 'right',
+  width: '300px',
 };
 Dropdown.propTypes = {
   items: PropTypes.arrayOf(
@@ -172,7 +170,8 @@ Dropdown.propTypes = {
       unknownObjectValidator,
     ]),
   }).isRequired,
-  positionSetup: PropTypes.string,
+  position: PropTypes.string,
+  width: PropTypes.string,
 };
 
 function SearchDropdown({
@@ -181,8 +180,9 @@ function SearchDropdown({
   initialItems,
   icon,
   onItemClick,
-  positionSetup,
+  position,
   showLoader,
+  width,
 }) {
   const valueRef = useRef('');
   const { isLoading } = useContext(LoaderContext);
@@ -246,7 +246,8 @@ function SearchDropdown({
         onItemClick={onItemClick}
         setIsShown={setIsShown}
         isShown={isShown}
-        positionSetup={positionSetup}
+        position={position}
+        width={width}
       />
     </Box>
   );
@@ -255,9 +256,10 @@ function SearchDropdown({
 SearchDropdown.defaultProps = {
   placeholder: 'search something',
   icon: <SearchIcon />,
-  positionSetup: 'right',
+  position: 'right',
   showLoader: false,
   initialItems: null,
+  width: '300px',
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -265,8 +267,9 @@ SearchDropdown.propTypes = {
   initialItems: PropTypes.oneOfType([itemsPropType, PropTypes.oneOf([null])]),
   icon: PropTypes.node,
   onItemClick: PropTypes.func.isRequired,
-  positionSetup: PropTypes.string,
+  position: PropTypes.string,
   showLoader: PropTypes.bool,
+  width: PropTypes.string,
 };
 
 export { Dropdown, SearchDropdown };

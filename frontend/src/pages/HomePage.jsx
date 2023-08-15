@@ -61,13 +61,13 @@ export default function HomePage() {
           <SearchDropdown
             searchHook={useMapSearch}
             onItemClick={setMapPosition}
-            positionSetup="center"
+            position="center"
             placeholder="Where?"
           />
           <SearchDropdown
             searchHook={useMapSearch}
             onItemClick={() => {}}
-            positionSetup="center"
+            position="center"
             placeholder="What?"
             initialItems={initialData?.itemCategoriesDropdown}
           />
