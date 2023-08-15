@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import MainLayout from 'src/layouts/MainLayout';
 import useMapSearch from 'src/hooks/useMapSearch';
 import { MapContext } from 'src/providers/MapProvider';
@@ -18,7 +11,7 @@ import {
 } from 'src/components';
 import { useMenu } from 'src/hooks';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AuthContext } from 'src/providers';
+import { AuthContext, InitialDataContext } from 'src/providers';
 
 export default function HomePage() {
   const { setMapPosition } = useContext(MapContext);
@@ -26,6 +19,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { action } = useParams();
   const { logOut } = useContext(AuthContext);
+  const initialData = useContext(InitialDataContext);
 
   const setShownFormId = useCallback((formId) => {
     if (formId) {
@@ -75,6 +69,7 @@ export default function HomePage() {
             onItemClick={() => {}}
             positionSetup="center"
             placeholder="What?"
+            initialItems={initialData?.itemCategoriesDropdown}
           />
         </>
       }

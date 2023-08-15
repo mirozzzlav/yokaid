@@ -77,6 +77,7 @@
       "operator-linebreak": "off",
       "object-curly-newline": "off",
       "react/jsx-props-no-spreading": "off",
+      "indent": "off",
       "react/jsx-wrap-multilines": [
         "error",
         {

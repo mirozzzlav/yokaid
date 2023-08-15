@@ -15,7 +15,12 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 		itemCategories, columnModalLoader := common.ColummModalLoader("Name")
 		var err error
 		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(server.GetQueriesRepo().ListItemCategoriesQuery(), columnModalLoader)
+		err = server.GetQueryRunner(ctx).GetRows(
+			server.GetQueriesRepo().ListItemCategoriesQuery(
+				common.QueryPartial{Query: " LIMIT 10", Params: []any{}},
+			),
+			columnModalLoader,
+		)
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 

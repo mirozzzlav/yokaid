@@ -12,7 +12,6 @@ export default function useCall(onCallFinish = null) {
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
   const { setIsLoading } = useContext(LoaderContext);
-  const timerIdRef = useRef({});
 
   const call = useCallback(
     (url, method = 'get', payload = null, headers = null) => {
@@ -56,24 +55,6 @@ export default function useCall(onCallFinish = null) {
     [],
   );
 
-  const callDelayed = useCallback(
-    (url, method = 'get', payload = null, headers = null) => {
-      const timerId =
-        url + method + JSON.stringify(payload) + JSON.stringify(headers);
-
-      if (timerIdRef.current[timerId]) {
-        return;
-      }
-      timerIdRef.current[timerId] = true;
-
-      call(url, method, payload, headers);
-      setTimeout(() => {
-        timerIdRef.current[timerId] = false;
-      }, 500);
-    },
-    [timerIdRef, call],
-  );
-
   useEffect(() => {
     setIsLoading(state === callStates.loading);
     if (!onCallFinish) {
@@ -84,5 +65,5 @@ export default function useCall(onCallFinish = null) {
     }
   }, [state, response, httpResponseCode]);
 
-  return callDelayed;
+  return call;
 }

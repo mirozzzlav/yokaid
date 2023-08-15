@@ -49,7 +49,7 @@ type QueriesRepo interface {
 	ListPostsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
-	ListItemCategoriesQuery() Query
+	ListItemCategoriesQuery(limit QueryPartial) Query
 }
 
 type StoreHelpers interface {
