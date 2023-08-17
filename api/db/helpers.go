@@ -208,6 +208,9 @@ func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 }
 
 func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
+
+	sH.QueryRunner.Begin()
+
 	user, err := sH.GetUser(usernameOrEmail)
 	if err != nil {
 		return nil, err
