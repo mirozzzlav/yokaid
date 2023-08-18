@@ -60,7 +60,7 @@ export default function MapProvider({ children, mapPostsCallHook }) {
   const zoomRef = useRef(mapDefaultZoom);
   const clusterGroupRef = useRef(null);
   const { mapPostsCall, mapPosts } = mapPostsCallHook();
-  const mapPostsIdsRef = useRef([]);
+  const mapLayersRef = useRef({});
   const [mapBounds, setMapBounds] = useState(null);
   const { filter, updateFilter } = useContext(FilterContext);
 
@@ -141,48 +141,65 @@ export default function MapProvider({ children, mapPostsCallHook }) {
     if (!clusterGroupRef.current) {
       return;
     }
-    clusterGroupRef.current.clearLayers();
 
     if (!mapPosts) {
+      clusterGroupRef.current.clearLayers();
+      mapLayersRef.current = {};
       return;
     }
 
-    mapPosts.forEach((mapPost) => {
-      mapPostsIdsRef.current = [...mapPostsIdsRef.current, mapPost.id];
-      const marker = L.marker({
-        lat: mapPost.latitude,
-        lng: mapPost.longitude,
-      }).bindPopup(
-        renderToStaticMarkup(
-          <MapPost
-            id={mapPost.id}
-            images={mapPost.imagePaths}
-            text={mapPost.text}
-            headline={mapPost.headline}
-            item={
-              mapPost.itemName && {
-                name: mapPost.itemName,
-                description: mapPost.itemDescription,
-              }
-            }
-            rent={
-              mapPost.itemName && {
-                dateFrom: mapPost.rentDateFrom,
-                dateTo: mapPost.rentDateTo,
-                price: mapPost.price,
-              }
-            }
-          />,
-        ),
-        {
-          className: css({
-            maxWidth: '230px',
-          }),
-        },
-      );
-      clusterGroupRef.current.addLayer(marker);
+    // remove all layers that are not in new mapPosts
+    Object.entries(mapLayersRef.current).forEach(([mapPostIdLayer, layer]) => {
+      if (
+        !mapPosts.find(
+          ({ id: mapPostId }) => mapPostId === parseInt(mapPostIdLayer, 10),
+        )
+      ) {
+        clusterGroupRef.current.removeLayer(layer);
+      }
     });
-  }, [mapPosts, mapPostsIdsRef, clusterGroupRef]);
+
+    mapPosts
+      .filter(({ id }) => !mapLayersRef.current[id])
+      .forEach((mapPost) => {
+        const marker = L.marker({
+          lat: mapPost.latitude,
+          lng: mapPost.longitude,
+        }).bindPopup(
+          renderToStaticMarkup(
+            <MapPost
+              id={mapPost.id}
+              images={mapPost.imagePaths}
+              text={mapPost.text}
+              headline={mapPost.headline}
+              item={
+                mapPost.itemName && {
+                  name: mapPost.itemName,
+                  description: mapPost.itemDescription,
+                }
+              }
+              rent={
+                mapPost.itemName && {
+                  dateFrom: mapPost.rentDateFrom,
+                  dateTo: mapPost.rentDateTo,
+                  price: mapPost.price,
+                }
+              }
+            />,
+          ),
+          {
+            className: css({
+              maxWidth: '230px',
+            }),
+          },
+        );
+        clusterGroupRef.current.addLayer(marker);
+        mapLayersRef.current = {
+          ...mapLayersRef.current,
+          [mapPost.id]: marker,
+        };
+      });
+  }, [mapPosts, mapLayersRef, clusterGroupRef]);
 
   useEffect(() => {
     if (mapRef.current) {
