@@ -10,8 +10,9 @@ export default {
     endPointsURLs: {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
-      getMapPosts: `${apiUrl}/posts/list`,
+      getPosts: `${apiUrl}/posts/get`,
       getInitialData: `${apiUrl}/frontend-data/get`,
+      getFilterItems: `${apiUrl}/filter-items/get`,
     },
   },
 };

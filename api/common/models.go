@@ -35,38 +35,53 @@ func (t *timeCustom) UnmarshalJSON(b []byte) error {
 }
 
 type User struct {
-	ID             int
-	Username       string
-	FullName       string
-	Email          string
+	ID             int    `json:"id"`
+	Username       string `json:"username"`
+	FullName       string `json:"fullName"`
+	Email          string `json:"email"`
 	HashedPassword string
 	Active         bool
-	CreatedAt      timeCustom
+	CreatedAt      timeCustom `json:"createdAt"`
 	Role           string
 }
 
 type post struct {
-	Id              int
-	Author          string
-	Latitude        float64
-	Longitude       float64
-	Text            string
-	CreatedAt       timeCustom
-	Headline        string
-	RentDateFrom    timeCustom
-	RentDateTo      timeCustom
-	Price           float64
-	ItemName        string
-	ItemDescription string
-	ItemSpec        map[string]any
-	Category        string
-	ImagePaths      []imagePath
+	Id              int            `json:"id"`
+	Author          string         `json:"author"`
+	Latitude        float64        `json:"latitude"`
+	Longitude       float64        `json:"longitude"`
+	Text            string         `json:"text"`
+	CreatedAt       timeCustom     `json:"createdAt"`
+	Headline        string         `json:"headline"`
+	RentDateFrom    timeCustom     `json:"rentDateFrom"`
+	RentDateTo      timeCustom     `json:"rentDateTo"`
+	Price           float64        `json:"price"`
+	ItemName        string         `json:"itemName"`
+	ItemDescription string         `json:"itemDescription"`
+	ItemSpec        map[string]any `json:"itemSpec"`
+	Category        string         `json:"category"`
+	ImagePaths      []imagePath    `json:"imagePaths"`
 }
 
 type passwordChangeRequest struct {
 	UserId    int
 	CreatedAt timeCustom
 	Token     string
+}
+
+type FilterItem struct {
+	FilterColumnAlias string `json:"filterColumnAlias"`
+	Value             any    `json:"value"`
+	Label             string `json:"label"`
+}
+
+func FilterItemLoader() (*[]FilterItem, func(rowBytes []byte)) {
+	var filterItems []FilterItem
+	return &filterItems, func(rowBytes []byte) {
+		var filterItem FilterItem
+		_ = json.Unmarshal(rowBytes, &filterItem)
+		filterItems = append(filterItems, filterItem)
+	}
 }
 
 func UsersModelLoader() (*[]User, func(rowBytes []byte)) {
@@ -109,16 +124,5 @@ func PasswordChangeRequestsModelLoader() (*[]passwordChangeRequest, func(rowByte
 		var req passwordChangeRequest
 		_ = json.Unmarshal(rowBytes, &req)
 		requests = append(requests, req)
-	}
-}
-
-func ColummModalLoader(columnName string) (*[]string, func(rowBytes []byte)) {
-	var strings []string
-
-	return &strings, func(rowBytes []byte) {
-		var m map[string]any
-		_ = json.Unmarshal(rowBytes, &m)
-
-		strings = append(strings, m[columnName].(string))
 	}
 }

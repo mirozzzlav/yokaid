@@ -13,10 +13,9 @@ var filterError = errors.New("wrong filter specified")
 func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string) (string, bool) {
 
 	var filterSQLSpecial = map[string]string{
-		"author.full_name": fmt.Sprintf("users.full_name %s %s", fOperator, fValuePlaceholder),
+		"map_area": fmt.Sprintf("latitude >= ? AND longitude >= ? AND latitude <= ? AND longitude <= ?"),
 	}
 
-	fKey = strings.ToLower(fKey)
 	for k, special := range filterSQLSpecial {
 		if fKey == k {
 			return special, true
@@ -34,7 +33,7 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 		return "", "", "", nil, filterError
 	}
 
-	fKey := filterParts[1]
+	fKey := common.ToSnakeCase(filterParts[1])
 	fOperator := filterParts[2]
 	fValue := filterParts[3]
 

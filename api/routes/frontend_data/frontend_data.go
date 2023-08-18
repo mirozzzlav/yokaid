@@ -7,27 +7,19 @@ import (
 )
 
 type frontEndDataResponse struct {
-	ItemCategories []string
+	Filters map[string]*[]common.FilterItem `json:"filters"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		itemCategories, columnModalLoader := common.ColummModalLoader("Name")
-		var err error
-		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(
-			server.GetQueriesRepo().ListItemCategoriesQuery(
-				common.QueryPartial{Query: " LIMIT 10", Params: []any{}},
-			),
-			columnModalLoader,
-		)
-		common.CheckErrAndPanic(err)
-		err = server.GetQueryRunner(ctx).Commit()
 
+	return func(ctx *gin.Context) {
+		categories, err := server.GetStoreHelpers(ctx).GetCategoriesForFilter()
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, frontEndDataResponse{
-			ItemCategories: *itemCategories,
+			Filters: map[string]*[]common.FilterItem{
+				"what": categories,
+			},
 		})
 	}
 }

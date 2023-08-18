@@ -5,7 +5,7 @@ import (
 	"rental-app/api/common"
 )
 
-func list(server common.Server) gin.HandlerFunc {
+func getPosts(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		posts, postsModelLoader := common.PostsModelLoader()
 		var err error

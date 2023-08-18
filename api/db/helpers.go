@@ -256,3 +256,84 @@ func (sH *StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (
 
 	return postId, nil
 }
+
+func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
+	type filterMapItem struct {
+		Q       string
+		FilterQ string
+	}
+	var filteredEntitiesQueries = map[string]filterMapItem{
+		"categories": {
+			Q:       "SELECT 'categoryId' AS filter_column_alias, name AS label, id AS value FROM item_categories ",
+			FilterQ: "WHERE name LIKE ? ",
+		},
+	}
+
+	var queries []string
+	var params []any
+
+	for _, fId := range filteredEntities {
+		query, qExists := filteredEntitiesQueries[fId]
+		if qExists {
+			if searchedItem != "" {
+				queries = append(queries, query.Q+query.FilterQ)
+				params = append(params, fmt.Sprintf("%%%s%%", searchedItem))
+			} else {
+				queries = append(queries, query.Q)
+			}
+		}
+
+	}
+	if len(queries) == 0 {
+		return nil, common.ErrNoRows
+	}
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  strings.Join(queries, "UNION"),
+				Params: params,
+			},
+			{
+				Query:  "LIMIT ?",
+				Params: []any{limit},
+			},
+		},
+	}
+
+	filterItems, filterItemsModelLoader := common.FilterItemLoader()
+	sH.QueryRunner.Begin()
+	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
+	if err != nil {
+		return nil, err
+	}
+	err = sH.QueryRunner.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return filterItems, nil
+}
+
+func (sH *StoreHelpers) GetCategoriesForFilter() (*[]common.FilterItem, error) {
+
+	q := dbQuery{
+		partials: []common.QueryPartial{{
+			Query:  "SELECT 'categoryId' AS filter_column_alias, name AS label, id AS value FROM item_categories LIMIT 10",
+			Params: []any{},
+		}},
+	}
+
+	filterItems, filterItemsModelLoader := common.FilterItemLoader()
+	sH.QueryRunner.Begin()
+	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
+	if err != nil {
+		return nil, err
+	}
+	err = sH.QueryRunner.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return filterItems, nil
+}

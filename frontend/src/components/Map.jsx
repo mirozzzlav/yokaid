@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { Box } from '@chakra-ui/react';
-import { MapContext } from 'src/providers/MapProvider';
+import { MapContext } from 'src/providers';
 
 function Map() {
   const { mapElementRef } = useContext(MapContext);

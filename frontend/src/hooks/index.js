@@ -1,7 +1,7 @@
 import useCall from 'src/hooks/useCall';
 import useAuthorizedCall from 'src/hooks/useAuthorizedCall';
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import useMapPosts from 'src/hooks/useMapPosts';
+import useMapPostsCall from 'src/hooks/useMapPostsCall';
 import useForm from 'src/hooks/useForm';
 import { useLoginCall, useSignupCall, useMenu } from 'src/hooks/useUser';
 import useDelayedAction from 'src/hooks/useDelayedAction';
@@ -9,7 +9,7 @@ import useDelayedAction from 'src/hooks/useDelayedAction';
 export {
   useCall,
   useLocalStorage,
-  useMapPosts,
+  useMapPostsCall,
   useForm,
   useLoginCall,
   useSignupCall,

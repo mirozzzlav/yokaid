@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import MainLayout from 'src/layouts/MainLayout';
-import useMapSearch from 'src/hooks/useMapSearch';
 import { MapContext } from 'src/providers/MapProvider';
 import {
   FormModals,
@@ -11,15 +10,17 @@ import {
 } from 'src/components';
 import { useMenu } from 'src/hooks';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AuthContext, InitialDataContext } from 'src/providers';
+import { AuthContext, FilterContext, InitialDataContext } from 'src/providers';
 
 export default function HomePage() {
-  const { setMapPosition } = useContext(MapContext);
+  const { setMapPosition, resetMap } = useContext(MapContext);
   const { menuItems: userMenuItems, buttonStyle: userMenuBtnStyle } = useMenu();
   const navigate = useNavigate();
   const { action } = useParams();
   const { logOut } = useContext(AuthContext);
-  const initialData = useContext(InitialDataContext);
+  const {
+    filters: { what: initialItemsWhat },
+  } = useContext(InitialDataContext);
 
   const setShownFormId = useCallback((formId) => {
     if (formId) {
@@ -53,23 +54,36 @@ export default function HomePage() {
     [],
   );
 
+  const { filterItemsHookCreator, updateFilter } = useContext(FilterContext);
+  const useFilterItemsWhat = filterItemsHookCreator('what');
+  const useFilterItemsWhere = filterItemsHookCreator('where');
+
   return (
     <MainLayout
       mode="fullscreen"
       topContent={
         <>
           <SearchDropdown
-            searchHook={useMapSearch}
-            onItemClick={setMapPosition}
-            position="center"
+            searchHook={useFilterItemsWhere}
+            onItemClick={({ value }) => {
+              setMapPosition(value);
+            }}
+            onInputEmpty={resetMap}
+            position="left"
             placeholder="Where?"
           />
           <SearchDropdown
-            searchHook={useMapSearch}
-            onItemClick={() => {}}
-            position="center"
+            searchHook={useFilterItemsWhat}
+            onItemClick={({ filterColumnAlias, value }) => {
+              updateFilter({
+                filterColumnAlias,
+                filterOperator: '=',
+                filterValue: value,
+              });
+            }}
+            position="left"
             placeholder="What?"
-            initialItems={initialData?.itemCategoriesDropdown}
+            initialItems={initialItemsWhat}
           />
         </>
       }

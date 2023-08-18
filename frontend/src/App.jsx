@@ -1,9 +1,10 @@
 import React from 'react';
-import AuthProvider from 'src/providers/AuthProvider';
 import { BrowserRouter } from 'react-router-dom';
-import { useLocalStorage, useMapPosts } from 'src/hooks';
+import { useLocalStorage, useMapPostsCall } from 'src/hooks';
 import Routes from 'src/Routes';
 import {
+  AuthProvider,
+  FilterProvider,
   InitialDataProvider,
   LoaderProvider,
   MapProvider,
@@ -20,9 +21,11 @@ function App() {
             setLocalDataValue={setLocalDataValue}
             getLocalDataValue={getLocalDataValue}
           >
-            <MapProvider searchMapPostsHook={useMapPosts}>
-              <Routes />
-            </MapProvider>
+            <FilterProvider>
+              <MapProvider mapPostsCallHook={useMapPostsCall}>
+                <Routes />
+              </MapProvider>
+            </FilterProvider>
           </AuthProvider>
         </InitialDataProvider>
       </LoaderProvider>

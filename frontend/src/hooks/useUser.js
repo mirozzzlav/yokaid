@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import { objToSnakeCase, getTokenFromResponse } from 'src/helpers';
-import { AuthContext } from 'src/providers';
+import { AuthContext } from 'src/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { theme } from 'src/style';
 
@@ -35,12 +35,12 @@ export function useMenu() {
       {
         onClick: () => navigate('/login'),
         label: 'Login',
-        id: 'login',
+        value: 'login',
       },
       {
         onClick: () => navigate('/signup'),
         label: 'Sign up',
-        id: 'signup',
+        value: 'signup',
       },
     ];
     if (isAuthorized) {
@@ -48,12 +48,12 @@ export function useMenu() {
         {
           onClick: () => navigate('/account'),
           label: 'Account',
-          id: 'account',
+          value: 'account',
         },
         {
           onClick: () => navigate('/logout'),
           label: 'Log out',
-          id: 'logOut',
+          value: 'logOut',
         },
       ];
     }

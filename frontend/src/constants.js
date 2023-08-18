@@ -3,5 +3,6 @@ const callStates = {
   loading: 'loading',
   finished: 'finished',
 };
+const mapFilterColumnAlias = 'mapArea';
 
-export { callStates };
+export { callStates, mapFilterColumnAlias };

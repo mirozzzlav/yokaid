@@ -2,7 +2,7 @@ import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { useMemo, useState } from 'react';
 
-export default function useMapPosts() {
+export default function useMapPostsCall() {
   const [mapPosts, setMapPosts] = useState(null);
 
   const call = useCall((response) => {
@@ -12,8 +12,11 @@ export default function useMapPosts() {
   return useMemo(
     () => ({
       mapPosts,
-      mapPostsCall: (bounds) =>
-        call(`${config.api.endPointsURLs.getMapPosts}`, 'get'),
+      mapPostsCall: (filter) =>
+        call(
+          `${config.api.endPointsURLs.getPosts}${filter ? `/${filter}` : ''}`,
+          'get',
+        ),
     }),
     [mapPosts],
   );

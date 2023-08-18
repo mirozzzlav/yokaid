@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 
-export const AuthContext = React.createContext([]);
+export const AuthContext = React.createContext({});
 export const storageKey = 'auth';
 
 export default function AuthProvider({

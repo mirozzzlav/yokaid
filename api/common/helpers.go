@@ -156,12 +156,32 @@ func GetEnvMode() string {
 func ToPascalCase(snakeCase string) string {
 	re := regexp.MustCompile("_[a-z]")
 
-	// Use a closure to replace the capturing group with its uppercase version
 	result := re.ReplaceAllStringFunc(snakeCase[1:], func(match string) string {
 		return strings.ToUpper(match[1:])
 	})
 
 	return strings.ToUpper(snakeCase[0:1]) + result
+}
+
+func ToCamelCase(snakeCase string) string {
+	re := regexp.MustCompile("_[a-z]")
+
+	result := re.ReplaceAllStringFunc(snakeCase[1:], func(match string) string {
+		return strings.ToUpper(match[1:])
+	})
+
+	return strings.ToLower(snakeCase[0:1]) + result
+}
+
+func ToSnakeCase(pascalOrCamel string) string {
+	camelCase := strings.ToLower(pascalOrCamel[0:1]) + pascalOrCamel[1:]
+	re := regexp.MustCompile("([a-z])([A-Z])")
+
+	result := re.ReplaceAllStringFunc(camelCase, func(match string) string {
+		return match[0:1] + "_" + strings.ToLower(match[1:])
+	})
+
+	return result
 }
 
 func PublicRolesValidator(fl validator.FieldLevel) bool {
@@ -258,19 +278,4 @@ func IsNumeric(s string) bool {
 
 func IsFloat(s string) bool {
 	return IsNumeric(s) && strings.Contains(s, ".")
-}
-
-func SetStoreHelpers(
-	ctx *gin.Context,
-	storeHelpers StoreHelpers,
-) {
-	ctx.Set("storeHelpers", &storeHelpers)
-}
-
-func GetStoreHelpers(ctx *gin.Context) StoreHelpers {
-	sH, sHExist := ctx.Get("storeHelpers")
-	if !sHExist {
-		return nil
-	}
-	return *(sH.(*StoreHelpers))
 }

@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import L from 'leaflet';
 
@@ -8,9 +15,11 @@ import { css } from '@emotion/css';
 import { theme } from 'src/style';
 import { renderToStaticMarkup } from 'react-dom/server';
 import MapPost from 'src/components/MapPost';
+import { FilterContext } from 'src/providers/FilterProvider';
+import { mapFilterColumnAlias } from 'src/constants';
 
-const defaultZoom = 14;
-const defaultPosition = [51.505, -0.09];
+const mapDefaultZoom = 14;
+const mapDefaultPosition = [51.505, -0.09];
 
 const mapClusterStyle = {
   border: 0,
@@ -34,27 +43,36 @@ function calculateZoom(area) {
   return zoom < 3 ? 3 : zoom;
 }
 
-export const MapContext = React.createContext([]);
+function getMapFilter(bounds) {
+  return {
+    filterColumnAlias: mapFilterColumnAlias,
+    filterOperator: '=',
+    filterValue: `[${bounds.map((v) => parseFloat(v)).join(',')}]`,
+  };
+}
 
-export default function MapProvider({ children, searchMapPostsHook }) {
+export const MapContext = React.createContext({});
+
+export default function MapProvider({ children, mapPostsCallHook }) {
   const mapRef = useRef(null);
   const mapElementRef = useRef(null);
   const centerRef = useRef(null);
-  const zoomRef = useRef(defaultZoom);
+  const zoomRef = useRef(mapDefaultZoom);
   const clusterGroupRef = useRef(null);
-  const { mapPostsCall, mapPosts } = searchMapPostsHook();
+  const { mapPostsCall, mapPosts } = mapPostsCallHook();
   const mapPostsIdsRef = useRef([]);
+  const [mapBounds, setMapBounds] = useState(null);
+  const { filter, updateFilter } = useContext(FilterContext);
 
-  const getBounds = useCallback(() => {
+  const updateMapBounds = useCallback(() => {
     const bounds = mapRef.current.getBounds();
     const { lat: swLat, lng: swLng } = bounds.getSouthWest();
     const { lat: neLat, lng: neLng } = bounds.getNorthEast();
-    return [swLat, swLng, neLat, neLng];
+    setMapBounds([swLat, swLng, neLat, neLng]);
   }, []);
 
   const onZoomOrMove = useCallback(() => {
     const center = mapRef.current.getCenter();
-    const bounds = getBounds();
 
     if (
       zoomRef.current === null ||
@@ -62,7 +80,7 @@ export default function MapProvider({ children, searchMapPostsHook }) {
     ) {
       centerRef.current = center;
       zoomRef.current = mapRef.current.getZoom();
-      mapPostsCall(bounds);
+      updateMapBounds();
     }
 
     if (
@@ -71,7 +89,7 @@ export default function MapProvider({ children, searchMapPostsHook }) {
       Math.abs(center.lng - centerRef.current.lng) > 0.01
     ) {
       centerRef.current = center;
-      mapPostsCall(bounds);
+      updateMapBounds();
     }
   }, [centerRef, zoomRef]);
 
@@ -85,6 +103,12 @@ export default function MapProvider({ children, searchMapPostsHook }) {
     });
     mapRef.current.addLayer(clusterGroupRef.current);
   }, [mapRef]);
+
+  const resetMap = useCallback(() => {
+    if (mapRef.current) {
+      mapRef.current.setView(mapDefaultPosition, mapDefaultZoom);
+    }
+  }, []);
 
   useEffect(() => {
     if (mapRef.current || !mapElementRef.current) {
@@ -107,60 +131,75 @@ export default function MapProvider({ children, searchMapPostsHook }) {
       .addTo(map);
 
     mapRef.current = map;
-    mapRef.current.setView(defaultPosition, defaultZoom);
+    resetMap();
     initClusterGroup();
     mapRef.current.on('zoomend', onZoomOrMove);
     mapRef.current.on('moveend', onZoomOrMove);
   }, [mapElementRef, mapRef, onZoomOrMove]);
 
   useEffect(() => {
-    if (!mapPosts || !clusterGroupRef.current) {
+    if (!clusterGroupRef.current) {
       return;
     }
-    mapPosts
-      .filter(({ Id }) => !mapPostsIdsRef.current.includes(Id))
-      .forEach((mapPost) => {
-        mapPostsIdsRef.current = [...mapPostsIdsRef.current, mapPost.Id];
-        const marker = L.marker({
-          lat: mapPost.Latitude,
-          lng: mapPost.Longitude,
-        }).bindPopup(
-          renderToStaticMarkup(
-            <MapPost
-              id={mapPost.Id}
-              images={mapPost.ImagePaths}
-              text={mapPost.Text}
-              headline={mapPost.Headline}
-              item={
-                mapPost.ItemName && {
-                  name: mapPost.ItemName,
-                  description: mapPost.ItemDescription,
-                }
+    clusterGroupRef.current.clearLayers();
+
+    if (!mapPosts) {
+      return;
+    }
+
+    mapPosts.forEach((mapPost) => {
+      mapPostsIdsRef.current = [...mapPostsIdsRef.current, mapPost.id];
+      const marker = L.marker({
+        lat: mapPost.latitude,
+        lng: mapPost.longitude,
+      }).bindPopup(
+        renderToStaticMarkup(
+          <MapPost
+            id={mapPost.id}
+            images={mapPost.imagePaths}
+            text={mapPost.text}
+            headline={mapPost.headline}
+            item={
+              mapPost.itemName && {
+                name: mapPost.itemName,
+                description: mapPost.itemDescription,
               }
-              rent={
-                mapPost.ItemName && {
-                  dateFrom: mapPost.RentDateFrom,
-                  dateTo: mapPost.RentDateTo,
-                  price: mapPost.Price,
-                }
+            }
+            rent={
+              mapPost.itemName && {
+                dateFrom: mapPost.rentDateFrom,
+                dateTo: mapPost.rentDateTo,
+                price: mapPost.price,
               }
-            />,
-          ),
-          {
-            className: css({
-              maxWidth: '230px',
-            }),
-          },
-        );
-        clusterGroupRef.current.addLayer(marker);
-      });
+            }
+          />,
+        ),
+        {
+          className: css({
+            maxWidth: '230px',
+          }),
+        },
+      );
+      clusterGroupRef.current.addLayer(marker);
+    });
   }, [mapPosts, mapPostsIdsRef, clusterGroupRef]);
 
   useEffect(() => {
     if (mapRef.current) {
-      mapPostsCall(getBounds());
+      updateMapBounds();
     }
   }, [mapRef]);
+
+  useEffect(() => {
+    if (!mapBounds) {
+      return;
+    }
+    updateFilter(getMapFilter(mapBounds));
+  }, [mapBounds]);
+
+  useEffect(() => {
+    mapPostsCall(filter);
+  }, [filter]);
 
   const contextVal = useMemo(
     () => ({
@@ -171,9 +210,10 @@ export default function MapProvider({ children, searchMapPostsHook }) {
         }
         mapRef.current.setView(
           position,
-          area === null ? defaultZoom : calculateZoom(area),
+          area === null ? mapDefaultZoom : calculateZoom(area),
         );
       },
+      resetMap,
     }),
     [mapElementRef, mapRef],
   );
@@ -185,5 +225,5 @@ export default function MapProvider({ children, searchMapPostsHook }) {
 
 MapProvider.propTypes = {
   children: PropTypes.node.isRequired,
-  searchMapPostsHook: PropTypes.func.isRequired,
+  mapPostsCallHook: PropTypes.func.isRequired,
 };

@@ -3,28 +3,20 @@ import PropTypes from 'prop-types';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 
-export const InitialDataContext = React.createContext([]);
+export const InitialDataContext = React.createContext({});
 
 export default function InitialDataProvider({ children }) {
   const [initialData, setInitialData] = useState({
-    itemCategories: null,
-    itemCategoriesDropdown: null,
+    filters: {
+      what: null,
+    },
   });
   const onDataArrived = useCallback((response) => {
     if (response.error) {
       return;
     }
 
-    setInitialData({
-      itemCategories: response.data.ItemCategories || null,
-      itemCategoriesDropdown: response.data.ItemCategories
-        ? response.data.ItemCategories.map((catName) => ({
-            id: catName,
-            label: catName,
-            value: catName,
-          }))
-        : null,
-    });
+    setInitialData(response.data);
   }, []);
   const call = useCall(onDataArrived);
 

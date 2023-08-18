@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 
-export const LoaderContext = React.createContext([]);
+export const LoaderContext = React.createContext({});
 
 export default function LoaderProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);

@@ -49,7 +49,6 @@ type QueriesRepo interface {
 	ListPostsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
-	ListItemCategoriesQuery(limit QueryPartial) Query
 }
 
 type StoreHelpers interface {
@@ -63,6 +62,8 @@ type StoreHelpers interface {
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 	CreatePost(authorId int, req CreatePostRequest) (int, error)
+	GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]FilterItem, error)
+	GetCategoriesForFilter() (*[]FilterItem, error)
 
 	// only for testing
 	Insert() int

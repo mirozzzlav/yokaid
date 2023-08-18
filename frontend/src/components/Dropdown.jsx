@@ -12,7 +12,7 @@ import PropTypes from 'prop-types';
 import { SearchIcon } from '@chakra-ui/icons';
 import { theme } from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
-import { LoaderContext } from 'src/providers';
+import { FilterContext, LoaderContext } from 'src/providers';
 import { useDelayedAction } from 'src/hooks';
 
 const style = {
@@ -22,7 +22,7 @@ const style = {
   list: (isShown, position, width) => {
     let positionStyle = { left: 0 };
     if (position === 'center') {
-      positionStyle = { left: 'calc(50% - 300px/2)' };
+      positionStyle = { left: `calc(50% - ${width}/2)` };
     }
     if (position === 'right') {
       positionStyle = { right: 0 };
@@ -70,16 +70,26 @@ function DropdownList({
         <Box sx={style.listElem}>no results</Box>
       ) : (
         <Box>
-          {items.map(({ label, value, id, ...restItem }) => (
+          {items.map(({ label, value, ...restItem }) => (
             <Button
               sx={style.listElem}
               variant="ghost"
-              key={`${id}`}
+              key={`${
+                typeof value === 'object' ? JSON.stringify(value) : value
+              }`}
               onClick={() => {
-                if (restItem?.onClick) {
-                  restItem.onClick(value);
+                if (restItem.onClick) {
+                  restItem.onClick({
+                    label,
+                    value,
+                    ...restItem,
+                  });
                 } else if (onItemClick) {
-                  onItemClick(value);
+                  onItemClick({
+                    label,
+                    value,
+                    ...restItem,
+                  });
                 }
                 setIsShown(false);
               }}
@@ -98,10 +108,15 @@ const itemsPropType = PropTypes.arrayOf(
     label: PropTypes.string,
     value: PropTypes.oneOfType([
       PropTypes.string,
+      PropTypes.number,
       PropTypes.object,
       PropTypes.array,
     ]),
     onClick: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
+    filterColumnAlias: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.oneOf([null, undefined]),
+    ]),
   }),
 );
 
@@ -179,12 +194,14 @@ function SearchDropdown({
   searchHook,
   initialItems,
   icon,
-  onItemClick,
+  onItemClick: onItemClickFromProps,
+  onInputEmpty,
   position,
   showLoader,
   width,
 }) {
-  const valueRef = useRef('');
+  const { resetFilters } = useContext(FilterContext);
+  const [inputVal, setInputVal] = useState('');
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
@@ -195,10 +212,22 @@ function SearchDropdown({
   const [items, setItems] = useState(initialItems || []);
   const delayedCall = useDelayedAction();
 
-  const searchCall = searchHook((responseMapItems) => {
-    setItems(responseMapItems);
+  const searchCall = searchHook((responseItems) => {
+    if (inputVal === '') {
+      // this is risky, inputVal is uncertain in the callback context, but it works
+      return;
+    }
+
+    setItems(responseItems || []);
     setIsShown(true);
   });
+  const onItemClick = useCallback(
+    (onClickData) => {
+      onItemClickFromProps(onClickData);
+      setInputVal(onClickData.label);
+    },
+    [onItemClickFromProps],
+  );
 
   const onInputFocus = useCallback(() => {
     setItems((prevItems) => {
@@ -214,17 +243,21 @@ function SearchDropdown({
   }, [initialItems]);
 
   const onInputChange = useCallback(
-    (v) => {
-      valueRef.current = v;
-      if (valueRef.current.length === 0) {
+    (e) => {
+      const v = e.target.value;
+      setInputVal(v);
+      if (v === '') {
         setItems(initialItems || []);
         setIsShown(!!initialItems);
+        resetFilters();
+        if (onInputEmpty) {
+          onInputEmpty();
+        }
       } else {
-        setIsShown(false);
-        delayedCall(searchCall, valueRef.current);
+        delayedCall(searchCall, v);
       }
     },
-    [initialItems, valueRef],
+    [initialItems],
   );
 
   return (
@@ -232,8 +265,9 @@ function SearchDropdown({
       <InputGroup>
         <Input
           placeholder={placeholder}
-          onChange={(e) => onInputChange(e.target.value)}
+          onChange={onInputChange}
           onFocus={onInputFocus}
+          value={inputVal}
         />
 
         <InputRightElement>
@@ -260,6 +294,7 @@ SearchDropdown.defaultProps = {
   showLoader: false,
   initialItems: null,
   width: '300px',
+  onInputEmpty: null,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -267,6 +302,7 @@ SearchDropdown.propTypes = {
   initialItems: PropTypes.oneOfType([itemsPropType, PropTypes.oneOf([null])]),
   icon: PropTypes.node,
   onItemClick: PropTypes.func.isRequired,
+  onInputEmpty: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
   position: PropTypes.string,
   showLoader: PropTypes.bool,
   width: PropTypes.string,
