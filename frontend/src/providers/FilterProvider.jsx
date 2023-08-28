@@ -1,16 +1,23 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
-import PropTypes from 'prop-types';
-import { mapFilterColumnAlias } from 'src/constants';
 
 function useMapFilterItmes(onSearchFinish) {
   const getItemsForMapFilter = useCallback(
     (results) =>
       results.map((place) => ({
         label: place.display_name,
-        value: { position: [place.lat, place.lon], area: place.boundingbox },
+        filterColumnAlias: config.map.columnAlias,
+        value: [
+          parseFloat(place.boundingbox[0]),
+          parseFloat(place.boundingbox[2]),
+          parseFloat(place.boundingbox[1]),
+          parseFloat(place.boundingbox[3]),
+        ],
+        extraData: [place.lat, place.lon],
       })),
+
     [],
   );
 
@@ -54,44 +61,53 @@ function filterItemsHookCreator(filterKey) {
 export const FilterContext = React.createContext({});
 
 export default function FilterProvider({ children }) {
-  const [filter, setFilter] = useState(null);
+  const [draft, setDraft] = useState(config.defaultFilter);
+  const [filter, setFilter] = useState(config.defaultFilter);
 
   const contextVal = useMemo(
     () => ({
       filterItemsHookCreator,
-      filter:
-        filter === null
-          ? ''
-          : Object.values(filter).reduce(
-              (
-                prevFilterStr,
-                { filterColumnAlias, filterOperator, filterValue },
-              ) =>
-                `${
-                  prevFilterStr ? `${prevFilterStr};` : ''
-                }${filterColumnAlias}${filterOperator}${filterValue}`,
-              '',
+      filter,
+      saveFilter: () => {
+        setFilter(draft);
+      },
+      getFilterSerialized: () => {
+        return Object.entries(filter)
+          .map(
+            ([columnAlias, { value }]) =>
+              `${columnAlias}=${
+                typeof value === 'object' ? JSON.stringify(value) : value
+              }`,
+          )
+          .join(';');
+      },
+      updateFilter: (toUpdateFilter, save = false) => {
+        if (save) {
+          setFilter((prevFilter) => ({
+            ...prevFilter,
+            ...toUpdateFilter,
+          }));
+        } else {
+          setDraft((prevFilter) => ({
+            ...prevFilter,
+            ...toUpdateFilter,
+          }));
+        }
+      },
+      resetFilter: (columnAliases) => {
+        setDraft((prevFilter) => {
+          return {
+            ...config.defaultFilter,
+            ...Object.fromEntries(
+              Object.entries(prevFilter).filter(
+                ([k]) => !columnAliases.includes(k),
+              ),
             ),
-      updateFilter: ({ filterColumnAlias, filterOperator, filterValue }) =>
-        setFilter((prevFilter) => ({
-          ...prevFilter,
-          [filterColumnAlias]: {
-            filterColumnAlias,
-            filterOperator,
-            filterValue,
-          },
-        })),
-      resetFilters: () => {
-        setFilter((prevFilter) => {
-          return Object.fromEntries(
-            Object.entries(prevFilter).filter(
-              ([k]) => k === mapFilterColumnAlias,
-            ),
-          );
+          };
         });
       },
     }),
-    [filter],
+    [filter, draft],
   );
 
   return (
@@ -100,6 +116,8 @@ export default function FilterProvider({ children }) {
     </FilterContext.Provider>
   );
 }
+
+FilterProvider.defaultProps = {};
 FilterProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };

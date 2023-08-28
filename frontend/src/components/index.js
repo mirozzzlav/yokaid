@@ -7,6 +7,7 @@ import FormModals from 'src/components/FormModals';
 import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
 import MapPost from 'src/components/MapPost';
+import DataPicker from 'src/components/DataPicker';
 
 export {
   LoginForm,
@@ -20,4 +21,5 @@ export {
   Dropdown,
   Map,
   MapPost,
+  DataPicker,
 };

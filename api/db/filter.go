@@ -13,14 +13,16 @@ var filterError = errors.New("wrong filter specified")
 func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string) (string, bool) {
 
 	var filterSQLSpecial = map[string]string{
-		"map_area": fmt.Sprintf("latitude >= ? AND longitude >= ? AND latitude <= ? AND longitude <= ?"),
+		"map_bounds":     "latitude >= ? AND longitude >= ? AND latitude <= ? AND longitude <= ?",
+		"rent_date_from": "rent_date_from >= ?",
+		"rent_date_to":   "rent_date_to <= ?",
 	}
 
-	for k, special := range filterSQLSpecial {
-		if fKey == k {
-			return special, true
-		}
+	specialSQL, keyExist := filterSQLSpecial[fKey]
+	if keyExist {
+		return specialSQL, true
 	}
+
 	return "", false
 }
 

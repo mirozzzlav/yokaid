@@ -35,6 +35,11 @@ const style = {
   topContent: {
     display: 'flex',
     gap: '0.5rem',
+    width: '850px',
+    justifyContent: 'space-between',
+    '> *': {
+      flexBasis: '100%',
+    },
   },
   loader: (isLoading) => ({
     height: '2px',

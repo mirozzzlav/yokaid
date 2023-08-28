@@ -44,10 +44,20 @@ function toLocalDate(dateStr) {
   });
 }
 
+function toServerDate(d, endOfDay = false) {
+  return new Date(
+    Date.UTC(
+      ...[d.getFullYear(), d.getMonth(), d.getDate()],
+      ...(endOfDay ? [23, 59, 59, 999] : [0, 0, 0, 1]),
+    ),
+  ).toISOString();
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
   objToSnakeCase,
   getTokenFromResponse,
   toLocalDate,
+  toServerDate,
 };

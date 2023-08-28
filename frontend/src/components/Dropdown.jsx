@@ -7,39 +7,29 @@ import {
   Spinner,
   useOutsideClick,
 } from '@chakra-ui/react';
-import React, { useCallback, useContext, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
-import { SearchIcon } from '@chakra-ui/icons';
-import { theme } from 'src/style';
+import { SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
+import { theme, globalStyle } from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
-import { FilterContext, LoaderContext } from 'src/providers';
 import { useDelayedAction } from 'src/hooks';
+import { LoaderContext } from 'src/providers';
 
 const style = {
-  dropdownContainer: {
-    position: 'relative',
-  },
-  list: (isShown, position, width) => {
-    let positionStyle = { left: 0 };
-    if (position === 'center') {
-      positionStyle = { left: `calc(50% - ${width}/2)` };
-    }
-    if (position === 'right') {
-      positionStyle = { right: 0 };
-    }
-    return {
-      marginTop: '5px',
-      position: 'absolute',
-      background: '#fff',
-      padding: '1rem 0',
-      borderRadius: theme.radii.md,
-      boxShadow: theme.shadows.md,
-      width,
-      ...positionStyle,
-      overflow: 'hidden',
-      ...(!isShown ? { display: 'none' } : null),
-    };
-  },
+  list: (isShown) => ({
+    background: '#fff',
+    padding: '1rem 0',
+    borderRadius: theme.radii.md,
+    boxShadow: theme.shadows.md,
+    overflow: 'hidden',
+    ...(!isShown ? { display: 'none' } : null),
+  }),
   listElem: {
     width: '100%',
     whiteSpace: 'nowrap',
@@ -63,7 +53,8 @@ function DropdownList({
   return (
     <Box
       sx={{
-        ...style.list(isShown, position, width),
+        ...style.list(isShown),
+        ...globalStyle.contextMenuLikeChild(position, width),
       }}
     >
       {items.length === 0 ? (
@@ -74,7 +65,7 @@ function DropdownList({
             <Button
               sx={style.listElem}
               variant="ghost"
-              key={`${
+              key={`${label}${
                 typeof value === 'object' ? JSON.stringify(value) : value
               }`}
               onClick={() => {
@@ -141,7 +132,7 @@ function Dropdown({ items, buttonMeta, position, width }) {
   });
 
   return (
-    <Box ref={wrapperRef} sx={style.dropdownContainer}>
+    <Box ref={wrapperRef} sx={globalStyle.contextMenuLikeWrapper}>
       <Button
         onClick={() => setIsShown((prevShown) => !prevShown)}
         variant={buttonMeta.variant}
@@ -194,13 +185,12 @@ function SearchDropdown({
   searchHook,
   initialItems,
   icon,
-  onItemClick: onItemClickFromProps,
-  onInputEmpty,
+  onValueSet,
+  onValueEmpty,
   position,
   showLoader,
   width,
 }) {
-  const { resetFilters } = useContext(FilterContext);
   const [inputVal, setInputVal] = useState('');
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
@@ -223,10 +213,10 @@ function SearchDropdown({
   });
   const onItemClick = useCallback(
     (onClickData) => {
-      onItemClickFromProps(onClickData);
+      onValueSet(onClickData);
       setInputVal(onClickData.label);
     },
-    [onItemClickFromProps],
+    [onValueSet],
   );
 
   const onInputFocus = useCallback(() => {
@@ -242,17 +232,18 @@ function SearchDropdown({
     setIsShown(!!initialItems);
   }, [initialItems]);
 
+  const resetDropdown = useCallback(() => {
+    setItems(initialItems || []);
+    setIsShown(!!initialItems);
+    onValueEmpty();
+  }, [initialItems, onValueEmpty]);
+
   const onInputChange = useCallback(
     (e) => {
       const v = e.target.value;
       setInputVal(v);
       if (v === '') {
-        setItems(initialItems || []);
-        setIsShown(!!initialItems);
-        resetFilters();
-        if (onInputEmpty) {
-          onInputEmpty();
-        }
+        resetDropdown();
       } else {
         delayedCall(searchCall, v);
       }
@@ -260,8 +251,26 @@ function SearchDropdown({
     [initialItems],
   );
 
+  const inputIcon = useMemo(() => {
+    if (showLoader && isLoading) {
+      return <Spinner />;
+    }
+    if (inputVal === '') {
+      return icon;
+    }
+    return (
+      <SmallCloseIcon
+        sx={{ cursor: 'pointer' }}
+        onClick={() => {
+          setInputVal('');
+          onValueEmpty();
+        }}
+      />
+    );
+  }, [showLoader, isLoading, icon, onValueEmpty]);
+
   return (
-    <Box sx={style.dropdownContainer} ref={wrapperRef}>
+    <Box sx={globalStyle.contextMenuLikeWrapper} ref={wrapperRef}>
       <InputGroup>
         <Input
           placeholder={placeholder}
@@ -270,9 +279,7 @@ function SearchDropdown({
           value={inputVal}
         />
 
-        <InputRightElement>
-          {showLoader && isLoading ? <Spinner /> : icon}
-        </InputRightElement>
+        <InputRightElement>{inputIcon}</InputRightElement>
       </InputGroup>
 
       <DropdownList
@@ -288,21 +295,21 @@ function SearchDropdown({
 }
 
 SearchDropdown.defaultProps = {
-  placeholder: 'search something',
+  placeholder: '',
   icon: <SearchIcon />,
   position: 'right',
   showLoader: false,
   initialItems: null,
   width: '300px',
-  onInputEmpty: null,
+  onValueEmpty: () => {},
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
   searchHook: PropTypes.func.isRequired,
   initialItems: PropTypes.oneOfType([itemsPropType, PropTypes.oneOf([null])]),
   icon: PropTypes.node,
-  onItemClick: PropTypes.func.isRequired,
-  onInputEmpty: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
+  onValueSet: PropTypes.func.isRequired,
+  onValueEmpty: PropTypes.func,
   position: PropTypes.string,
   showLoader: PropTypes.bool,
   width: PropTypes.string,
