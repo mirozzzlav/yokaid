@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -20,13 +21,14 @@ type server struct {
 	queriesRepo             common.QueriesRepo
 	validate                *validator.Validate
 	notifier                common.Notifier
-	queryRunnerInitializer  func(ctx *gin.Context) common.QueryRunner
+	queryRunnerInitializer  func(ctx *gin.Context, store any) common.QueryRunner
 	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers
+	db                      *sql.DB
 }
 
 func NewServer(
 	repo common.QueriesRepo,
-	queryRunnerInitializer func(ctx *gin.Context) common.QueryRunner,
+	queryRunnerInitializer func(ctx *gin.Context, store any) common.QueryRunner,
 	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers,
 	notifier common.Notifier,
 ) (common.Server, error) {
@@ -56,6 +58,11 @@ func NewServer(
 		return nil, err
 	}
 
+	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
+	if err != nil {
+		return nil, err
+	}
+
 	server := &server{
 		tokenMaker:              tokenMaker,
 		queriesRepo:             repo,
@@ -63,6 +70,7 @@ func NewServer(
 		notifier:                notifier,
 		queryRunnerInitializer:  queryRunnerInitializer,
 		storeHelpersInitializer: storeHelpersInitializer,
+		db:                      db,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -73,7 +81,7 @@ func NewServer(
 	return server, nil
 }
 func (s *server) GetQueryRunner(ctx *gin.Context) common.QueryRunner {
-	return s.queryRunnerInitializer(ctx)
+	return s.queryRunnerInitializer(ctx, s.db)
 }
 
 func (s *server) GetStoreHelpers(ctx *gin.Context) common.StoreHelpers {
@@ -98,7 +106,7 @@ func (s *server) initRouter() {
 		auth.Middleware(s),
 		func(ctx *gin.Context) {
 			// init repo + store helper
-			qRunner := s.queryRunnerInitializer(ctx)
+			qRunner := s.queryRunnerInitializer(ctx, s.db)
 			s.storeHelpersInitializer(qRunner, s.queriesRepo)
 			ctx.Next()
 		},
@@ -125,10 +133,6 @@ func (s *server) Start() error {
 	return s.router.Run(r.ReplaceAllString(common.Config.Url, ""))
 }
 
-//func (s *server) GetQueryRunner() common.QueryRunner {
-//	return s.queryRunner
-//}
-
 func (s *server) GetQueriesRepo() common.QueriesRepo {
 	return s.queriesRepo
 }
@@ -154,17 +158,9 @@ func (s *server) IsPrivateRoute(path string) bool {
 	return false
 }
 
-func (s *server) Close() {
-	*s = server{}
-}
-
 func (s *server) GetValidate() *validator.Validate {
 	return s.validate
 }
-
-//func (s *server) GetStoreHelpers() common.StoreHelpers {
-//	return s.storeHelpers
-//}
 
 func (s *server) GetNotifier() common.Notifier {
 	return s.notifier

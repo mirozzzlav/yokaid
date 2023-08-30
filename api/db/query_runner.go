@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
-	"log"
 	"rental-app/api/common"
 )
+
+type queryRunner struct {
+	db *sql.DB
+	tx *sql.Tx
+}
 
 func createDataElementAsArray(colValues []any) []any {
 	resultElem := make([]any, len(colValues))
@@ -46,25 +50,19 @@ func createDataElement(colNames []string, colValues []any) any {
 	return resultElem
 }
 
-func NewQueryRunner(ctx *gin.Context) common.QueryRunner {
+func NewQueryRunner(ctx *gin.Context, store any) common.QueryRunner {
+
 	qrAny, qrExist := ctx.Get("queryRunner")
 	var qr queryRunner
 	if qrExist {
 		return qrAny.(*queryRunner)
 	}
 
-	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
-	if err != nil {
-		log.Fatal("cannot connect to db:", err)
-	}
+	db := store.(*sql.DB)
+
 	qr = queryRunner{db: db}
 	ctx.Set("queryRunner", &qr)
 	return &qr
-}
-
-type queryRunner struct {
-	db *sql.DB
-	tx *sql.Tx
 }
 
 func (qr *queryRunner) Begin() error {

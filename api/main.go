@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-	// creating new server instanc
 	server, err := serverPkg.NewServer(
 		dbPkg.QueriesRepo,
 		dbPkg.NewQueryRunner,
@@ -18,7 +17,6 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
-	defer server.Close()
 
 	err = server.Start()
 	if err != nil {

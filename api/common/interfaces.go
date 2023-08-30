@@ -21,7 +21,6 @@ type Server interface {
 	GetValidate() *validator.Validate
 	GetNotifier() Notifier
 	Start() error
-	Close()
 	GetQueryRunner(ctx *gin.Context) QueryRunner
 	GetStoreHelpers(ctx *gin.Context) StoreHelpers
 }
