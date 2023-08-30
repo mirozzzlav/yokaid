@@ -146,6 +146,7 @@ export default function Map({ mapPosts, onZoomOrMove: onZoomOrMoveFromProps }) {
               mapPost.itemName && {
                 name: mapPost.itemName,
                 description: mapPost.itemDescription,
+                category: mapPost.category,
               }
             }
             rent={

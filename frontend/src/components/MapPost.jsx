@@ -183,6 +183,10 @@ function RentalPost({ item, rent }) {
     <div className={css(style.boxContent)}>
       <h6 className={css(style.subhl)}>{item.name}</h6>
       <div className={css(style.dataRow)}>
+        <div>Category</div>
+        <div>{item.category}</div>
+      </div>
+      <div className={css(style.dataRow)}>
         <div>From</div>
         <div>{toLocalDate(rent.dateFrom)}</div>
       </div>
@@ -203,6 +207,7 @@ function RentalPost({ item, rent }) {
 RentalPost.prototype.propTypes = {
   item: PropTypes.shape({
     name: PropTypes.string,
+    category: PropTypes.string,
   }).isRequired,
 
   rent: PropTypes.shape({
