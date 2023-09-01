@@ -11,7 +11,12 @@ import {
   SignupForm,
 } from 'src/components';
 import { useMenu, useMapPosts } from 'src/hooks';
-import { AuthContext, FilterContext, InitialDataContext } from 'src/providers';
+import {
+  AuthContext,
+  FilterContext,
+  InitialDataContext,
+  MapContext,
+} from 'src/providers';
 import config from 'src/config';
 import { toServerDate } from 'src/helpers';
 
@@ -31,10 +36,16 @@ export default function HomePage() {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
   const { mapPosts, callGetMapPosts } = useMapPosts();
+  const {
+    moveMap,
+    mapAreaRequestRef,
+
+    setMapAreaRequest,
+  } = useContext(MapContext);
 
   const setShownFormId = useCallback((formId) => {
     if (formId) {
-      navigate(`/${formId}`);
+      navigate(formId ? `/${formId}` : '/');
     } else {
       navigate('/');
     }
@@ -64,11 +75,19 @@ export default function HomePage() {
     [],
   );
 
-  const { filterItemsHookCreator, updateFilter, resetFilter, saveFilter } =
-    useContext(FilterContext);
+  const {
+    filterItemsHookCreator,
+    updateFilter,
+    resetFilter,
+    saveFilter,
+    isFilterChanged,
+    getIsFilterEqual,
+    draft,
+  } = useContext(FilterContext);
   const useFilterItemsWhat = filterItemsHookCreator('what');
   const useFilterItemsWhere = filterItemsHookCreator('where');
   useEffect(() => {
+    moveMap(mapAreaRequestRef.current);
     callGetMapPosts();
   }, []);
 
@@ -79,11 +98,16 @@ export default function HomePage() {
         <>
           <SearchDropdown
             searchHook={useFilterItemsWhere}
-            onValueSet={({ filterColumnAlias, value, extraData }) => {
+            onValueSet={({ value, extraData, filterColumnAlias }) => {
               updateFilter({ [filterColumnAlias]: { value, extraData } });
             }}
             onValueEmpty={() => {
-              resetFilter([config.map.columnAlias]);
+              updateFilter({
+                [config.map.columnAlias]: {
+                  extraData: config.map.defaultPosition,
+                  value: config.map.defaultBounds,
+                },
+              });
             }}
             position="left"
             placeholder="Where?"
@@ -117,10 +141,22 @@ export default function HomePage() {
           />
           <Button
             onClick={() => {
+              if (!isFilterChanged) {
+                return;
+              }
+
+              if (getIsFilterEqual(config.map.columnAlias)) {
+                callGetMapPosts();
+              } else {
+                moveMap({
+                  position: draft[config.map.columnAlias].extraData,
+                  bounds: draft[config.map.columnAlias].value,
+                });
+              }
               saveFilter();
-              callGetMapPosts();
             }}
             sx={style.applyFiltersBtn}
+            isDisabled={!isFilterChanged}
           >
             Apply Filters
           </Button>
@@ -131,16 +167,8 @@ export default function HomePage() {
     >
       <Map
         mapPosts={mapPosts}
-        onZoomOrMove={({ bounds, position }) => {
-          updateFilter(
-            {
-              [config.map.columnAlias]: {
-                value: bounds,
-                extraData: position,
-              },
-            },
-            true,
-          );
+        onZoomOrMove={(mapAreaFromMap) => {
+          setMapAreaRequest(mapAreaFromMap);
           callGetMapPosts();
         }}
       />

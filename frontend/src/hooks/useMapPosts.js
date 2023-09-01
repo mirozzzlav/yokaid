@@ -5,34 +5,26 @@ import { FilterContext, MapContext } from 'src/providers';
 
 export default function useMapPosts() {
   const [mapPosts, setMapPosts] = useState(null);
-  const { getFilterSerialized, filter } = useContext(FilterContext);
+  const { getFilterUrl } = useContext(FilterContext);
   const [postCallId, setPostCallId] = useState(null);
-  const { setMapArea } = useContext(MapContext);
-
   const call = useCall((response) => {
     setMapPosts(!response.error ? response.data : null);
   });
 
+  const { mapAreaRequestRef } = useContext(MapContext);
+
   useEffect(() => {
-    let mapArea = null;
     if (!postCallId) {
       return;
     }
-    if (filter && filter[config.map.columnAlias]) {
-      mapArea = {
-        position: filter[config.map.columnAlias].extraData,
-        bounds: filter[config.map.columnAlias].value,
-      };
-    }
-    setMapArea(mapArea);
-    const filterSerialized = getFilterSerialized();
+    const filterUrl = getFilterUrl([config.map.columnAlias]);
     call(
-      `${config.api.endPointsURLs.getPosts}${
-        filterSerialized ? `/${filterSerialized}` : ''
-      }`,
+      `${config.api.endPointsURLs.getPosts}/${config.map.columnAlias}=[${
+        mapAreaRequestRef.current.bounds
+      }]${filterUrl ? `;${filterUrl}` : ''}`,
       'get',
     );
-  }, [postCallId, filter]);
+  }, [postCallId]);
 
   return useMemo(
     () => ({

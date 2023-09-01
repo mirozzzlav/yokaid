@@ -34,7 +34,7 @@ export default function Map({ mapPosts, onZoomOrMove: onZoomOrMoveFromProps }) {
   const zoomRef = useRef(config.map.defaultZoom);
   const clusterGroupRef = useRef(null);
   const mapLayersRef = useRef({});
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, moveMap } = useContext(MapContext);
 
   const getBounds = useCallback(() => {
     const bounds = mapRef.current.getBounds();
@@ -45,29 +45,22 @@ export default function Map({ mapPosts, onZoomOrMove: onZoomOrMoveFromProps }) {
 
   const onZoomOrMove = useCallback(() => {
     const center = mapRef.current.getCenter();
+
     if (
-      zoomRef.current === null ||
-      Math.abs(mapRef.current.getZoom() - zoomRef.current) !== 0
+      zoomRef.current !== null &&
+      centerRef.current !== null &&
+      (Math.abs(mapRef.current.getZoom() - zoomRef.current) !== 0 ||
+        Math.abs(center.lat - centerRef.current.lat) > 0.01 ||
+        Math.abs(center.lng - centerRef.current.lng) > 0.01)
     ) {
-      centerRef.current = center;
-      zoomRef.current = mapRef.current.getZoom();
       onZoomOrMoveFromProps({
         bounds: getBounds(),
         position: [center.lat, center.lng],
       });
     }
 
-    if (
-      centerRef.current === null ||
-      Math.abs(center.lat - centerRef.current.lat) > 0.01 ||
-      Math.abs(center.lng - centerRef.current.lng) > 0.01
-    ) {
-      centerRef.current = center;
-      onZoomOrMoveFromProps({
-        bounds: getBounds(),
-        position: [center.lat, center.lng],
-      });
-    }
+    zoomRef.current = mapRef.current.getZoom();
+    centerRef.current = center;
   }, []);
 
   const initClusterGroup = useCallback(() => {
