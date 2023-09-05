@@ -2,8 +2,8 @@ package db
 
 import (
 	"fmt"
-	"rental-app/api/auth"
-	"rental-app/api/common"
+	"some-app/api/auth"
+	"some-app/api/common"
 	"strings"
 )
 
@@ -238,7 +238,7 @@ func (sH *StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query:  "insert into posts (author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
+				Query:  "insert into professionals (author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
 				Params: []any{authorId, req.Latitude, req.Longitude, req.Text},
 			},
 		},
@@ -263,9 +263,9 @@ func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem s
 		FilterQ string
 	}
 	var filteredEntitiesQueries = map[string]filterMapItem{
-		"categories": {
-			Q:       "SELECT 'categoryId' AS filter_column_alias, name AS label, id AS value FROM item_categories ",
-			FilterQ: "WHERE name LIKE ? ",
+		"services": {
+			Q:       "SELECT 'serviceId' AS filter_column_alias, title AS label, id AS value FROM services ",
+			FilterQ: "WHERE title LIKE ? ",
 		},
 	}
 
@@ -315,11 +315,11 @@ func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem s
 	return filterItems, nil
 }
 
-func (sH *StoreHelpers) GetCategoriesForFilter() (*[]common.FilterItem, error) {
+func (sH *StoreHelpers) GetProfessionalServicesForFilter() (*[]common.FilterItem, error) {
 
 	q := dbQuery{
 		partials: []common.QueryPartial{{
-			Query:  "SELECT 'categoryId' AS filter_column_alias, name AS label, id AS value FROM item_categories LIMIT 10",
+			Query:  "SELECT 'serviceId' AS filter_column_alias, title AS label, id AS value FROM services LIMIT 10",
 			Params: []any{},
 		}},
 	}

@@ -2,7 +2,7 @@ package users
 
 import (
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 var errMeta = map[string]common.ResponseMeta{

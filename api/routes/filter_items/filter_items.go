@@ -3,7 +3,7 @@ package filterItems
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"strings"
 )
 
@@ -20,7 +20,10 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 		}
 		filteredEntities := strings.Split(filteredEntitiesStr, ";")
 		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(filteredEntities, searchTerm, 10)
-		common.CheckErrAndPanic(err)
+		if err != nil && err != common.ErrNoRows {
+			common.CheckErrAndPanic(err)
+		}
+
 		common.SetOKJSONResponse(ctx, filterItems)
 	}
 }

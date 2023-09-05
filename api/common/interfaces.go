@@ -45,7 +45,7 @@ type QueriesRepo interface {
 	GetUsersCountQuery(filter QueryPartial) Query
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
-	ListPostsQuery(filter QueryPartial) Query
+	GetProfessionalsWithReviewsQuery(filter QueryPartial) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 }
@@ -62,7 +62,7 @@ type StoreHelpers interface {
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 	CreatePost(authorId int, req CreatePostRequest) (int, error)
 	GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]FilterItem, error)
-	GetCategoriesForFilter() (*[]FilterItem, error)
+	GetProfessionalServicesForFilter() (*[]FilterItem, error)
 
 	// only for testing
 	Insert() int

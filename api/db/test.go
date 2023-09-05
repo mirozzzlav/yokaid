@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 func (sH StoreHelpers) Insert() int {

@@ -78,7 +78,7 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 			ExtraData: nil,
 		}
 		if err == ErrNoRows {
-			_responseMeta.Code = http.StatusBadRequest
+			_responseMeta.Code = http.StatusNoContent
 			_responseMeta.Msg = "no results found for the given request"
 		}
 	} else {

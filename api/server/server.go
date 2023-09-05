@@ -7,9 +7,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"regexp"
-	"rental-app/api/auth"
-	"rental-app/api/common"
-	"rental-app/api/routes"
+	"some-app/api/auth"
+	"some-app/api/common"
+	"some-app/api/routes"
 )
 
 type server struct {

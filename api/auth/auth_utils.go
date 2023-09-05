@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 // HashPassword returns the bcrypt hash of the password

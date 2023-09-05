@@ -10,7 +10,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import { css } from '@emotion/css';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { theme } from 'src/style';
-import MapPost from 'src/components/MapPost';
 import { unknownObjectValidator } from 'src/helpers';
 import config from 'src/config';
 import { MapContext } from 'src/providers';
@@ -28,13 +27,17 @@ const mapClusterStyle = {
   fontSize: '1.1rem',
 };
 
-export default function Map({ mapPosts, onZoomOrMove: onZoomOrMoveFromProps }) {
+export default function Map({
+  markers,
+  onMarkerClick,
+  onZoomOrMove: onZoomOrMoveFromProps,
+}) {
   const mapElementRef = useRef(null);
   const centerRef = useRef(null);
   const zoomRef = useRef(config.map.defaultZoom);
   const clusterGroupRef = useRef(null);
   const mapLayersRef = useRef({});
-  const { mapRef, moveMap } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
 
   const getBounds = useCallback(() => {
     const bounds = mapRef.current.getBounds();
@@ -103,78 +106,51 @@ export default function Map({ mapPosts, onZoomOrMove: onZoomOrMoveFromProps }) {
     if (!clusterGroupRef.current) {
       return;
     }
-    if (!mapPosts) {
+    if (!markers) {
       clusterGroupRef.current.clearLayers();
       mapLayersRef.current = {};
       return;
     }
 
-    // remove all layers that are not in new mapPosts
+    // remove all layers that are not in new markers
     const newMapLayers = {};
-    Object.entries(mapLayersRef.current).forEach(([mapPostIdLayer, layer]) => {
+    Object.entries(mapLayersRef.current).forEach(([markerIdLayer, layer]) => {
       if (
-        !mapPosts.find(
-          ({ id: mapPostId }) => mapPostId === parseInt(mapPostIdLayer, 10),
+        !markers.find(
+          ({ id: markerId }) => markerId === parseInt(markerIdLayer, 10),
         )
       ) {
         clusterGroupRef.current.removeLayer(layer);
         return;
       }
-      newMapLayers[mapPostIdLayer] = layer;
+      newMapLayers[markerIdLayer] = layer;
     });
     mapLayersRef.current = newMapLayers;
 
-    mapPosts.forEach((mapPost) => {
+    markers.forEach(({ locationLat, locationLng, id: markerId }) => {
       const marker = L.marker({
-        lat: mapPost.latitude,
-        lng: mapPost.longitude,
-      }).bindPopup(
-        renderToStaticMarkup(
-          <MapPost
-            id={mapPost.id}
-            images={mapPost.imagePaths}
-            text={mapPost.text}
-            headline={mapPost.headline}
-            item={
-              mapPost.itemName && {
-                name: mapPost.itemName,
-                description: mapPost.itemDescription,
-                category: mapPost.category,
-              }
-            }
-            rent={
-              mapPost.itemName && {
-                dateFrom: mapPost.rentDateFrom,
-                dateTo: mapPost.rentDateTo,
-                price: mapPost.price,
-              }
-            }
-          />,
-        ),
-        {
-          className: css({
-            maxWidth: '230px',
-          }),
-        },
-      );
-      if (mapLayersRef.current[mapPost.id]) {
+        lat: locationLat,
+        lng: locationLng,
+      }).on('click', () => onMarkerClick(markerId));
+      if (mapLayersRef.current[markerId]) {
         return;
       }
-      mapLayersRef.current[mapPost.id] = marker;
+      mapLayersRef.current[markerId] = marker;
       clusterGroupRef.current.addLayer(marker);
     });
-  }, [mapPosts, mapLayersRef, clusterGroupRef]);
+  }, [markers, mapLayersRef, clusterGroupRef]);
 
   return <Box w="100%" h="100%" ref={mapElementRef} />;
 }
 
 Map.defaultProps = {
-  mapPosts: null,
+  markers: null,
 };
 Map.prototype.propTypes = {
-  mapPosts: PropTypes.oneOfType([
+  markers: PropTypes.oneOfType([
     PropTypes.arrayOf(unknownObjectValidator),
     PropTypes.oneOf([null]),
   ]),
   onZoomOrMove: PropTypes.func.isRequired,
+  onMarkerClick: PropTypes.func.isRequired,
 };

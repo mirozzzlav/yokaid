@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"regexp"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"strings"
 )
 
@@ -97,40 +97,64 @@ func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr queriesRepo) ListPostsQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartial) common.Query {
 
-	query :=
-
-		"SELECT * FROM (" +
-			"SELECT posts.id as id, users.full_name as author, posts.latitude, posts.longitude, posts.text, " +
-			"posts.created_at, posts.headline , rental_posts_sql.rent_date_from, rental_posts_sql.rent_date_to, " +
-			"rental_posts_sql.price, rental_posts_sql.item_name, rental_posts_sql.item_description, " +
-			"rental_posts_sql.item_spec, rental_posts_sql.category, rental_posts_sql.category_id, " +
-			"json_agg(images_sql.image_path) as image_paths " +
-			"FROM posts JOIN users ON posts.author = users.id " +
-			"LEFT JOIN " +
-			"(SELECT rental_posts.post_id, rental_posts.rent_date_from, rental_posts.rent_date_to, " +
-			"rental_posts.price, items.name as item_name, items.description as item_description, items.spec as item_spec, " +
-			"item_categories.name as category, item_categories.id as category_id " +
-			"FROM rental_posts JOIN items ON rental_posts.item_id = items.id JOIN " +
-			"item_categories ON items.category_id = item_categories.id" +
-			") AS rental_posts_sql ON rental_posts_sql.post_id = posts.id  " +
-			"LEFT JOIN " +
-			"(SELECT post_images.post_id, images.path as image_path " +
-			"FROM post_images JOIN images ON post_images.image_id = images.id" +
-			") AS images_sql ON images_sql.post_id = posts.id " +
-			"GROUP BY posts.id, users.full_name, posts.latitude, posts.longitude, " +
-			"posts.text, posts.created_at, posts.headline, rental_posts_sql.rent_date_from, " +
-			"rental_posts_sql.rent_date_to, rental_posts_sql.price, rental_posts_sql.item_name, " +
-			"rental_posts_sql.item_description, rental_posts_sql.item_spec, " +
-			"rental_posts_sql.category, rental_posts_sql.category_id" +
-			") AS inner_q"
+	query := `SELECT 
+	  professionals.id, 
+	  professionals.full_name, 
+	  professionals.phone, 
+	  professionals.email, 
+	  professionals.rating, 
+	  professionals.business_id, 
+	  professionals.location, 
+	  professionals.location_lat, 
+	  professionals.location_lng, 
+	  reviews_view.reviews,
+	  services_view.services
+	FROM 
+	  professionals
+	  JOIN (
+	      SELECT JSON_AGG(
+			JSON_BUILD_OBJECT(
+			  'id', services.id, 'title', services.title
+			)
+	  	  ) AS services, professional_services.professional_id 
+	      FROM
+	        professional_services JOIN services ON professional_services.service_id = services.id 
+	      GROUP BY
+	        professional_services.professional_id
+	  ) AS services_view ON services_view.professional_id = professionals.id 
+	  JOIN (
+		SELECT 
+		  professional_id, 
+		  JSON_AGG(
+			JSON_BUILD_OBJECT(
+			  'id', id, 'text', text, 'rating', rating, 
+			  'images', images
+			)
+		  ) AS reviews 
+		FROM 
+		  reviews 
+		  LEFT JOIN (
+			SELECT 
+			  review_id, 
+			  JSON_AGG(images.path) as images 
+			FROM 
+			  review_images 
+			  JOIN images ON review_images.image_id = images.id 
+			GROUP BY 
+			  review_images.review_id
+		  ) AS review_images_view ON reviews.id = review_images_view.review_id 
+		GROUP BY 
+		  professional_id
+	) AS reviews_view ON professionals.id = reviews_view.professional_id
+	WHERE professionals.active = true `
 
 	if filter.Query != "" {
 		return dbQuery{
 			partials: []common.QueryPartial{
 				{
-					Query:  query + " WHERE ",
+					Query:  query + " AND ",
 					Params: []any{},
 				},
 				filter,

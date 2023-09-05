@@ -3,7 +3,7 @@ package frontendData
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 type frontEndDataResponse struct {
@@ -13,12 +13,12 @@ type frontEndDataResponse struct {
 func getFrontendData(server common.Server) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
-		categories, err := server.GetStoreHelpers(ctx).GetCategoriesForFilter()
+		services, err := server.GetStoreHelpers(ctx).GetProfessionalServicesForFilter()
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, frontEndDataResponse{
 			Filters: map[string]*[]common.FilterItem{
-				"what": categories,
+				"what": services,
 			},
 		})
 	}

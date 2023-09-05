@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"strconv"
 	"strings"
 )

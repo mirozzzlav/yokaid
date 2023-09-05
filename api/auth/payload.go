@@ -2,7 +2,7 @@ package auth
 
 import (
 	uuid "github.com/google/uuid"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"time"
 )
 

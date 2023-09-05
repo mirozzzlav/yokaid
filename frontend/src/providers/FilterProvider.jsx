@@ -51,7 +51,7 @@ function filterItemsHookCreator(filterKey) {
       (searchedFilterItem) =>
         call(
           `${config.api.endPointsURLs.getFilterItems}/${encodeURIComponent(
-            'categories',
+            'services',
           )}/${searchedFilterItem}`,
         ),
       [call],

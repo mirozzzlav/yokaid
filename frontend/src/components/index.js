@@ -6,8 +6,8 @@ import { SuccessMessage, ErrorMessage } from 'src/components/Messages';
 import FormModals from 'src/components/FormModals';
 import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
-import MapPost from 'src/components/MapPost';
 import DataPicker from 'src/components/DataPicker';
+import ProfessionalReviews from 'src/components/ProfessionalReviews';
 
 export {
   LoginForm,
@@ -20,6 +20,6 @@ export {
   SearchDropdown,
   Dropdown,
   Map,
-  MapPost,
   DataPicker,
+  ProfessionalReviews,
 };

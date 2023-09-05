@@ -3,8 +3,8 @@ package examples
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/auth"
-	"rental-app/api/common"
+	"some-app/api/auth"
+	"some-app/api/common"
 )
 
 var errPassword = map[string]common.ResponseMeta{

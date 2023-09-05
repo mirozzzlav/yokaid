@@ -3,7 +3,7 @@ package users
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 type loginUserResponse struct {

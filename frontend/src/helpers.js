@@ -44,7 +44,8 @@ function toLocalDate(dateStr) {
   });
 }
 
-function toServerDate(d, endOfDay = false) {
+/// UTC is almost the same as GMT-0 - not a subject to time zone variations or daylight saving time changes.
+function toUTCDate(d, endOfDay = false) {
   return new Date(
     Date.UTC(
       ...[d.getFullYear(), d.getMonth(), d.getDate()],
@@ -59,5 +60,5 @@ export {
   objToSnakeCase,
   getTokenFromResponse,
   toLocalDate,
-  toServerDate,
+  toUTCDate,
 };

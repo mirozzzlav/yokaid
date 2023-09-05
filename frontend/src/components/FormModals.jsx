@@ -25,13 +25,16 @@ export default function FormModals({ modals, shownFormId, setShownFormId }) {
 
   return (
     <>
-      {modals.map(({ id, form, ...modalProps }) => (
+      {modals.map(({ id, title, form, submitButton }) => (
         <Modal
           key={id}
-          {...modalProps}
+          title={title}
           isShown={id === shownFormId}
+          submitButton={{
+            ...submitButton,
+            onClick: () => setIsSubmitted(true),
+          }}
           setIsShown={(isShown) => setShownFormId(isShown ? id : null)}
-          setIsSubmitted={setIsSubmitted}
         >
           {React.createElement(form, {
             isShown: id === shownFormId,

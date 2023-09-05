@@ -7,7 +7,7 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"strings"
 )
 

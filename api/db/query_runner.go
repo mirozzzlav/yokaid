@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 type queryRunner struct {

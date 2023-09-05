@@ -3,7 +3,7 @@ package examples
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 func transaction(server common.Server) func(ctx *gin.Context) {

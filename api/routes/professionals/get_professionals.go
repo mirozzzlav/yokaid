@@ -1,25 +1,25 @@
-package posts
+package professionals
 
 import (
 	"github.com/gin-gonic/gin"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
-func getPosts(server common.Server) gin.HandlerFunc {
+func getProfessionals(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		posts, postsModelLoader := common.PostsModelLoader()
+		pros, prosModelLoader := common.ProfessionalsWithReviewsModelLoader()
 		var err error
 		filter, _ := ctx.Params.Get("filter")
 
 		filterQP, err := server.GetStoreHelpers(ctx).HandleFilter(filter)
 		common.CheckErrAndPanic(err)
 
-		dbQuery := server.GetQueriesRepo().ListPostsQuery(filterQP)
+		dbQuery := server.GetQueriesRepo().GetProfessionalsWithReviewsQuery(filterQP)
 		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, postsModelLoader)
+		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, posts)
+		common.SetOKJSONResponse(ctx, pros)
 	}
 }

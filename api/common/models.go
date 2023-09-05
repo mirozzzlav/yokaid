@@ -45,22 +45,30 @@ type User struct {
 	Role           string
 }
 
-type post struct {
-	Id              int            `json:"id"`
-	Author          string         `json:"author"`
-	Latitude        float64        `json:"latitude"`
-	Longitude       float64        `json:"longitude"`
-	Text            string         `json:"text"`
-	CreatedAt       timeCustom     `json:"createdAt"`
-	Headline        string         `json:"headline"`
-	RentDateFrom    timeCustom     `json:"rentDateFrom"`
-	RentDateTo      timeCustom     `json:"rentDateTo"`
-	Price           float64        `json:"price"`
-	ItemName        string         `json:"itemName"`
-	ItemDescription string         `json:"itemDescription"`
-	ItemSpec        map[string]any `json:"itemSpec"`
-	Category        string         `json:"category"`
-	ImagePaths      []imagePath    `json:"imagePaths"`
+type professional struct {
+	ID          int       `json:"id"`
+	FullName    string    `json:"fullName"`
+	Phone       string    `json:"phone"`
+	Email       string    `json:"email"`
+	Rating      int       `json:"rating"`
+	BusinessId  string    `json:"businessId"`
+	Location    string    `json:"location"`
+	LocationLat float64   `json:"locationLat"`
+	LocationLng float64   `json:"locationLng"`
+	Reviews     []review  `json:"reviews"`
+	Services    []service `json:"services"`
+}
+
+type review struct {
+	Id     int          `json:"id"`
+	Text   string       `json:"text"`
+	Rating int          `json:"rating"`
+	Images *[]imagePath `json:"images"`
+	//CreatedAt timeCustom   `json:"createdAt"`
+}
+type service struct {
+	Id    int    `json:"id"`
+	Title string `json:"title"`
 }
 
 type passwordChangeRequest struct {
@@ -93,16 +101,16 @@ func UsersModelLoader() (*[]User, func(rowBytes []byte)) {
 	}
 }
 
-func PostsModelLoader() (*[]post, func(rowBytes []byte)) {
-	var posts []post
+func ProfessionalsWithReviewsModelLoader() (*[]professional, func(rowBytes []byte)) {
+	var professionals []professional
 
-	return &posts, func(rowBytes []byte) {
-		var post post
-		_ = json.Unmarshal(rowBytes, &post)
-		if len(post.ImagePaths) == 1 && post.ImagePaths[0] == "" {
-			post.ImagePaths = []imagePath{}
-		}
-		posts = append(posts, post)
+	return &professionals, func(rowBytes []byte) {
+		var pro professional
+		_ = json.Unmarshal(rowBytes, &pro)
+		//if len(r.ImagePaths) == 1 && r.ImagePaths[0] == "" {
+		//	r.ImagePaths = []imagePath{}
+		//}
+		professionals = append(professionals, pro)
 	}
 }
 

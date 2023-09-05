@@ -2,7 +2,7 @@ package examples
 
 import (
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 func GetRoutes(server common.Server) []common.Route {

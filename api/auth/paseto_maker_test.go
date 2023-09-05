@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/stretchr/testify/require"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"testing"
 	"time"
 )

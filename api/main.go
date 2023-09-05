@@ -3,9 +3,9 @@ package main
 import (
 	_ "github.com/lib/pq"
 	"log"
-	dbPkg "rental-app/api/db"
-	"rental-app/api/mail"
-	serverPkg "rental-app/api/server"
+	dbPkg "some-app/api/db"
+	"some-app/api/mail"
+	serverPkg "some-app/api/server"
 )
 
 func main() {

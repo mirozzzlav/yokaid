@@ -3,7 +3,7 @@ package examples
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 func validate(server common.Server) func(ctx *gin.Context) {

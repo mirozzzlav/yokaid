@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"rental-app/api/common"
 	"runtime"
+	"some-app/api/common"
 	"strings"
 	"time"
 )

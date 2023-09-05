@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal as ModalChakra,
@@ -16,13 +10,21 @@ import {
   Button,
   ModalCloseButton,
 } from '@chakra-ui/react';
+import { theme } from 'src/style';
 
+const style = {
+  modalBody: {
+    maxHeight: '400px',
+    overflowY: 'auto',
+    scrollbarWidth: 'thin',
+    scrollbarColor: `${theme.colors.black} ${theme.colors.white}`,
+  },
+};
 export default function Modal({
   isShown,
   setIsShown,
-  setIsSubmitted,
   title,
-  submitButtonLabel,
+  submitButton,
   children,
 }) {
   return (
@@ -31,17 +33,19 @@ export default function Modal({
       <ModalContent>
         <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>{children}</ModalBody>
+        <ModalBody sx={style.modalBody}>{children}</ModalBody>
         <ModalFooter>
-          <Button
-            variant="solid"
-            colorScheme="blue"
-            mr={3}
-            onClick={() => setIsSubmitted(true)}
-          >
-            {submitButtonLabel}
-          </Button>
-          <Button onClick={() => setIsShown(false)} variant="ghost">
+          {submitButton && (
+            <Button
+              variant="solid"
+              colorScheme="blue"
+              mr={3}
+              onClick={submitButton.onClick}
+            >
+              {submitButton.label}
+            </Button>
+          )}
+          <Button onClick={() => setIsShown(false)} variant="solid">
             Close
           </Button>
         </ModalFooter>
@@ -50,11 +54,20 @@ export default function Modal({
   );
 }
 
-Modal.propTypes = {
+Modal.defaultProps = {
+  submitButton: null,
+};
+
+Modal.prototype.propTypes = {
   isShown: PropTypes.bool.isRequired,
   setIsShown: PropTypes.func.isRequired,
-  setIsSubmitted: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
-  submitButtonLabel: PropTypes.string.isRequired,
+  submitButton: PropTypes.oneOfType([
+    PropTypes.shape({
+      label: PropTypes.string,
+      onClick: PropTypes.func,
+    }),
+    PropTypes.oneOf([null]),
+  ]),
 };

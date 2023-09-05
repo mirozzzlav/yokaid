@@ -1,4 +1,4 @@
-module rental-app/api
+module some-app/api
 
 go 1.20
 

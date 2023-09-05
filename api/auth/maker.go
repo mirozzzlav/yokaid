@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
-	"rental-app/api/common"
+	"some-app/api/common"
 	"time"
 )
 

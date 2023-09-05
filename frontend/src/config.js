@@ -18,7 +18,7 @@ export default {
     endPointsURLs: {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
-      getPosts: `${apiUrl}/posts/get`,
+      getProfessionals: `${apiUrl}/professionals/get`,
       getInitialData: `${apiUrl}/frontend-data/get`,
       getFilterItems: `${apiUrl}/filter-items/get`,
     },
@@ -39,4 +39,5 @@ export default {
       extraData: defualtMapPosition,
     },
   },
+  maxRating: 5,
 };

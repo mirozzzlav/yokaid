@@ -1,16 +1,22 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@chakra-ui/react';
 import MainLayout from 'src/layouts/MainLayout';
 import {
-  DataPicker,
   FormModals,
   LoginForm,
   Map,
+  ProfessionalReviews,
   SearchDropdown,
   SignupForm,
 } from 'src/components';
-import { useMenu, useMapPosts } from 'src/hooks';
+import { useMenu, useProfessionals } from 'src/hooks';
 import {
   AuthContext,
   FilterContext,
@@ -18,7 +24,7 @@ import {
   MapContext,
 } from 'src/providers';
 import config from 'src/config';
-import { toServerDate } from 'src/helpers';
+import Modal from 'src/components/Modal';
 
 const style = {
   applyFiltersBtn: {
@@ -35,7 +41,7 @@ export default function HomePage() {
   const {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
-  const { mapPosts, callGetMapPosts } = useMapPosts();
+  const { professionals, callGetProfessionals } = useProfessionals();
   const {
     moveMap,
     mapAreaRequestRef,
@@ -62,13 +68,17 @@ export default function HomePage() {
       {
         id: 'login',
         title: 'Login',
-        submitButtonLabel: 'Login',
+        submitButton: {
+          label: 'Login',
+        },
         form: LoginForm,
       },
       {
         id: 'signup',
         title: 'Sign up',
-        submitButtonLabel: 'Sign up',
+        submitButton: {
+          label: 'Sign up',
+        },
         form: SignupForm,
       },
     ],
@@ -88,8 +98,32 @@ export default function HomePage() {
   const useFilterItemsWhere = filterItemsHookCreator('where');
   useEffect(() => {
     moveMap(mapAreaRequestRef.current);
-    callGetMapPosts();
+    callGetProfessionals();
   }, []);
+
+  const markers = useMemo(() => {
+    if (!professionals) {
+      return null;
+    }
+    return professionals.map(({ locationLat, locationLng, id }) => ({
+      locationLat,
+      locationLng,
+      id,
+    }));
+  }, [professionals]);
+
+  const [selectedMarkerId, setSelectedMarkerId] = useState(null);
+  const selectedPro = useMemo(() => {
+    if (selectedMarkerId && professionals) {
+      return professionals.find(({ id }) => selectedMarkerId === id) || null;
+    }
+    return null;
+  }, [selectedMarkerId, professionals]);
+
+  const setIsProShown = useCallback(
+    (isShown) => setSelectedMarkerId(isShown || null),
+    [],
+  );
 
   return (
     <MainLayout
@@ -118,27 +152,13 @@ export default function HomePage() {
               updateFilter({ [filterColumnAlias]: { value } });
             }}
             onValueEmpty={() => {
-              resetFilter(['categoryId']);
+              resetFilter(['serviceId']);
             }}
             position="left"
             placeholder="What?"
             initialItems={initialItemsWhat}
           />
 
-          <DataPicker
-            placeholder="When?"
-            onValueSet={(from, to) => {
-              updateFilter({
-                rentDateFrom: { value: toServerDate(from) },
-                ...(to
-                  ? { rentDateTo: { value: toServerDate(to, true) } }
-                  : null),
-              });
-            }}
-            onValueEmpty={() => {
-              resetFilter(['rentDateFrom', 'rentDateTo']);
-            }}
-          />
           <Button
             onClick={() => {
               if (!isFilterChanged) {
@@ -146,7 +166,7 @@ export default function HomePage() {
               }
 
               if (getIsFilterEqual(config.map.columnAlias)) {
-                callGetMapPosts();
+                callGetProfessionals();
               } else {
                 moveMap({
                   position: draft[config.map.columnAlias].extraData,
@@ -166,16 +186,22 @@ export default function HomePage() {
       userMenuBtnStyle={userMenuBtnStyle}
     >
       <Map
-        mapPosts={mapPosts}
+        markers={markers}
         onZoomOrMove={(mapAreaFromMap) => {
           setMapAreaRequest(mapAreaFromMap);
-          callGetMapPosts();
+          callGetProfessionals();
         }}
+        onMarkerClick={setSelectedMarkerId}
       />
       <FormModals
         modals={modals}
         shownFormId={action}
         setShownFormId={setShownFormId}
+      />
+      <ProfessionalReviews
+        data={selectedPro}
+        setIsShown={setIsProShown}
+        isShown={selectedMarkerId}
       />
     </MainLayout>
   );

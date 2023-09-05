@@ -3,36 +3,38 @@ import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
 
-export default function useMapPosts() {
-  const [mapPosts, setMapPosts] = useState(null);
+export default function useProfessionals() {
+  const [professionals, setProfessionals] = useState(null);
   const { getFilterUrl } = useContext(FilterContext);
-  const [postCallId, setPostCallId] = useState(null);
+  const [callId, setCallId] = useState(null);
   const call = useCall((response) => {
-    setMapPosts(!response.error ? response.data : null);
+    setProfessionals(!response.error ? response.data : null);
   });
 
   const { mapAreaRequestRef } = useContext(MapContext);
 
   useEffect(() => {
-    if (!postCallId) {
+    if (!callId) {
       return;
     }
     const filterUrl = getFilterUrl([config.map.columnAlias]);
     call(
-      `${config.api.endPointsURLs.getPosts}/${config.map.columnAlias}=[${
-        mapAreaRequestRef.current.bounds
-      }]${filterUrl ? `;${filterUrl}` : ''}`,
+      `${config.api.endPointsURLs.getProfessionals}/${
+        config.map.columnAlias
+      }=[${mapAreaRequestRef.current.bounds}]${
+        filterUrl ? `;${filterUrl}` : ''
+      }`,
       'get',
     );
-  }, [postCallId]);
+  }, [callId]);
 
   return useMemo(
     () => ({
-      callGetMapPosts: () => {
-        setPostCallId(Math.random());
+      callGetProfessionals: () => {
+        setCallId(Math.random());
       },
-      mapPosts,
+      professionals,
     }),
-    [mapPosts],
+    [professionals],
   );
 }

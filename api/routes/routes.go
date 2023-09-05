@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"rental-app/api/common"
-	"rental-app/api/routes/examples"
-	"rental-app/api/routes/filter_items"
-	"rental-app/api/routes/frontend_data"
-	"rental-app/api/routes/posts"
-	"rental-app/api/routes/rentals"
-	"rental-app/api/routes/users"
+	"some-app/api/common"
+	"some-app/api/routes/examples"
+	filterItems "some-app/api/routes/filter_items"
+	frontendData "some-app/api/routes/frontend_data"
+	"some-app/api/routes/professionals"
+	"some-app/api/routes/users"
 )
 
 var routes []common.Route // private variable, not to use directly
@@ -15,8 +14,7 @@ var routes []common.Route // private variable, not to use directly
 func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, examples.GetRoutes(server)...)
 	routes = append(routes, users.GetRoutes(server)...)
-	routes = append(routes, posts.GetRoutes(server)...)
-	routes = append(routes, rentals.GetRoutes(server)...)
+	routes = append(routes, professionals.GetRoutes(server)...)
 	routes = append(routes, frontendData.GetRoutes(server)...)
 	routes = append(routes, filterItems.GetRoutes(server)...)
 	return routes

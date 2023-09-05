@@ -1,9 +1,9 @@
-package posts
+package professionals
 
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"rental-app/api/common"
+	"some-app/api/common"
 )
 
 func create(server common.Server) gin.HandlerFunc {
@@ -20,6 +20,6 @@ func create(server common.Server) gin.HandlerFunc {
 		_, err = server.GetStoreHelpers(ctx).CreatePost(authUser.ID, req)
 		common.CheckErrAndPanic(err)
 
-		common.SetOKJSONResponse(ctx, "post has been successfully created")
+		common.SetOKJSONResponse(ctx, "review has been successfully created")
 	}
 }
