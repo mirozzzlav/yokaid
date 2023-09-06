@@ -5,6 +5,7 @@ import useProfessionals from 'src/hooks/useProfessionals';
 import useForm from 'src/hooks/useForm';
 import { useLoginCall, useSignupCall, useMenu } from 'src/hooks/useUser';
 import useDelayedAction from 'src/hooks/useDelayedAction';
+import usePlacesSearch from 'src/hooks/usePlacesSearch';
 
 export {
   useCall,
@@ -16,4 +17,5 @@ export {
   useMenu,
   useAuthorizedCall,
   useDelayedAction,
+  usePlacesSearch,
 };

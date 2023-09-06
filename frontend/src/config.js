@@ -19,8 +19,10 @@ export default {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
       getProfessionals: `${apiUrl}/professionals/get`,
+      getProfessionalsInfo: `${apiUrl}/professionals/get-info`,
       getInitialData: `${apiUrl}/frontend-data/get`,
       getFilterItems: `${apiUrl}/filter-items/get`,
+      addProfessionalWithReview: `${apiUrl}/professionals/add`,
     },
   },
   map: {

@@ -10,6 +10,7 @@ import {
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -184,6 +185,8 @@ function SearchDropdown({
   placeholder,
   searchHook,
   initialItems,
+  inputVal: inputValFromProps,
+  onInputValChange,
   icon,
   onValueSet,
   onValueEmpty,
@@ -191,7 +194,7 @@ function SearchDropdown({
   showLoader,
   width,
 }) {
-  const [inputVal, setInputVal] = useState('');
+  const [inputVal, setInputVal] = useState(inputValFromProps);
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
@@ -245,6 +248,7 @@ function SearchDropdown({
       if (v === '') {
         resetDropdown();
       } else {
+        onInputValChange(v);
         delayedCall(searchCall, v);
       }
     },
@@ -268,6 +272,8 @@ function SearchDropdown({
       />
     );
   }, [showLoader, isLoading, icon, onValueEmpty]);
+
+  useEffect(() => setInputVal(inputValFromProps), [inputValFromProps]);
 
   return (
     <Box sx={globalStyle.contextMenuLikeWrapper} ref={wrapperRef}>
@@ -300,6 +306,8 @@ SearchDropdown.defaultProps = {
   position: 'right',
   showLoader: false,
   initialItems: null,
+  inputVal: '',
+  onInputValChange: () => {},
   width: '300px',
   onValueEmpty: () => {},
 };
@@ -307,6 +315,8 @@ SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
   searchHook: PropTypes.func.isRequired,
   initialItems: PropTypes.oneOfType([itemsPropType, PropTypes.oneOf([null])]),
+  inputVal: PropTypes.string,
+  onInputValChange: PropTypes.func,
   icon: PropTypes.node,
   onValueSet: PropTypes.func.isRequired,
   onValueEmpty: PropTypes.func,

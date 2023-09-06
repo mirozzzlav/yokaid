@@ -35,7 +35,7 @@ func NewStoreHelpers(qRunner common.QueryRunner, qRepo common.QueriesRepo) commo
 func (sH *StoreHelpers) GenerateUserName(fullName string) (string, error) {
 	tempUsername := getUsernameBase(fullName)
 	q := sH.QueriesRepo.GetUsersCountQuery(common.QueryPartial{
-		Query:  "username LIKE ?",
+		Query:  "username ILIKE ?",
 		Params: []any{tempUsername + "%"},
 	})
 
@@ -265,7 +265,7 @@ func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem s
 	var filteredEntitiesQueries = map[string]filterMapItem{
 		"services": {
 			Q:       "SELECT 'serviceId' AS filter_column_alias, title AS label, id AS value FROM services ",
-			FilterQ: "WHERE title LIKE ? ",
+			FilterQ: "WHERE title ILIKE ? ",
 		},
 	}
 

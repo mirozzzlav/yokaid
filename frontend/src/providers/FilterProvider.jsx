@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
+import usePlacesSearch from 'src/hooks/usePlacesSearch';
 
 function useMapFilterItmes(onSearchFinish) {
   const getItemsForMapFilter = useCallback(
@@ -21,17 +22,7 @@ function useMapFilterItmes(onSearchFinish) {
     [],
   );
 
-  const call = useCall((response) => {
-    const mapResults = getItemsForMapFilter(response.data);
-    onSearchFinish(mapResults);
-  });
-  return useCallback(
-    (searchedTerm) =>
-      call(
-        `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
-      ),
-    [call],
-  );
+  return usePlacesSearch(onSearchFinish, getItemsForMapFilter);
 }
 
 function filterItemsHookCreator(filterKey) {

@@ -17,6 +17,7 @@ const globalStyle = {
       positionStyle = { right: 0 };
     }
     return {
+      zIndex: 500,
       marginTop: '5px',
       top: '100%',
       position: 'absolute',

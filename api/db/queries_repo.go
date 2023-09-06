@@ -172,6 +172,26 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 
 }
 
+func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial) common.Query {
+	query := `SELECT 
+				id, full_name, phone, email, rating, business_id, location, location_lat, location_lng 
+			  FROM
+				professionals 
+			  WHERE `
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+	return q
+
+}
+
 func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{

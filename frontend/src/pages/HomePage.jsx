@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@chakra-ui/react';
 import MainLayout from 'src/layouts/MainLayout';
 import {
+  AddReviewForm,
   FormModals,
   LoginForm,
   Map,
@@ -28,7 +29,11 @@ import Modal from 'src/components/Modal';
 
 const style = {
   applyFiltersBtn: {
-    flexBasis: '120px !important',
+    flexBasis: '120px',
+    flexShrink: 0,
+  },
+  addReviewBtn: {
+    flexBasis: '150px',
     flexShrink: 0,
   },
 };
@@ -81,6 +86,14 @@ export default function HomePage() {
         },
         form: SignupForm,
       },
+      {
+        id: 'add-review',
+        title: 'Add review',
+        submitButton: {
+          label: 'Submit',
+        },
+        form: AddReviewForm,
+      },
     ],
     [],
   );
@@ -130,6 +143,13 @@ export default function HomePage() {
       mode="fullscreen"
       topContent={
         <>
+          <Button
+            onClick={() => navigate('/add-review')}
+            sx={style.addReviewBtn}
+            colorScheme="blue"
+          >
+            Add your review
+          </Button>
           <SearchDropdown
             searchHook={useFilterItemsWhere}
             onValueSet={({ value, extraData, filterColumnAlias }) => {
