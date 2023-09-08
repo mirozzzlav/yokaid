@@ -15,15 +15,15 @@ func (sH StoreHelpers) Insert() int {
 		},
 	}
 
-	userid, err := sH.QueryRunner.Create(q, "id")
+	useridAny, err := sH.QueryRunner.Exec(q, "id")
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	id := userid.(int64)
-
-	return int(id)
+	userId, err := common.ConvertToInt(useridAny)
+	common.CheckErrAndPanic(err)
+	return userId
 }
 
 func (sH StoreHelpers) Update(id int) {
@@ -36,10 +36,8 @@ func (sH StoreHelpers) Update(id int) {
 		},
 	}
 
-	err := sH.QueryRunner.Update(q)
-	if err != nil && err != common.ErrNoRows {
-		fmt.Println(err)
-	}
+	_, err := sH.QueryRunner.Exec(q)
+	common.CheckErrAndPanic(err)
 }
 
 func (sH StoreHelpers) Delete(id int) {
@@ -53,8 +51,6 @@ func (sH StoreHelpers) Delete(id int) {
 		},
 	}
 
-	err := sH.QueryRunner.Delete(q)
-	if err != nil && err != common.ErrNoRows {
-		fmt.Println(err)
-	}
+	_, err := sH.QueryRunner.Exec(q)
+	common.CheckErrAndPanic(err)
 }

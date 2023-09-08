@@ -178,27 +178,22 @@ func (qr *queryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes [
 	return qr.getRows(q, fn, true)
 }
 
-func (qr *queryRunner) Create(q common.Query, IdColumnName string) (any, error) {
-
-	err := qr.Begin()
-	if err != nil {
-		return 0, err
-	}
-	var queryRes any
-
+func (qr *queryRunner) Exec(q common.Query, idColumnNameParam ...string) (any, error) {
 	qString, qParams := q.GetQuery()
 
-	if IdColumnName == "" {
-		_, err := qr.tx.Exec(qString, qParams...)
-		if err != nil {
-			return 0, err
-		}
-	} else {
-		err := qr.tx.QueryRow(qString+" returning "+IdColumnName, qParams...).Scan(&queryRes)
+	idColumnName := "id"
+	if len(idColumnNameParam) == 0 {
+		idColumnName = idColumnNameParam[0]
+	}
 
-		if err != nil {
-			return 0, err
+	var queryRes any
+	err := qr.tx.QueryRow(qString+" returning "+idColumnName, qParams...).Scan(&queryRes)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, common.ErrNoRows
 		}
+		return nil, err
 	}
 
 	return queryRes, nil

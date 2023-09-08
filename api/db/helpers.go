@@ -77,7 +77,7 @@ func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 		},
 	)
 
-	err = sH.QueryRunner.Update(q)
+	_, err = sH.QueryRunner.Exec(q)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 		},
 	)
 
-	err = sH.QueryRunner.Delete(q)
+	_, err = sH.QueryRunner.Exec(q)
 	if err == common.ErrNoRows {
 		return nil
 	}
@@ -127,7 +127,7 @@ func (sH *StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) 
 			Params: []any{userId},
 		},
 	)
-	err := sH.QueryRunner.Delete(q)
+	_, err := sH.QueryRunner.Exec(q)
 	if err != nil && err != common.ErrNoRows {
 		return "", err
 	}
@@ -138,7 +138,7 @@ func (sH *StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) 
 		},
 	}
 
-	token, err := sH.QueryRunner.Create(q, "token")
+	token, err := sH.QueryRunner.Exec(q, "token")
 	if err != nil {
 		return "", err
 	}
@@ -171,7 +171,7 @@ func (sH *StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, er
 			},
 		},
 	}
-	tmpUserId, err := sH.QueryRunner.Create(q, "id")
+	tmpUserId, err := sH.QueryRunner.Exec(q, "id")
 	if err != nil {
 		return "", err
 	}
@@ -244,7 +244,7 @@ func (sH *StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (
 		},
 	}
 
-	tmpPostID, err := sH.QueryRunner.Create(q, "id")
+	tmpPostID, err := sH.QueryRunner.Exec(q, "id")
 	if err != nil {
 		return 0, err
 	}

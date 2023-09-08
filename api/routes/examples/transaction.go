@@ -10,6 +10,7 @@ func transaction(server common.Server) func(ctx *gin.Context) {
 
 	return func(ctx *gin.Context) {
 		username, _ := ctx.Params.Get("username")
+		server.GetQueryRunner(ctx).Begin()
 
 		query1 := server.GetQueriesRepo().QueryUserTest(
 			common.QueryPartial{
@@ -32,6 +33,9 @@ func transaction(server common.Server) func(ctx *gin.Context) {
 		users2, usersLoader2 := common.UsersModelLoader()
 		err2 := server.GetQueryRunner(ctx).GetRows(query2, usersLoader2)
 		common.CheckErrAndPanic(err2)
+
+		err3 := server.GetQueryRunner(ctx).Commit()
+		common.CheckErrAndPanic(err3)
 
 		fmt.Println(users1)
 		fmt.Println(users2)
@@ -67,6 +71,7 @@ func secondTransaction(server common.Server) func(ctx *gin.Context) {
 func thirdTransaction(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
+		server.GetQueryRunner(ctx).Begin()
 		id := server.GetStoreHelpers(ctx).Insert()
 		server.GetStoreHelpers(ctx).Update(id)
 		server.GetStoreHelpers(ctx).Delete(id)

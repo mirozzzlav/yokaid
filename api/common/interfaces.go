@@ -31,9 +31,7 @@ type QueryRunner interface {
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 	Begin() error
 	Commit() error
-	Update(q Query) error
-	Create(q Query, IdColumnName string) (any, error)
-	Delete(q Query) error
+	Exec(q Query, idColumnNameParam ...string) (any, error)
 	Rollback() error
 }
 
