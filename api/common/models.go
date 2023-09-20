@@ -46,17 +46,18 @@ type User struct {
 }
 
 type professional struct {
-	ID          int       `json:"id"`
-	FullName    string    `json:"fullName"`
-	Phone       string    `json:"phone"`
-	Email       string    `json:"email"`
-	Rating      int       `json:"rating"`
-	BusinessId  string    `json:"businessId"`
-	Location    string    `json:"location"`
-	LocationLat float64   `json:"locationLat"`
-	LocationLng float64   `json:"locationLng"`
-	Reviews     []review  `json:"reviews"`
-	Services    []service `json:"services"`
+	ID           int       `json:"id"`
+	FullName     string    `json:"fullName"`
+	Phone        string    `json:"phone"`
+	Email        string    `json:"email"`
+	Rating       int       `json:"rating"`
+	BusinessId   string    `json:"businessId"`
+	Location     string    `json:"location"`
+	LocationLat  float64   `json:"locationLat"`
+	LocationLng  float64   `json:"locationLng"`
+	Reviews      []review  `json:"reviews"`
+	ReviewsCount int       `json:"reviewsCount"`
+	Services     []service `json:"services"`
 }
 
 type review struct {

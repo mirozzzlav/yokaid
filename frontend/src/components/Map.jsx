@@ -8,7 +8,7 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import { css } from '@emotion/css';
-import { renderToStaticMarkup } from 'react-dom/server';
+import person from 'public/person.png';
 import { theme } from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import config from 'src/config';
@@ -128,10 +128,16 @@ export default function Map({
     mapLayersRef.current = newMapLayers;
 
     markers.forEach(({ locationLat, locationLng, id: markerId }) => {
-      const marker = L.marker({
-        lat: locationLat,
-        lng: locationLng,
-      }).on('click', () => onMarkerClick(markerId));
+      const icon = L.icon({
+        iconUrl: person,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
+      });
+      const marker = L.marker([locationLat, locationLng], { icon }).on(
+        'click',
+        () => onMarkerClick(markerId),
+      );
+
       if (mapLayersRef.current[markerId]) {
         return;
       }

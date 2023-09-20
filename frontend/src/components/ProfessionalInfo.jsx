@@ -58,7 +58,9 @@ export default function ProfessionalInfo({ data }) {
         res[0],
         {
           headline: 'Rating',
-          content: <Rating rating={data.rating} />,
+          content: (
+            <Rating rating={data.rating} reviewsCount={data.reviewsCount} />
+          ),
         },
         res.slice(1),
       ];

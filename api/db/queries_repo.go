@@ -110,7 +110,8 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 	  professionals.location_lng, 
 	  reviews_view.reviews,
 	  reviews_view.rating,
-	  services_view.services
+	  services_view.services,
+	  reviews_count_view.reviews_count
 	FROM 
 	  professionals
 	  JOIN (
@@ -149,6 +150,11 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 		GROUP BY 
 		  professional_id
 	) AS reviews_view ON professionals.id = reviews_view.professional_id
+	JOIN (
+	  SELECT count(reviews.id) AS reviews_count, reviews.professional_id 
+	  FROM reviews GROUP BY reviews.professional_id
+	) AS reviews_count_view
+	ON professionals.id = reviews_count_view.professional_id
 	WHERE professionals.active = true `
 
 	if filter.Query != "" {

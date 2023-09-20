@@ -127,7 +127,7 @@ export default function useForms(formConfigs) {
         return isAdded;
       },
     }),
-    [formStates, requestStates],
+    [formStates, requestStates, formConfigs],
   );
 
   const calls = Object.fromEntries(
@@ -167,17 +167,6 @@ export default function useForms(formConfigs) {
         }
       }),
     [formConfigs, requestStates],
-  );
-
-  useEffect(
-    () =>
-      Object.entries(formConfigs).forEach(([formId, formConfig]) => {
-        const { resetForm } = getFormStateAndHelpers(formId);
-        if (formConfig.extraData) {
-          resetForm();
-        }
-      }),
-    [formConfigs],
   );
 
   return getFormStateAndHelpers;

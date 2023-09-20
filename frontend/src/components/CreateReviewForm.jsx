@@ -64,6 +64,21 @@ const style = {
   },
 };
 
+const inputNames = [
+  'fullName',
+  'businessId',
+  'locationLat',
+  'locationLng',
+  'location',
+  'phone',
+  'email',
+  'searchedService',
+  'services',
+  'text',
+  'rating',
+  'professionalId',
+];
+
 export function RatingFormControls({ inputs, inputsErrors, updateInputs }) {
   return (
     <>
@@ -286,7 +301,7 @@ CreateProAndReviewForm.prototype.propTypes = {
 export function formFactory(extraData, extraActions) {
   if (extraData) {
     return {
-      inputNames: ['professionalId', 'text', 'rating'],
+      inputNames,
       hook: (onCallFinish) => {
         const call = useCall(onCallFinish);
 
@@ -309,19 +324,7 @@ export function formFactory(extraData, extraActions) {
   }
 
   return {
-    inputNames: [
-      'fullName',
-      'businessId',
-      'locationLat',
-      'locationLng',
-      'location',
-      'phone',
-      'email',
-      'searchedService',
-      'services',
-      'text',
-      'rating',
-    ],
+    inputNames,
     hook: (onCallFinish) => {
       const call = useCall(onCallFinish);
 

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flex, IconButton } from '@chakra-ui/react';
+import { Box, Flex, IconButton } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import { theme } from 'src/style';
@@ -42,8 +42,15 @@ RatingStar.defaultProps = {
   onClick: null,
 };
 
+const style = {
+  reviewsCount: {
+    fontSize: '0.8rem',
+    margin: '3px 0',
+  },
+};
 export default function Rating({
   rating,
+  reviewsCount,
   onStarClick,
   size: sizeStr,
   margin,
@@ -55,27 +62,32 @@ export default function Rating({
   }, [sizeStr]);
 
   return (
-    <Flex
-      sx={{
-        fontSize: sizeStr,
-        margin,
-        justifyContent: position === 'right' ? 'end' : 'left',
-      }}
-      gap={gap}
-    >
-      {Array.from({ length: config.maxRating }, (_, i) => i + 1).map((n) => (
-        <RatingStar
-          key={n}
-          onClick={onStarClick ? () => onStarClick(n) : null}
-          active={n <= rating}
-        />
-      ))}
-    </Flex>
+    <Box sx={{ margin }}>
+      <Flex
+        sx={{
+          fontSize: sizeStr,
+          justifyContent: position === 'right' ? 'end' : 'left',
+        }}
+        gap={gap}
+      >
+        {Array.from({ length: config.maxRating }, (_, i) => i + 1).map((n) => (
+          <RatingStar
+            key={n}
+            onClick={onStarClick ? () => onStarClick(n) : null}
+            active={n <= rating}
+          />
+        ))}
+      </Flex>
+      {reviewsCount ? (
+        <Box sx={style.reviewsCount}>({reviewsCount} reviews)</Box>
+      ) : null}
+    </Box>
   );
 }
 
 Rating.defaultProps = {
   rating: Math.round(config.maxRating / 2),
+  reviewsCount: null,
   onStarClick: null,
   size: '1rem',
   margin: '5px 0',
@@ -83,6 +95,10 @@ Rating.defaultProps = {
 };
 Rating.prototype.propTypes = {
   rating: PropTypes.number,
+  reviewsCount: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.oneOf([null]),
+  ]),
   onStarClick: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
   size: PropTypes.string,
   margin: PropTypes.string,

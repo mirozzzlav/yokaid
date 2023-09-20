@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import { unknownObjectValidator } from 'src/helpers';
@@ -16,7 +16,20 @@ export default function FormModals({
       ),
     [modalsConfig],
   );
+  const showFormExtraData = useMemo(
+    () => formsConfig[shownModalId]?.extraData || null,
+    [formsConfig, shownModalId],
+  );
   const getFormStateAndHelpers = useForms(formsConfig);
+
+  useEffect(() => {
+    if (!shownModalId) {
+      return;
+    }
+    const { resetForm } = getFormStateAndHelpers(shownModalId);
+    resetForm();
+  }, [shownModalId, showFormExtraData]);
+
   return (
     <>
       {Object.entries(modalsConfig).map(
@@ -35,14 +48,12 @@ export default function FormModals({
             updateInputs,
             formRequestState,
             submitForm,
-            resetForm,
           } = getFormStateAndHelpers(id);
           return (
             <Modal
               key={id}
               title={title}
               isShown={id === shownModalId}
-              onShow={resetForm}
               close={() => setShownModalId(null)}
               isScrolledDown={formRequestState.isFinished}
               submitButton={{
