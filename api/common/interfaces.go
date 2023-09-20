@@ -44,9 +44,13 @@ type QueriesRepo interface {
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
 	GetProfessionalsWithReviewsQuery(filter QueryPartial) Query
-	GetProfessionalsBasicInfoQuery(filter QueryPartial) Query
+	GetProfessionalsBasicInfoQuery(filter QueryPartial, activeOnly bool) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
+	CreateProfessionalQuery(req CreateProfessionalRequest) Query
+	CreateProfessionalServicesQuery(proId int, serviceId []int) Query
+	CreateReviewQuery(proId int, req CreateRewiewRequest) Query
+	GetServicesQuery(filter QueryPartial) Query
 }
 
 type StoreHelpers interface {
@@ -59,9 +63,9 @@ type StoreHelpers interface {
 	RegisterUser(req RegisterUserRequest) (string, error)
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
-	CreatePost(authorId int, req CreatePostRequest) (int, error)
 	GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalServicesForFilter() (*[]FilterItem, error)
+	CreateProfessionalWithReview(req CreateProfessionalWithReviewRequest) error
 
 	// only for testing
 	Insert() int

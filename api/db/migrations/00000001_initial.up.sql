@@ -52,9 +52,8 @@ CREATE TABLE "images" (
 CREATE TABLE "professionals" (
     "id" "serial" NOT NULL,
     "full_name" character varying(32) NOT NULL,
-    "phone" character varying(16) NOT NULL,
+    "phone" character varying(16) NULL,
     "email" character varying(64) NULL,
-    "rating" integer NOT NULL,
     "business_id" character varying(64) NULL, -- ico / company name?
     "location" character varying(512) NOT NULL,
     "location_lat" real NOT NULL,
@@ -66,7 +65,7 @@ CREATE TABLE "professionals" (
 CREATE TABLE "reviews" (
     "id" serial NOT NULL,
     "professional_id" integer NOT NULL,
-	"text" text NOT NULL,
+	"text" text NULL,
 	"rating" integer NOT NULL,
 	"created_at" timestamp NOT NULL DEFAULT now(),
 

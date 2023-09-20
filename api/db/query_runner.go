@@ -182,7 +182,7 @@ func (qr *queryRunner) Exec(q common.Query, idColumnNameParam ...string) (any, e
 	qString, qParams := q.GetQuery()
 
 	idColumnName := "id"
-	if len(idColumnNameParam) == 0 {
+	if len(idColumnNameParam) > 0 {
 		idColumnName = idColumnNameParam[0]
 	}
 

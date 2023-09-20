@@ -9,29 +9,22 @@ import {
   Box,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { theme } from 'src/style';
+import { globalStyle, theme } from 'src/style';
 import { ErrorMessage } from 'src/components/Messages';
-import { useForm, useLoginCall } from 'src/hooks';
+import { useLoginCall } from 'src/hooks';
+import { unknownObjectValidator } from 'src/helpers';
 
 export default function LoginForm({
-  isShown,
-  setIsShown,
-  isSubmitted,
-  setIsSubmitted,
+  errorMsg,
+  state,
+  inputsErrors,
+  inputs,
+  updateInputs,
 }) {
-  const { errorMsg, isError, inputsErrors, inputs, updateInputs } = useForm(
-    isShown,
-    setIsShown,
-    isSubmitted,
-    setIsSubmitted,
-    useLoginCall,
-    ['usernameOrEmail', 'password'],
-  );
-
   return (
-    <Box>
-      <FormControl mb="10px" isInvalid={inputsErrors?.usernameOrEmail}>
-        <FormLabel mb={0}>Username or email</FormLabel>
+    <Box sx={globalStyle.formWrapper}>
+      <FormControl isInvalid={inputsErrors?.usernameOrEmail}>
+        <FormLabel>Username or email</FormLabel>
         <Input
           type="email"
           value={inputs.usernameOrEmail}
@@ -42,7 +35,7 @@ export default function LoginForm({
         <FormErrorMessage>{inputsErrors?.usernameOrEmail}</FormErrorMessage>
       </FormControl>
       <FormControl isInvalid={inputsErrors?.password}>
-        <FormLabel mb={0}>Password</FormLabel>
+        <FormLabel>Password</FormLabel>
         <Input
           type="password"
           value={inputs.password}
@@ -61,14 +54,23 @@ export default function LoginForm({
         <Link to="/forgot-password">Forgot password?</Link>
         <Link to="/signup">Sign up</Link>
       </Flex>
-      {isError() && <ErrorMessage message={errorMsg} />}
+      {state.isError && <ErrorMessage message={errorMsg} />}
     </Box>
   );
 }
 
-LoginForm.propTypes = {
-  isShown: PropTypes.bool.isRequired,
-  setIsShown: PropTypes.func.isRequired,
-  isSubmitted: PropTypes.bool.isRequired,
-  setIsSubmitted: PropTypes.func.isRequired,
+LoginForm.prototype.propTypes = {
+  errorMsg: PropTypes.string.isRequired,
+  state: PropTypes.string.isRequired,
+  inputsErrors: unknownObjectValidator.isRequired,
+  inputs: unknownObjectValidator.isRequired,
+  updateInputs: PropTypes.func.isRequired,
 };
+
+export function formFactory() {
+  return {
+    inputNames: ['usernameOrEmail', 'password'],
+    hook: useLoginCall,
+    formUI: LoginForm,
+  };
+}

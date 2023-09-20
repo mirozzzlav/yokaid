@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal as ModalChakra,
@@ -22,18 +22,38 @@ const style = {
 };
 export default function Modal({
   isShown,
-  setIsShown,
+  onShow,
+  close,
   title,
   submitButton,
   children,
+  isScrolledDown,
 }) {
+  const bodyRef = useRef();
+  useEffect(() => {
+    if (isScrolledDown && bodyRef.current) {
+      bodyRef.current.scrollTo({
+        top: bodyRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [isScrolledDown]);
+
+  useEffect(() => {
+    if (isShown) {
+      onShow();
+    }
+  }, [isShown]);
+
   return (
-    <ModalChakra isOpen={isShown} onClose={() => setIsShown(false)}>
+    <ModalChakra isOpen={isShown} onClose={close}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody sx={style.modalBody}>{children}</ModalBody>
+        <ModalBody sx={style.modalBody} ref={bodyRef}>
+          {children}
+        </ModalBody>
         <ModalFooter>
           {submitButton && (
             <Button
@@ -45,7 +65,7 @@ export default function Modal({
               {submitButton.label}
             </Button>
           )}
-          <Button onClick={() => setIsShown(false)} variant="solid">
+          <Button onClick={close} variant="solid">
             Close
           </Button>
         </ModalFooter>
@@ -56,11 +76,14 @@ export default function Modal({
 
 Modal.defaultProps = {
   submitButton: null,
+  isScrolledDown: false,
+  onShow: () => {},
 };
 
 Modal.prototype.propTypes = {
   isShown: PropTypes.bool.isRequired,
-  setIsShown: PropTypes.func.isRequired,
+  onShow: PropTypes.func,
+  close: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
   submitButton: PropTypes.oneOfType([
@@ -70,4 +93,5 @@ Modal.prototype.propTypes = {
     }),
     PropTypes.oneOf([null]),
   ]),
+  isScrolledDown: PropTypes.bool,
 };

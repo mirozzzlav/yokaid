@@ -2,11 +2,11 @@ export const proxyApiSuffix = '/api';
 
 const apiUrl = `${window.location.origin}${proxyApiSuffix}`;
 
-const defualtMapBounds = [
+const defaultMapBounds = [
   51.48801054716571, -0.1518344879150391, 51.52198884392169,
   -0.028238296508789066,
 ];
-const defualtMapPosition = [51.505, -0.09];
+const defaultMapPosition = [51.505, -0.09];
 const mapFilterColumnAlias = 'mapBounds';
 
 export default {
@@ -22,23 +22,25 @@ export default {
       getProfessionalsInfo: `${apiUrl}/professionals/get-info`,
       getInitialData: `${apiUrl}/frontend-data/get`,
       getFilterItems: `${apiUrl}/filter-items/get`,
-      addProfessionalWithReview: `${apiUrl}/professionals/add`,
+      createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
+      createReview: `${apiUrl}/reviews/create`,
+      getServices: `${apiUrl}/services/get`,
     },
   },
   map: {
     defaultZoom: 14,
-    defaultPosition: defualtMapPosition,
-    defaultBounds: defualtMapBounds,
+    defaultPosition: defaultMapPosition,
+    defaultBounds: defaultMapBounds,
     columnAlias: mapFilterColumnAlias,
     defaultArea: {
-      position: defualtMapPosition,
-      bounds: defualtMapBounds,
+      position: defaultMapPosition,
+      bounds: defaultMapBounds,
     },
   },
   defaultFilter: {
     [mapFilterColumnAlias]: {
-      value: defualtMapBounds,
-      extraData: defualtMapPosition,
+      value: defaultMapBounds,
+      extraData: defaultMapPosition,
     },
   },
   maxRating: 5,

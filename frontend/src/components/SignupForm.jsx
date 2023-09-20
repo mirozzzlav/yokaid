@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Input,
   FormLabel,
@@ -7,32 +8,24 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
-import PropTypes from 'prop-types';
-import { useForm, useSignupCall } from 'src/hooks';
+import { unknownObjectValidator } from 'src/helpers';
+import { useSignupCall } from 'src/hooks';
+import { globalStyle } from 'src/style';
 
 const successMessage =
   'sign up has been successful, please check your email for the account activation';
 
 export default function SignupForm({
-  isShown,
-  setIsShown,
-  isSubmitted,
-  setIsSubmitted,
+  errorMsg,
+  state,
+  inputsErrors,
+  inputs,
+  updateInputs,
 }) {
-  const { isError, errorMsg, isSuccess, inputsErrors, inputs, updateInputs } =
-    useForm(
-      isShown,
-      setIsShown,
-      isSubmitted,
-      setIsSubmitted,
-      useSignupCall,
-      ['fullName', 'email'],
-      false,
-    );
   return (
-    <Box>
-      <FormControl isInvalid={inputsErrors?.fullName} mb="10px">
-        <FormLabel mb={0}>Full name</FormLabel>
+    <Box sx={globalStyle.formWrapper}>
+      <FormControl isInvalid={inputsErrors?.fullName}>
+        <FormLabel>Full name</FormLabel>
         <Input
           type="text"
           value={inputs.fullName}
@@ -42,8 +35,8 @@ export default function SignupForm({
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.email} mb="15px">
-        <FormLabel mb={0}>Email</FormLabel>
+      <FormControl isInvalid={inputsErrors?.email}>
+        <FormLabel>Email</FormLabel>
         <Input
           type="text"
           value={inputs.email}
@@ -54,15 +47,24 @@ export default function SignupForm({
         <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
       </FormControl>
 
-      {isError() ? <ErrorMessage message={errorMsg} /> : null}
-      {isSuccess() ? <SuccessMessage message={successMessage} /> : null}
+      {state.isError ? <ErrorMessage message={errorMsg} /> : null}
+      {state.isSuccess ? <SuccessMessage message={successMessage} /> : null}
     </Box>
   );
 }
 
-SignupForm.propTypes = {
-  isShown: PropTypes.bool.isRequired,
-  setIsShown: PropTypes.func.isRequired,
-  isSubmitted: PropTypes.bool.isRequired,
-  setIsSubmitted: PropTypes.func.isRequired,
+SignupForm.prototype.propTypes = {
+  errorMsg: PropTypes.string.isRequired,
+  state: PropTypes.string.isRequired,
+  inputsErrors: unknownObjectValidator.isRequired,
+  inputs: unknownObjectValidator.isRequired,
+  updateInputs: PropTypes.func.isRequired,
 };
+
+export function formFactory() {
+  return {
+    inputNames: ['fullName', 'email'],
+    hook: useSignupCall,
+    formUI: SignupForm,
+  };
+}

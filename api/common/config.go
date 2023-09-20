@@ -31,6 +31,7 @@ type config struct {
 
 var publicRoles = []string{"guest"}
 var ErrNoRows = errors.New("no rows in result set")
+var ErrRecordExist = errors.New("given record already exist")
 
 func getLogsConfig() logsConfig {
 	logsToScreen, err := strconv.ParseBool(os.Getenv("LOGS_TO_SCREEN"))

@@ -6,6 +6,8 @@ import (
 	filterItems "some-app/api/routes/filter_items"
 	frontendData "some-app/api/routes/frontend_data"
 	"some-app/api/routes/professionals"
+	"some-app/api/routes/reviews"
+	"some-app/api/routes/services"
 	"some-app/api/routes/users"
 )
 
@@ -17,5 +19,7 @@ func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, professionals.GetRoutes(server)...)
 	routes = append(routes, frontendData.GetRoutes(server)...)
 	routes = append(routes, filterItems.GetRoutes(server)...)
+	routes = append(routes, services.GetRoutes(server)...)
+	routes = append(routes, reviews.GetRoutes(server)...)
 	return routes
 }

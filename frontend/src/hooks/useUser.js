@@ -13,18 +13,15 @@ export function useLoginCall(onCallFinish) {
     onCallFinish(response);
   });
 
-  return useCallback(
-    (inputs) =>
-      call(config.api.endPointsURLs.loginUser, 'post', objToSnakeCase(inputs)),
-    [],
-  );
+  return (inputs) =>
+    call(config.api.endPointsURLs.loginUser, 'post', objToSnakeCase(inputs));
 }
 export function useSignupCall(onCallFinish) {
   const call = useCall(onCallFinish);
 
-  return useCallback((inputs) => {
+  return (inputs) => {
     call(config.api.endPointsURLs.signupUser, 'post', objToSnakeCase(inputs));
-  }, []);
+  };
 }
 
 export function useMenu() {

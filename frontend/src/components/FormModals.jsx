@@ -1,62 +1,81 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
-import { useNavigate, useParams } from 'react-router-dom';
+import { unknownObjectValidator } from 'src/helpers';
+import { useForms } from 'src/hooks';
 
-function resetSubmitted(modals) {
-  return Object.fromEntries(modals.map(({ id }) => [id, false]));
-}
-
-export default function FormModals({ modals, shownFormId, setShownFormId }) {
-  const [submitted, setSubmittedState] = useState(resetSubmitted(modals));
-
-  const setIsSubmitted = useCallback(
-    (isSubmitted) =>
-      setSubmittedState((prevState) => ({
-        ...prevState,
-        [shownFormId]: isSubmitted,
-      })),
-    [shownFormId],
+export default function FormModals({
+  modalsConfig,
+  shownModalId,
+  setShownModalId,
+}) {
+  const formsConfig = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(modalsConfig).map(([id, { form }]) => [id, form]),
+      ),
+    [modalsConfig],
   );
-
-  useEffect(() => {
-    setSubmittedState(resetSubmitted(modals));
-  }, [shownFormId]);
-
+  const getFormStateAndHelpers = useForms(formsConfig);
   return (
     <>
-      {modals.map(({ id, title, form, submitButton }) => (
-        <Modal
-          key={id}
-          title={title}
-          isShown={id === shownFormId}
-          submitButton={{
-            ...submitButton,
-            onClick: () => setIsSubmitted(true),
-          }}
-          setIsShown={(isShown) => setShownFormId(isShown ? id : null)}
-        >
-          {React.createElement(form, {
-            isShown: id === shownFormId,
-            setIsShown: (isShown) => setShownFormId(isShown ? id : null),
-            isSubmitted: submitted[shownFormId] || false,
-            setIsSubmitted,
-          })}
-        </Modal>
-      ))}
+      {Object.entries(modalsConfig).map(
+        ([
+          id,
+          {
+            title,
+            form: { formUI, extraActions, extraData },
+            submitButton,
+          },
+        ]) => {
+          const {
+            errorMsg,
+            inputsErrors,
+            inputs,
+            updateInputs,
+            formRequestState,
+            submitForm,
+            resetForm,
+          } = getFormStateAndHelpers(id);
+          return (
+            <Modal
+              key={id}
+              title={title}
+              isShown={id === shownModalId}
+              onShow={resetForm}
+              close={() => setShownModalId(null)}
+              isScrolledDown={formRequestState.isFinished}
+              submitButton={{
+                ...submitButton,
+                onClick: submitForm,
+              }}
+            >
+              {React.createElement(formUI, {
+                errorMsg,
+                state: formRequestState,
+                inputsErrors,
+                inputs,
+                updateInputs,
+                extraActions,
+                extraData,
+              })}
+            </Modal>
+          );
+        },
+      )}
     </>
   );
 }
 
 FormModals.prototype.propTypes = {
-  modals: PropTypes.arrayOf(
+  modalsConfig: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,
       title: PropTypes.string,
       submitButtonLabel: PropTypes.string,
-      form: PropTypes.node,
+      form: unknownObjectValidator,
     }),
   ).isRequired,
-  shownFormId: PropTypes.string.isRequired,
-  setShownFormId: PropTypes.func.isRequired,
+  shownModalId: PropTypes.string.isRequired,
+  setShownModalId: PropTypes.func.isRequired,
 };

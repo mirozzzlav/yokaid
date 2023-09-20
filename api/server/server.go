@@ -58,6 +58,11 @@ func NewServer(
 		return nil, err
 	}
 
+	err = validate.RegisterValidation("phone", common.PhoneNumberValidator)
+	if err != nil {
+		return nil, err
+	}
+
 	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
 	if err != nil {
 		return nil, err

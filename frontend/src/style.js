@@ -4,7 +4,24 @@
 
 import { extendTheme } from '@chakra-ui/react';
 
+// Extend the default Chakra UI theme to access shadow styles
+const theme = extendTheme();
+
 const globalStyle = {
+  formWrapper: {
+    '> *': {
+      marginBottom: theme.space[2],
+      '> label': {
+        marginBottom: 0,
+      },
+      'textarea, input': {
+        paddingLeft: theme.space[2],
+      },
+      input: {
+        paddingRight: '40px',
+      },
+    },
+  },
   contextMenuLikeWrapper: {
     position: 'relative',
   },
@@ -26,8 +43,5 @@ const globalStyle = {
     };
   },
 };
-
-// Extend the default Chakra UI theme to access shadow styles
-const theme = extendTheme();
 
 export { theme, globalStyle };

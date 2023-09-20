@@ -10,7 +10,6 @@ import {
 import React, {
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -22,24 +21,40 @@ import { unknownObjectValidator } from 'src/helpers';
 import { useDelayedAction } from 'src/hooks';
 import { LoaderContext } from 'src/providers';
 
+const listElemStyle = {
+  width: '100%',
+  textAlign: 'left',
+  borderRadius: 0,
+  padding: '0 1rem',
+};
 const style = {
   list: (isShown) => ({
-    background: '#fff',
-    padding: '1rem 0',
-    borderRadius: theme.radii.md,
-    boxShadow: theme.shadows.md,
+    background: theme.colors.white,
+    borderRadius: theme.radii.base,
+    border: `1px solid ${theme.colors.gray[400]}`,
     overflow: 'hidden',
     ...(!isShown ? { display: 'none' } : null),
   }),
+  noResults: {
+    ...listElemStyle,
+    display: 'flex',
+    alignItems: 'center',
+    height: theme.sizes[10],
+  },
   listElem: {
-    width: '100%',
+    ...listElemStyle,
     whiteSpace: 'nowrap',
-    textAlign: 'left',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     display: 'block',
-    borderRadius: 0,
-    padding: '0 1rem',
+    fontWeight: theme.fontWeights.normal,
+    ':hover': {
+      background: theme.colors.gray[100],
+    },
+    ':focus-visible': {
+      boxShadow: 'none',
+      fontWeight: theme.fontWeights.bold,
+    },
   },
 };
 
@@ -59,17 +74,18 @@ function DropdownList({
       }}
     >
       {items.length === 0 ? (
-        <Box sx={style.listElem}>no results</Box>
+        <Box sx={style.noResults}>no results</Box>
       ) : (
         <Box>
-          {items.map(({ label, value, ...restItem }) => (
+          {items.map(({ label, value, ...restItem }, i) => (
             <Button
               sx={style.listElem}
+              onBlur={() => i === items.length - 1 && setIsShown(false)}
               variant="ghost"
               key={`${label}${
                 typeof value === 'object' ? JSON.stringify(value) : value
               }`}
-              onClick={() => {
+              onClick={(e) => {
                 if (restItem.onClick) {
                   restItem.onClick({
                     label,
@@ -186,24 +202,31 @@ function SearchDropdown({
   searchHook,
   initialItems,
   inputVal: inputValFromProps,
-  onInputValChange,
+  inputValSetter: inputValSetterFromProps,
   icon,
   onValueSet,
   onValueEmpty,
   position,
   showLoader,
+  showCloseIcon,
   width,
 }) {
-  const [inputVal, setInputVal] = useState(inputValFromProps);
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
+  const [items, setItems] = useState(initialItems || []);
+  const delayedCall = useDelayedAction();
+  let [inputVal, inputValSetter] = useState('');
+
+  if (inputValFromProps !== null && inputValSetterFromProps !== null) {
+    inputVal = inputValFromProps;
+    inputValSetter = inputValSetterFromProps;
+  }
+
   useOutsideClick({
     ref: wrapperRef,
     handler: () => setIsShown(false),
   });
-  const [items, setItems] = useState(initialItems || []);
-  const delayedCall = useDelayedAction();
 
   const searchCall = searchHook((responseItems) => {
     if (inputVal === '') {
@@ -217,7 +240,7 @@ function SearchDropdown({
   const onItemClick = useCallback(
     (onClickData) => {
       onValueSet(onClickData);
-      setInputVal(onClickData.label);
+      inputValSetter(onClickData.label);
     },
     [onValueSet],
   );
@@ -244,13 +267,12 @@ function SearchDropdown({
   const onInputChange = useCallback(
     (e) => {
       const v = e.target.value;
-      setInputVal(v);
       if (v === '') {
         resetDropdown();
       } else {
-        onInputValChange(v);
         delayedCall(searchCall, v);
       }
+      inputValSetter(v);
     },
     [initialItems],
   );
@@ -259,21 +281,20 @@ function SearchDropdown({
     if (showLoader && isLoading) {
       return <Spinner />;
     }
-    if (inputVal === '') {
-      return icon;
-    }
-    return (
-      <SmallCloseIcon
-        sx={{ cursor: 'pointer' }}
-        onClick={() => {
-          setInputVal('');
-          onValueEmpty();
-        }}
-      />
-    );
-  }, [showLoader, isLoading, icon, onValueEmpty]);
 
-  useEffect(() => setInputVal(inputValFromProps), [inputValFromProps]);
+    if (inputVal !== '' && showCloseIcon) {
+      return (
+        <SmallCloseIcon
+          sx={{ cursor: 'pointer' }}
+          onClick={() => {
+            inputValSetter('');
+            onValueEmpty();
+          }}
+        />
+      );
+    }
+    return icon;
+  }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
 
   return (
     <Box sx={globalStyle.contextMenuLikeWrapper} ref={wrapperRef}>
@@ -283,6 +304,7 @@ function SearchDropdown({
           onChange={onInputChange}
           onFocus={onInputFocus}
           value={inputVal}
+          onBlur={() => items.length === 0 && setIsShown(false)}
         />
 
         <InputRightElement>{inputIcon}</InputRightElement>
@@ -305,9 +327,10 @@ SearchDropdown.defaultProps = {
   icon: <SearchIcon />,
   position: 'right',
   showLoader: false,
+  showCloseIcon: true,
   initialItems: null,
-  inputVal: '',
-  onInputValChange: () => {},
+  inputVal: null,
+  inputValSetter: null,
   width: '300px',
   onValueEmpty: () => {},
 };
@@ -316,12 +339,16 @@ SearchDropdown.propTypes = {
   searchHook: PropTypes.func.isRequired,
   initialItems: PropTypes.oneOfType([itemsPropType, PropTypes.oneOf([null])]),
   inputVal: PropTypes.string,
-  onInputValChange: PropTypes.func,
+  inputValSetter: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.oneOf([null]),
+  ]),
   icon: PropTypes.node,
   onValueSet: PropTypes.func.isRequired,
   onValueEmpty: PropTypes.func,
   position: PropTypes.string,
   showLoader: PropTypes.bool,
+  showCloseIcon: PropTypes.bool,
   width: PropTypes.string,
 };
 

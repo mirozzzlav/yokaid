@@ -9,15 +9,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@chakra-ui/react';
 import MainLayout from 'src/layouts/MainLayout';
 import {
-  AddReviewForm,
+  createReviewFormFactory,
+  loginFormFactory,
+  signupFormFactory,
   FormModals,
-  LoginForm,
   Map,
-  ProfessionalReviews,
   SearchDropdown,
-  SignupForm,
+  ProfessionalInfoModal,
 } from 'src/components';
-import { useMenu, useProfessionals } from 'src/hooks';
+import { useMenu, useGetProfessionals } from 'src/hooks';
 import {
   AuthContext,
   FilterContext,
@@ -25,7 +25,6 @@ import {
   MapContext,
 } from 'src/providers';
 import config from 'src/config';
-import Modal from 'src/components/Modal';
 
 const style = {
   applyFiltersBtn: {
@@ -41,12 +40,12 @@ const style = {
 export default function HomePage() {
   const { menuItems: userMenuItems, buttonStyle: userMenuBtnStyle } = useMenu();
   const navigate = useNavigate();
-  const { action } = useParams();
+  const { action, actionParams } = useParams();
   const { logOut } = useContext(AuthContext);
   const {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
-  const { professionals, callGetProfessionals } = useProfessionals();
+  const { professionals, callGetProfessionals } = useGetProfessionals();
   const {
     moveMap,
     mapAreaRequestRef,
@@ -54,9 +53,9 @@ export default function HomePage() {
     setMapAreaRequest,
   } = useContext(MapContext);
 
-  const setShownFormId = useCallback((formId) => {
-    if (formId) {
-      navigate(formId ? `/${formId}` : '/');
+  const setShownModalId = useCallback((modalId) => {
+    if (modalId) {
+      navigate(modalId ? `/${modalId}` : '/');
     } else {
       navigate('/');
     }
@@ -68,36 +67,38 @@ export default function HomePage() {
     }
   }, [action]);
 
-  const modals = useMemo(
-    () => [
-      {
-        id: 'login',
+  const modalsConfig = useMemo(
+    () => ({
+      login: {
         title: 'Login',
         submitButton: {
           label: 'Login',
         },
-        form: LoginForm,
+        form: loginFormFactory(),
       },
-      {
-        id: 'signup',
+      signup: {
         title: 'Sign up',
         submitButton: {
           label: 'Sign up',
         },
-        form: SignupForm,
+        form: signupFormFactory(),
       },
-      {
-        id: 'add-review',
+      'add-review': {
         title: 'Add review',
         submitButton: {
           label: 'Submit',
         },
-        form: AddReviewForm,
+        form: createReviewFormFactory(
+          actionParams ? JSON.parse(atob(actionParams)) : null,
+          {
+            onProfessionalFound: (professional) =>
+              navigate(`/add-review/${btoa(JSON.stringify(professional))}`),
+          },
+        ),
       },
-    ],
-    [],
+    }),
+    [action, actionParams],
   );
-
   const {
     filterItemsHookCreator,
     updateFilter,
@@ -132,11 +133,6 @@ export default function HomePage() {
     }
     return null;
   }, [selectedMarkerId, professionals]);
-
-  const setIsProShown = useCallback(
-    (isShown) => setSelectedMarkerId(isShown || null),
-    [],
-  );
 
   return (
     <MainLayout
@@ -214,15 +210,17 @@ export default function HomePage() {
         onMarkerClick={setSelectedMarkerId}
       />
       <FormModals
-        modals={modals}
-        shownFormId={action}
-        setShownFormId={setShownFormId}
+        modalsConfig={modalsConfig}
+        shownModalId={action}
+        setShownModalId={setShownModalId}
       />
-      <ProfessionalReviews
-        data={selectedPro}
-        setIsShown={setIsProShown}
-        isShown={selectedMarkerId}
-      />
+      {selectedPro && (
+        <ProfessionalInfoModal
+          data={selectedPro}
+          close={() => setSelectedMarkerId(null)}
+          isShown={selectedMarkerId}
+        />
+      )}
     </MainLayout>
   );
 }

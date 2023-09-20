@@ -1,5 +1,5 @@
-import { AuthContext } from 'src/providers/AuthProvider';
 import { useContext } from 'react';
+import { AuthContext } from 'src/providers/AuthProvider';
 import { getTokenFromResponse } from 'src/helpers';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';

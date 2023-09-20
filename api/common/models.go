@@ -72,15 +72,15 @@ type service struct {
 }
 
 type professionalBasicInfo struct {
-	ID          int     `json:"id"`
-	FullName    string  `json:"fullName"`
-	Phone       string  `json:"phone"`
-	Email       string  `json:"email"`
-	Rating      int     `json:"rating"`
-	BusinessId  string  `json:"businessId"`
-	Location    string  `json:"location"`
-	LocationLat float64 `json:"locationLat"`
-	LocationLng float64 `json:"locationLng"`
+	ID          int       `json:"id"`
+	FullName    string    `json:"fullName"`
+	Phone       string    `json:"phone"`
+	Email       string    `json:"email"`
+	BusinessId  string    `json:"businessId"`
+	Location    string    `json:"location"`
+	LocationLat float64   `json:"locationLat"`
+	LocationLng float64   `json:"locationLng"`
+	Services    []service `json:"services"`
 }
 
 type passwordChangeRequest struct {
@@ -130,6 +130,14 @@ func ProfessionalsBasicInfoModelLoader() (*[]professionalBasicInfo, func(rowByte
 		var info professionalBasicInfo
 		_ = json.Unmarshal(rowBytes, &info)
 		infos = append(infos, info)
+	}
+}
+func ServicesModelLoader() (*[]service, func(rowBytes []byte)) {
+	var services []service
+	return &services, func(rowBytes []byte) {
+		var service service
+		_ = json.Unmarshal(rowBytes, &service)
+		services = append(services, service)
 	}
 }
 

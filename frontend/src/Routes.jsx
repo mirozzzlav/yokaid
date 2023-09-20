@@ -5,12 +5,12 @@ import { Route, Routes as RoutesReactDom } from 'react-router-dom';
 const routes = [
   {
     name: 'home',
-    route: '',
+    path: '',
     element: <HomePage />,
   },
   {
     name: 'userActions',
-    route: ':action',
+    path: ':action/:actionParams?',
     element: <HomePage />,
   },
 ];
@@ -26,8 +26,8 @@ export function isPublicRoute(routeToCheck) {
 export default function Routes() {
   return (
     <RoutesReactDom>
-      {routes.map(({ name, route, element }) => (
-        <Route key={name} path={route} element={element} />
+      {routes.map(({ name, path, element }) => (
+        <Route strict exact key={name} path={path} element={element} />
       ))}
     </RoutesReactDom>
   );

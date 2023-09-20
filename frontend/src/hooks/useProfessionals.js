@@ -1,9 +1,9 @@
-import { useContext, useMemo, useState, useEffect } from 'react';
+import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
 
-export default function useProfessionals() {
+export function useGetProfessionals() {
   const [professionals, setProfessionals] = useState(null);
   const { getFilterUrl } = useContext(FilterContext);
   const [callId, setCallId] = useState(null);
@@ -37,4 +37,12 @@ export default function useProfessionals() {
     }),
     [professionals],
   );
+}
+
+export function useCreateProWithReviewCall(onCallFinish) {
+  const call = useCall(onCallFinish);
+
+  return useCallback((inputs) => {
+    call(config.api.endPointsURLs.createProfessionalWithReview, 'post', inputs);
+  }, []);
 }

@@ -45,8 +45,8 @@ func SetErrorJSONResponse(ctx *gin.Context, httpCode int, errMsg string, data ..
 	}
 	ctx.AbortWithStatusJSON(httpCode, gin.H{
 		"error": map[string]any{
-			"msg":        errMsg,
-			"extra_data": _data,
+			"msg":       errMsg,
+			"extraData": _data,
 		},
 		"data": nil,
 	})
@@ -61,8 +61,9 @@ func GetValidationErrors(errors any) []map[string]any {
 	var res []map[string]any
 	for _, e := range validationErrors {
 		mappedErr := map[string]any{
-			"field":     e.StructField(),
-			"validator": e.Tag(),
+			"field":     ToCamelCase(e.StructField()),
+			"validator": ToCamelCase(e.Tag()),
+			"param":     ToCamelCase(e.Param()),
 		}
 		res = append(res, mappedErr)
 	}
@@ -153,17 +154,25 @@ func GetEnvMode() string {
 	return "development" // default if nothing set
 }
 
-func ToPascalCase(snakeCase string) string {
-	re := regexp.MustCompile("_[a-z]")
+func ToSnakeCase(pascalOrCamel string) string {
+	if pascalOrCamel == "" {
+		return ""
+	}
+	camelCase := strings.ToLower(pascalOrCamel[0:1]) + pascalOrCamel[1:]
+	re := regexp.MustCompile("([a-z])([A-Z])")
 
-	result := re.ReplaceAllStringFunc(snakeCase[1:], func(match string) string {
-		return strings.ToUpper(match[1:])
+	result := re.ReplaceAllStringFunc(camelCase, func(match string) string {
+		return match[0:1] + "_" + strings.ToLower(match[1:])
 	})
 
-	return strings.ToUpper(snakeCase[0:1]) + result
+	return result
 }
 
-func ToCamelCase(snakeCase string) string {
+func ToCamelCase(snakeOrPascal string) string {
+	if snakeOrPascal == "" {
+		return ""
+	}
+	snakeCase := ToSnakeCase(snakeOrPascal)
 	re := regexp.MustCompile("_[a-z]")
 
 	result := re.ReplaceAllStringFunc(snakeCase[1:], func(match string) string {
@@ -173,15 +182,13 @@ func ToCamelCase(snakeCase string) string {
 	return strings.ToLower(snakeCase[0:1]) + result
 }
 
-func ToSnakeCase(pascalOrCamel string) string {
-	camelCase := strings.ToLower(pascalOrCamel[0:1]) + pascalOrCamel[1:]
-	re := regexp.MustCompile("([a-z])([A-Z])")
-
-	result := re.ReplaceAllStringFunc(camelCase, func(match string) string {
-		return match[0:1] + "_" + strings.ToLower(match[1:])
-	})
-
-	return result
+// ToPascalCase big char first -- HelloWorldThisIsCool
+func ToPascalCase(snakeOrCamel string) string {
+	if snakeOrCamel == "" {
+		return ""
+	}
+	camel := ToCamelCase(snakeOrCamel)
+	return strings.ToUpper(camel[0:1]) + camel[1:]
 }
 
 func PublicRolesValidator(fl validator.FieldLevel) bool {
@@ -232,6 +239,10 @@ func MultiWordsValidator(fl validator.FieldLevel) bool {
 
 	textSplits := regexp.MustCompile(`\s[a-zA-Z]`).Split(text, -1)
 	return len(textSplits) >= 2
+}
+
+func PhoneNumberValidator(fl validator.FieldLevel) bool {
+	return regexp.MustCompile(`(?:\+|00)[0-9]{12}|[0-9]{10}`).MatchString(fl.Field().String())
 }
 
 func ConvertToInt(val any) (int, error) {

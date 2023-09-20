@@ -190,7 +190,7 @@ func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query:  "select * from users where username = ? or email = ?",
+				Query:  "select * from users where (username = ? or email = ?) AND email <> NULL AND phone <> NULL",
 				Params: []any{usernameOrEmail, usernameOrEmail},
 			},
 		}}
@@ -231,30 +231,6 @@ func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, passwor
 	}
 
 	return user, nil
-}
-
-func (sH *StoreHelpers) CreatePost(authorId int, req common.CreatePostRequest) (int, error) {
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "insert into professionals (author, latitude, longitude, text) VALUES (?, ?, ?, ?)",
-				Params: []any{authorId, req.Latitude, req.Longitude, req.Text},
-			},
-		},
-	}
-
-	tmpPostID, err := sH.QueryRunner.Exec(q, "id")
-	if err != nil {
-		return 0, err
-	}
-
-	postId, err := common.ConvertToInt(tmpPostID)
-	if err != nil {
-		return 0, err
-	}
-
-	return postId, nil
 }
 
 func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
@@ -336,4 +312,52 @@ func (sH *StoreHelpers) GetProfessionalServicesForFilter() (*[]common.FilterItem
 	}
 
 	return filterItems, nil
+}
+
+func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfessionalWithReviewRequest) error {
+
+	infos, infosModelLoader := common.ProfessionalsBasicInfoModelLoader()
+
+	q := sH.QueriesRepo.GetProfessionalsBasicInfoQuery(
+		common.QueryPartial{
+			Query:  "full_name = ? or phone = ?",
+			Params: []any{req.Professional.Email, req.Professional.Phone},
+		}, false)
+
+	sH.QueryRunner.Begin()
+
+	err := sH.QueryRunner.GetRows(q, infosModelLoader)
+	if err != nil {
+		return err
+	}
+	if infos != nil && len(*infos) > 0 {
+		return common.ErrRecordExist
+	}
+
+	q = sH.QueriesRepo.CreateProfessionalQuery(req.Professional)
+	proIdAny, err := sH.QueryRunner.Exec(q, "id")
+	if err != nil {
+		return err
+	}
+	proId, err := common.ConvertToInt(proIdAny)
+	if err != nil {
+		return err
+	}
+	q = sH.QueriesRepo.CreateProfessionalServicesQuery(proId, req.Services)
+	_, err = sH.QueryRunner.Exec(q, "service_id")
+	if err != nil {
+		return err
+	}
+
+	q = sH.QueriesRepo.CreateReviewQuery(proId, req.Review)
+
+	_, err = sH.QueryRunner.Exec(q, "id")
+	if err != nil {
+		return err
+	}
+
+	sH.QueryRunner.Commit()
+
+	return nil
+
 }

@@ -1,6 +1,6 @@
-import LoginForm from 'src/components/LoginForm';
-import SignupForm from 'src/components/SignupForm';
-import AddReviewForm from 'src/components/AddReview';
+import { formFactory as loginFormFactory } from 'src/components/LoginForm';
+import { formFactory as signupFormFactory } from 'src/components/SignupForm';
+import { formFactory as createReviewFormFactory } from 'src/components/CreateReviewForm';
 import ForgotPassword from 'src/components/ForgotPassword';
 import NewPassword from 'src/components/NewPassword';
 import { SuccessMessage, ErrorMessage } from 'src/components/Messages';
@@ -8,14 +8,18 @@ import FormModals from 'src/components/FormModals';
 import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
 import DataPicker from 'src/components/DataPicker';
-import ProfessionalReviews from 'src/components/ProfessionalReviews';
+import ProfessionalInfo, {
+  ProfessionalInfoModal,
+} from 'src/components/ProfessionalInfo';
 import Rating from 'src/components/Rating';
+import MultiInput from 'src/components/MultiInput';
+import DataContent from 'src/components/DataContent';
 
 export {
-  LoginForm,
+  loginFormFactory,
+  signupFormFactory,
+  createReviewFormFactory,
   FormModals,
-  SignupForm,
-  AddReviewForm,
   ForgotPassword,
   NewPassword,
   SuccessMessage,
@@ -24,6 +28,9 @@ export {
   Dropdown,
   Map,
   DataPicker,
-  ProfessionalReviews,
+  ProfessionalInfo,
+  ProfessionalInfoModal,
   Rating,
+  MultiInput,
+  DataContent,
 };

@@ -17,7 +17,7 @@ func getProfessionalsInfo(server common.Server) gin.HandlerFunc {
 			common.QueryPartial{
 				Query:  "full_name ILIKE ?",
 				Params: []any{"%" + searchName + "%"},
-			})
+			}, true)
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, infosModelLoader)
 		common.CheckErrAndPanic(err)

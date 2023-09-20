@@ -104,12 +104,12 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 	  professionals.full_name, 
 	  professionals.phone, 
 	  professionals.email, 
-	  professionals.rating, 
 	  professionals.business_id, 
 	  professionals.location, 
 	  professionals.location_lat, 
 	  professionals.location_lng, 
 	  reviews_view.reviews,
+	  reviews_view.rating,
 	  services_view.services
 	FROM 
 	  professionals
@@ -127,6 +127,7 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 	  JOIN (
 		SELECT 
 		  professional_id, 
+		  round(avg(rating)) AS rating,
 		  JSON_AGG(
 			JSON_BUILD_OBJECT(
 			  'id', id, 'text', text, 'rating', rating, 
@@ -138,7 +139,7 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 		  LEFT JOIN (
 			SELECT 
 			  review_id, 
-			  JSON_AGG(images.path) as images 
+			  JSON_AGG(images.path) AS images 
 			FROM 
 			  review_images 
 			  JOIN images ON review_images.image_id = images.id 
@@ -172,20 +173,37 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 
 }
 
-func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial, activeOnly bool) common.Query {
 	query := `SELECT 
-				id, full_name, phone, email, rating, business_id, location, location_lat, location_lng 
+				professionals.id, full_name, phone, email, business_id, location, location_lat, location_lng,
+				JSON_AGG(JSON_BUILD_OBJECT('id', services.id, 'title', services.title)) as services
 			  FROM
 				professionals 
+			  JOIN 
+			    professional_services
+			  ON professionals.id = professional_services.professional_id
+			  JOIN
+				services
+			  ON professional_services.service_id = services.id 
 			  WHERE `
 
+	if activeOnly {
+		query = query + "active=true AND "
+	}
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
 				Params: []any{},
 			},
-			filter,
+			{
+				Query:  filter.Query,
+				Params: filter.Params,
+			},
+			{
+				Query:  "GROUP BY professionals.id, full_name, phone, email, business_id, location, location_lat, location_lng",
+				Params: []any{},
+			},
 		},
 	}
 	return q
@@ -202,6 +220,83 @@ func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 			filter,
 		},
 	}
+}
+
+func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalRequest) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: `INSERT INTO 
+    						professionals (full_name, phone, email, business_id, location, 
+    						               location_lat, location_lng, active) 
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				Params: []any{
+					req.FullName,
+					req.Phone,
+					req.Email,
+					req.BusinessId,
+					req.Location,
+					req.LocationLat,
+					req.LocationLng,
+					false,
+				},
+			},
+		},
+	}
+}
+
+func (qr queriesRepo) CreateProfessionalServicesQuery(proId int, services []int) common.Query {
+
+	var valPlaceholders []string
+	var params []any
+	for _, s := range services {
+		valPlaceholders = append(valPlaceholders, "(?, ?)")
+		params = append(params, proId, s)
+	}
+
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: "INSERT INTO professional_services (professional_id, service_id) VALUES" +
+					strings.Join(valPlaceholders, ","),
+				Params: params,
+			},
+		},
+	}
+}
+
+func (qr queriesRepo) CreateReviewQuery(proId int, req common.CreateRewiewRequest) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: `INSERT INTO reviews (professional_id, text, rating) VALUES (?, ?, ?)`,
+				Params: []any{
+					proId,
+					req.Text,
+					req.Rating,
+				},
+			},
+		},
+	}
+}
+
+func (qr queriesRepo) GetServicesQuery(filter common.QueryPartial) common.Query {
+	query := `SELECT 
+				id, title 
+			  FROM
+				services 
+			  WHERE `
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: []any{},
+			},
+			filter,
+		},
+	}
+	return q
 }
 
 var QueriesRepo = queriesRepo{}

@@ -31,6 +31,7 @@ const style = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '1rem 1rem 1rem 1rem',
+    boxShadow: theme.shadows.md,
   },
   topContent: {
     display: 'flex',
