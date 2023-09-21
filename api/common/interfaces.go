@@ -49,7 +49,7 @@ type QueriesRepo interface {
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalServicesQuery(proId int, serviceId []int) Query
-	CreateReviewQuery(proId int, req CreateRewiewRequest) Query
+	CreateReviewQuery(proId int, req CreateReviewRequest) Query
 	GetServicesQuery(filter QueryPartial) Query
 }
 

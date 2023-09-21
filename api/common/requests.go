@@ -15,7 +15,7 @@ type UpdateUserRequest struct {
 
 type LoginUserRequest struct {
 	UsernameOrEmail any `json:"username_or_email" validate:"required,string,min=3"`
-	Password        any `json:"password" validate:"required,string,min=1"`
+	Password        any `json:"password" validate:"required,string"`
 }
 
 type CreatePasswordChangeRequest struct {
@@ -26,16 +26,16 @@ type PasswordChangeRequest struct {
 	Password any `validate:"password"`
 }
 
-type CreateRewiewRequest struct {
+type CreateReviewRequest struct {
 	Text   *string `json:"text" validate:"omitempty,string"`
-	Rating int     `json:"rating" validate:"numeric,required,min=1,max=5"`
+	Rating int     `json:"rating" validate:"required,numeric,min=1,max=5"`
 }
 
 type CreateProfessionalRequest struct {
-	FullName    string  `json:"fullName" validate:"multiWords"`
-	Location    string  `json:"location" validate:"string,required"`
-	LocationLat float64 `json:"locationLat" validate:"numeric,required"`
-	LocationLng float64 `json:"locationLng" validate:"numeric,required"`
+	FullName    string  `json:"fullName" validate:"required,multiWords"`
+	Location    string  `json:"location" validate:"required,string"`
+	LocationLat float64 `json:"locationLat" validate:"required,numeric"`
+	LocationLng float64 `json:"locationLng" validate:"required,numeric"`
 	BusinessId  *string `json:"businessId" validate:"omitempty,string"`
 	Phone       *string `json:"phone" validate:"required_without=Email,omitempty,phone"`
 	Email       *string `json:"email" validate:"required_without=Phone,omitempty,email"`
@@ -44,11 +44,22 @@ type CreateProfessionalRequest struct {
 
 type CreateProfessionalWithReviewRequest struct {
 	Professional CreateProfessionalRequest `json:"professional"`
-	Review       CreateRewiewRequest       `json:"review"`
+	Review       CreateReviewRequest       `json:"review"`
 	Services     []int                     `json:"services" validate:"required"`
 }
 
 type CreateReviewForExistingProfessionalRequest struct {
 	ProfessionalId int                 `json:"professionalId" validate:"required"`
-	Review         CreateRewiewRequest `json:"review"`
+	Review         CreateReviewRequest `json:"review"`
+}
+
+// add here empty request instances that has validation rules
+var requests = []any{
+	RegisterUserRequest{},
+	UpdateUserRequest{},
+	LoginUserRequest{},
+	CreatePasswordChangeRequest{},
+	PasswordChangeRequest{},
+	CreateProfessionalWithReviewRequest{},
+	CreateReviewForExistingProfessionalRequest{},
 }

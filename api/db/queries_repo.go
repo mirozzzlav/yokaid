@@ -271,7 +271,7 @@ func (qr queriesRepo) CreateProfessionalServicesQuery(proId int, services []int)
 	}
 }
 
-func (qr queriesRepo) CreateReviewQuery(proId int, req common.CreateRewiewRequest) common.Query {
+func (qr queriesRepo) CreateReviewQuery(proId int, req common.CreateReviewRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{

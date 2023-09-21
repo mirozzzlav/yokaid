@@ -7,7 +7,8 @@ import (
 )
 
 type frontEndDataResponse struct {
-	Filters map[string]*[]common.FilterItem `json:"filters"`
+	Filters         map[string]*[]common.FilterItem `json:"filters"`
+	ValidationRules map[string]map[string]string    `json:"validationRules"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
@@ -15,11 +16,14 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		services, err := server.GetStoreHelpers(ctx).GetProfessionalServicesForFilter()
 		common.CheckErrAndPanic(err)
+		validationRules, err := common.GetRequestsValidationRules()
+		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, frontEndDataResponse{
 			Filters: map[string]*[]common.FilterItem{
 				"what": services,
 			},
+			ValidationRules: validationRules,
 		})
 	}
 }

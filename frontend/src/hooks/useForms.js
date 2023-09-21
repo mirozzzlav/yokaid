@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { InitialDataContext } from 'src/providers';
 
 function mapValidationErrors(errors) {
   const messages = {
@@ -34,6 +35,7 @@ const getDefaultFormState = (inputNames) => ({
 });
 
 export default function useForms(formConfigs) {
+  const { validationRules } = useContext(InitialDataContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.entries(formConfigs).map(([id, { inputNames }]) => [
@@ -89,6 +91,16 @@ export default function useForms(formConfigs) {
         );
         setRequestState(formId, requestStatesConsts.initial);
       },
+      validationRules: (() => {
+        if (!formConfigs[formId]?.validationRulesNames || !validationRules) {
+          return null;
+        }
+        let resRules = {};
+        formConfigs[formId]?.validationRulesNames.forEach((ruleName) => {
+          resRules = { ...resRules, ...validationRules[ruleName] };
+        });
+        return resRules;
+      })(),
 
       ...formStates[formId],
 
@@ -127,7 +139,7 @@ export default function useForms(formConfigs) {
         return isAdded;
       },
     }),
-    [formStates, requestStates, formConfigs],
+    [formStates, requestStates, formConfigs, validationRules],
   );
 
   const calls = Object.fromEntries(

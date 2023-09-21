@@ -290,3 +290,57 @@ func IsNumeric(s string) bool {
 func IsFloat(s string) bool {
 	return IsNumeric(s) && strings.Contains(s, ".")
 }
+
+func mergeStringMaps(map1, map2 map[string]string) map[string]string {
+	merged := make(map[string]string)
+
+	for key, value := range map1 {
+		merged[key] = value
+	}
+
+	for key, value := range map2 {
+		merged[key] = value
+	}
+
+	return merged
+}
+
+func getStructValidationRules(structInstance any) (map[string]string, error) {
+	structType := reflect.TypeOf(structInstance)
+	var validationRules = map[string]string{}
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		fieldName := strings.ToLower(field.Name[0:1]) + field.Name[1:]
+		if field.Type.Kind() == reflect.Struct {
+			fieldInstance := reflect.New(field.Type).Elem().Interface()
+			nestedValidationRules, err := getStructValidationRules(fieldInstance)
+			if err != nil {
+				return validationRules, err
+			}
+			validationRules = mergeStringMaps(validationRules, nestedValidationRules)
+			continue
+		}
+		fieldTag := field.Tag.Get("validate")
+		if fieldTag != "" {
+			validationRules[fieldName] = fieldTag
+		}
+	}
+	return validationRules, nil
+}
+
+func GetRequestsValidationRules() (map[string]map[string]string, error) {
+
+	var requestsValidationRules = map[string]map[string]string{}
+	for _, r := range requests {
+		validationRules, err := getStructValidationRules(r)
+		if err != nil {
+
+			return requestsValidationRules, err
+		}
+		reqName := strings.ToLower(reflect.TypeOf(r).Name()[0:1]) + reflect.TypeOf(r).Name()[1:]
+		requestsValidationRules[reqName] = validationRules
+	}
+
+	return requestsValidationRules, nil
+}

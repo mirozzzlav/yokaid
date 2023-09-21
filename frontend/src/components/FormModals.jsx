@@ -48,6 +48,7 @@ export default function FormModals({
             updateInputs,
             formRequestState,
             submitForm,
+            validationRules,
           } = getFormStateAndHelpers(id);
           return (
             <Modal
@@ -69,6 +70,7 @@ export default function FormModals({
                 updateInputs,
                 extraActions,
                 extraData,
+                validationRules,
               })}
             </Modal>
           );

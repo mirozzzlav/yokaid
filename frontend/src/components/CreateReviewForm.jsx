@@ -14,7 +14,7 @@ import Rating from 'src/components/Rating';
 import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-import { unknownObjectValidator } from 'src/helpers';
+import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
 import MultiInput from 'src/components/MultiInput';
 import { globalStyle } from 'src/style';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
@@ -79,11 +79,24 @@ const inputNames = [
   'professionalId',
 ];
 
-export function RatingFormControls({ inputs, inputsErrors, updateInputs }) {
+const validationRulesNames = [
+  'createProfessionalWithReviewRequest',
+  'createReviewForExistingProfessionalRequest',
+];
+
+export function RatingFormControls({
+  inputs,
+  inputsErrors,
+  updateInputs,
+  validationRules,
+}) {
   return (
     <>
-      <FormControl isInvalid={inputsErrors?.text}>
-        <FormLabel>Review</FormLabel>
+      <FormControl
+        isInvalid={inputsErrors?.text}
+        isRequired={isFieldRequired(validationRules?.text)}
+      >
+        <FormLabel>Your Review</FormLabel>
         <Textarea
           value={inputs.text}
           sx={style.reviewTextArea}
@@ -93,10 +106,15 @@ export function RatingFormControls({ inputs, inputsErrors, updateInputs }) {
         />
         <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.rating}>
+      <FormControl
+        isInvalid={inputsErrors?.rating}
+        isRequired={isFieldRequired(validationRules?.rating)}
+      >
+        <FormLabel>Rating</FormLabel>
         <Rating
           rating={inputs.rating}
           onStarClick={(r) => updateInputs('rating', r)}
+          margin="0"
         />
         <FormErrorMessage>{inputsErrors?.rating}</FormErrorMessage>
       </FormControl>
@@ -107,6 +125,7 @@ RatingFormControls.prototype.propTypes = {
   inputsErrors: unknownObjectValidator.isRequired,
   inputs: unknownObjectValidator.isRequired,
   updateInputs: PropTypes.func.isRequired,
+  validationRules: unknownObjectValidator.isRequired,
 };
 
 export default function CreateReviewForm({
@@ -116,6 +135,7 @@ export default function CreateReviewForm({
   inputs,
   updateInputs,
   extraData,
+  validationRules,
 }) {
   return (
     <Box sx={globalStyle.formWrapper}>
@@ -124,6 +144,7 @@ export default function CreateReviewForm({
         inputs={inputs}
         inputsErrors={inputsErrors}
         updateInputs={updateInputs}
+        validationRules={validationRules}
       />
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
@@ -146,6 +167,7 @@ CreateReviewForm.prototype.propTypes = {
     unknownObjectValidator,
     PropTypes.oneOf([null]),
   ]),
+  validationRules: unknownObjectValidator.isRequired,
 };
 
 export function CreateProAndReviewForm({
@@ -155,11 +177,15 @@ export function CreateProAndReviewForm({
   inputs,
   updateInputs,
   extraActions,
+  validationRules,
 }) {
   const [serviceTitles, setServiceTitles] = useState('');
   return (
     <Box sx={globalStyle.formWrapper}>
-      <FormControl isInvalid={inputsErrors?.fullName}>
+      <FormControl
+        isInvalid={inputsErrors?.fullName}
+        isRequired={isFieldRequired(validationRules?.fullName)}
+      >
         <FormLabel>Reviewed person</FormLabel>
         <SearchDropdown
           searchHook={useProInfoSearch}
@@ -184,6 +210,7 @@ export function CreateProAndReviewForm({
           inputsErrors?.locationLng ||
           inputsErrors?.location
         }
+        isRequired={isFieldRequired(validationRules?.location)}
       >
         <FormLabel>Location</FormLabel>
         <SearchDropdown
@@ -208,7 +235,10 @@ export function CreateProAndReviewForm({
             inputsErrors?.locationLng}
         </FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.businessId}>
+      <FormControl
+        isInvalid={inputsErrors?.businessId}
+        isRequired={isFieldRequired(validationRules?.businessId)}
+      >
         <FormLabel>Business Id</FormLabel>
         <Input
           type="text"
@@ -219,7 +249,10 @@ export function CreateProAndReviewForm({
         />
         <FormErrorMessage>{inputsErrors?.businessId}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.phone}>
+      <FormControl
+        isInvalid={inputsErrors?.phone}
+        isRequired={isFieldRequired(validationRules?.phone)}
+      >
         <FormLabel>Phone</FormLabel>
         <Input
           type="text"
@@ -230,7 +263,10 @@ export function CreateProAndReviewForm({
         />
         <FormErrorMessage>{inputsErrors?.phone}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.email}>
+      <FormControl
+        isInvalid={inputsErrors?.email}
+        isRequired={isFieldRequired(validationRules?.phone)}
+      >
         <FormLabel>Email</FormLabel>
         <Input
           type="text"
@@ -241,7 +277,10 @@ export function CreateProAndReviewForm({
         />
         <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.services}>
+      <FormControl
+        isInvalid={inputsErrors?.services}
+        isRequired={isFieldRequired(validationRules?.services)}
+      >
         <FormLabel>Services</FormLabel>
         <SearchDropdown
           inputVal={inputs.searchedService}
@@ -272,6 +311,7 @@ export function CreateProAndReviewForm({
         inputs={inputs}
         inputsErrors={inputsErrors}
         updateInputs={updateInputs}
+        validationRules={validationRules}
       />
 
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
@@ -296,12 +336,14 @@ CreateProAndReviewForm.prototype.propTypes = {
     unknownObjectValidator,
     PropTypes.oneOf([null]),
   ]),
+  validationRules: unknownObjectValidator.isRequired,
 };
 
 export function formFactory(extraData, extraActions) {
   if (extraData) {
     return {
       inputNames,
+      validationRulesNames,
       hook: (onCallFinish) => {
         const call = useCall(onCallFinish);
 
@@ -325,6 +367,7 @@ export function formFactory(extraData, extraActions) {
 
   return {
     inputNames,
+    validationRulesNames,
     hook: (onCallFinish) => {
       const call = useCall(onCallFinish);
 

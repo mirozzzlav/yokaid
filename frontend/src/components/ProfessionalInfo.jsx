@@ -77,7 +77,12 @@ export default function ProfessionalInfo({ data }) {
             {data.reviews.map(({ text, id, rating }) => (
               <Box key={id} sx={style.review}>
                 <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
-                <Rating rating={rating} size="0.8rem" position="right" />
+                <Rating
+                  rating={rating}
+                  size="0.8rem"
+                  position="right"
+                  margin="0"
+                />
               </Box>
             ))}
           </Flex>

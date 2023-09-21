@@ -44,7 +44,8 @@ function toLocalDate(dateStr) {
   });
 }
 
-/// UTC is almost the same as GMT-0 - not a subject to time zone variations or daylight saving time changes.
+/* UTC is almost the same as GMT-0 - not a subject to time zone
+ variations or daylight saving time changes. */
 function toUTCDate(d, endOfDay = false) {
   return new Date(
     Date.UTC(
@@ -54,6 +55,13 @@ function toUTCDate(d, endOfDay = false) {
   ).toISOString();
 }
 
+function isFieldRequired(rule) {
+  if (!rule) {
+    return false;
+  }
+  return rule.match(/\brequired\b/) !== null;
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
@@ -61,4 +69,5 @@ export {
   getTokenFromResponse,
   toLocalDate,
   toUTCDate,
+  isFieldRequired,
 };
