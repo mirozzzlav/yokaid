@@ -8,7 +8,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
-import { unknownObjectValidator } from 'src/helpers';
+import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import { useSignupCall } from 'src/hooks';
 import { globalStyle } from 'src/style';
 
@@ -21,10 +21,14 @@ export default function SignupForm({
   inputsErrors,
   inputs,
   updateInputs,
+  validationRules,
 }) {
   return (
     <Box sx={globalStyle.formWrapper}>
-      <FormControl isInvalid={inputsErrors?.fullName}>
+      <FormControl
+        isInvalid={inputsErrors?.fullName}
+        isRequired={isFieldRequired(validationRules?.fullName)}
+      >
         <FormLabel>Full name</FormLabel>
         <Input
           type="text"
@@ -35,7 +39,10 @@ export default function SignupForm({
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
       </FormControl>
-      <FormControl isInvalid={inputsErrors?.email}>
+      <FormControl
+        isInvalid={inputsErrors?.email}
+        isRequired={isFieldRequired(validationRules?.email)}
+      >
         <FormLabel>Email</FormLabel>
         <Input
           type="text"
@@ -59,6 +66,7 @@ SignupForm.prototype.propTypes = {
   inputsErrors: unknownObjectValidator.isRequired,
   inputs: unknownObjectValidator.isRequired,
   updateInputs: PropTypes.func.isRequired,
+  validationRules: unknownObjectValidator.isRequired,
 };
 
 export function formFactory() {
@@ -66,5 +74,10 @@ export function formFactory() {
     inputNames: ['fullName', 'email'],
     hook: useSignupCall,
     formUI: SignupForm,
+    validationRulesNames: ['registerUserRequest'],
+    inputsToRequestMapper: (inputs) => ({
+      ...inputs,
+      role: 'guest',
+    }),
   };
 }

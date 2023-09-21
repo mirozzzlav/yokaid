@@ -14,11 +14,13 @@ type frontEndDataResponse struct {
 func getFrontendData(server common.Server) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
+		server.GetQueryRunner(ctx).Begin()
 		services, err := server.GetStoreHelpers(ctx).GetProfessionalServicesForFilter()
 		common.CheckErrAndPanic(err)
 		validationRules, err := common.GetRequestsValidationRules()
 		common.CheckErrAndPanic(err)
 
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, frontEndDataResponse{
 			Filters: map[string]*[]common.FilterItem{
 				"what": services,

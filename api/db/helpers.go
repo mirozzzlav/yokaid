@@ -65,7 +65,6 @@ func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 		return err
 	}
 
-	//TODO transaction
 	q := sH.QueriesRepo.UpdateUsersQuery(
 		common.QueryPartial{
 			Query:  "active = true, hashed_password = ?",
@@ -89,7 +88,7 @@ func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
 		},
 	)
 
-	_, err = sH.QueryRunner.Exec(q)
+	_, err = sH.QueryRunner.Exec(q, "user_id")
 	if err == common.ErrNoRows {
 		return nil
 	}
@@ -127,7 +126,7 @@ func (sH *StoreHelpers) CreatePasswordChangeRequest(userId int) (string, error) 
 			Params: []any{userId},
 		},
 	)
-	_, err := sH.QueryRunner.Exec(q)
+	_, err := sH.QueryRunner.Exec(q, "user_id")
 	if err != nil && err != common.ErrNoRows {
 		return "", err
 	}
@@ -160,9 +159,10 @@ func (sH *StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 
 func (sH *StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, error) {
 	username, err := sH.GenerateUserName(req.FullName.(string))
-	common.CheckErrAndPanic(err)
+	if err != nil {
+		return "", err
+	}
 
-	//TODO transaction
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -190,7 +190,7 @@ func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query:  "select * from users where (username = ? or email = ?) AND email <> NULL AND phone <> NULL",
+				Query:  "select * from users where (username = ? or email = ?)",
 				Params: []any{usernameOrEmail, usernameOrEmail},
 			},
 		}}
@@ -208,9 +208,6 @@ func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 }
 
 func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
-
-	sH.QueryRunner.Begin()
-
 	user, err := sH.GetUser(usernameOrEmail)
 	if err != nil {
 		return nil, err
@@ -221,11 +218,6 @@ func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, passwor
 	}
 
 	err = auth.CheckPassword(password, user.HashedPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	err = sH.QueryRunner.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -278,12 +270,8 @@ func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem s
 	}
 
 	filterItems, filterItemsModelLoader := common.FilterItemLoader()
-	sH.QueryRunner.Begin()
+
 	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
-	if err != nil {
-		return nil, err
-	}
-	err = sH.QueryRunner.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -301,12 +289,8 @@ func (sH *StoreHelpers) GetProfessionalServicesForFilter() (*[]common.FilterItem
 	}
 
 	filterItems, filterItemsModelLoader := common.FilterItemLoader()
-	sH.QueryRunner.Begin()
+
 	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
-	if err != nil {
-		return nil, err
-	}
-	err = sH.QueryRunner.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -323,8 +307,6 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 			Query:  "full_name = ? or phone = ?",
 			Params: []any{req.Professional.Email, req.Professional.Phone},
 		}, false)
-
-	sH.QueryRunner.Begin()
 
 	err := sH.QueryRunner.GetRows(q, infosModelLoader)
 	if err != nil {
@@ -355,8 +337,6 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 	if err != nil {
 		return err
 	}
-
-	sH.QueryRunner.Commit()
 
 	return nil
 

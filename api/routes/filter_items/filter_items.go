@@ -19,10 +19,12 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 
 		}
 		filteredEntities := strings.Split(filteredEntitiesStr, ";")
+		server.GetQueryRunner(ctx).Begin()
 		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(filteredEntities, searchTerm, 10)
 		if err != nil && err != common.ErrNoRows {
 			common.CheckErrAndPanic(err)
 		}
+		server.GetQueryRunner(ctx).Commit()
 
 		common.SetOKJSONResponse(ctx, filterItems)
 	}

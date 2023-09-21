@@ -25,6 +25,7 @@ func register(server common.Server) func(ctx *gin.Context) {
 		email := req.Email.(string)
 		fullName := req.FullName.(string)
 
+		server.GetQueryRunner(ctx).Begin()
 		usersCount, err := server.GetStoreHelpers(ctx).GetUsersCount(email)
 		common.CheckErrAndPanic(err)
 
@@ -40,7 +41,7 @@ func register(server common.Server) func(ctx *gin.Context) {
 			map[string]string{"userFullName": fullName, "activationToken": activationToken},
 		)
 		common.CheckErrAndPanic(err)
-
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, "user registered")
 	}
 }

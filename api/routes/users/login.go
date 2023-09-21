@@ -22,6 +22,7 @@ func login(server common.Server) func(ctx *gin.Context) {
 		err := server.GetValidate().Struct(req)
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
+		server.GetQueryRunner(ctx).Begin()
 
 		user, err := server.GetStoreHelpers(ctx).GetUserAndVerifyPassword(
 			req.UsernameOrEmail.(string), req.Password.(string),
@@ -33,8 +34,10 @@ func login(server common.Server) func(ctx *gin.Context) {
 			Username: user.Username,
 			Role:     user.Role,
 		}
+
 		accessToken, err := server.GetTokenMaker().CreateToken(authUser)
 		common.CheckErrAndPanic(err)
+		server.GetQueryRunner(ctx).Commit()
 
 		common.SetOKJSONResponse(
 			ctx,

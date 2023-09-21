@@ -10,7 +10,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { globalStyle, theme } from 'src/style';
-import { ErrorMessage } from 'src/components/Messages';
+import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import { useLoginCall } from 'src/hooks';
 import { unknownObjectValidator } from 'src/helpers';
 
@@ -55,6 +55,7 @@ export default function LoginForm({
         <Link to="/signup">Sign up</Link>
       </Flex>
       {state.isError && <ErrorMessage message={errorMsg} />}
+      {state.isSuccess ? <SuccessMessage message="successful login" /> : null}
     </Box>
   );
 }

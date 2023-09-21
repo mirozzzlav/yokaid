@@ -19,6 +19,7 @@ func update(server common.Server) func(ctx *gin.Context) {
 		if !idParamExist {
 			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 		}
+		server.GetQueryRunner(ctx).Begin()
 		q := server.GetQueriesRepo().UpdateUsersQuery(
 			common.QueryPartial{
 				Query:  "username = ?, full_name = ?, email = ?",
@@ -32,7 +33,7 @@ func update(server common.Server) func(ctx *gin.Context) {
 
 		_, err = server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
-
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, "user successfully updated")
 	}
 }

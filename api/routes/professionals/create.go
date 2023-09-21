@@ -15,6 +15,7 @@ func create(server common.Server) gin.HandlerFunc {
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
+		server.GetQueryRunner(ctx).Begin()
 		err = server.GetStoreHelpers(ctx).CreateProfessionalWithReview(req)
 		if err == common.ErrRecordExist {
 			panic(
@@ -28,7 +29,7 @@ func create(server common.Server) gin.HandlerFunc {
 			)
 		}
 		common.CheckErrAndPanic(err)
-
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, "review has been successfully created")
 	}
 }

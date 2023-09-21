@@ -15,6 +15,7 @@ func createRequestForPasswordChange(server common.Server) func(ctx *gin.Context)
 		validationErrors := common.GetValidationErrors(err)
 		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
 
+		server.GetQueryRunner(ctx).Begin()
 		user, err := server.GetStoreHelpers(ctx).GetUser(req.Email.(string))
 		// we don't want to hacker know that we don't have the user, so we ignore 0 rows error
 
@@ -32,7 +33,7 @@ func createRequestForPasswordChange(server common.Server) func(ctx *gin.Context)
 			)
 			common.CheckErrAndPanic(err)
 		}
-
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, "password change request has been sent if the email exist")
 	}
 }
@@ -43,6 +44,7 @@ func passwordChange(server common.Server) func(ctx *gin.Context) {
 		if !tokenParamExist {
 			panic(common.NewHttpError(nil, errMeta["badRequest"]))
 		}
+		server.GetQueryRunner(ctx).Begin()
 		userId, err := server.GetStoreHelpers(ctx).GetUserFromPasswordChangeRequest(token)
 		if err == common.ErrNoRows {
 			panic(common.NewHttpError(err, errMeta["badRequestExpired"]))
@@ -57,7 +59,7 @@ func passwordChange(server common.Server) func(ctx *gin.Context) {
 
 		err = server.GetStoreHelpers(ctx).ChangeUserPassword(userId, req.Password.(string))
 		common.CheckErrAndPanic(err)
-
+		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, "user's password has been changed")
 	}
 }

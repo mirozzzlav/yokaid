@@ -2,28 +2,28 @@ package common
 
 // this file is consisted of all requests coming from the browser/app to REST API
 type RegisterUserRequest struct {
-	FullName any `json:"full_name" validate:"multiWords"`
+	FullName any `json:"fullName" validate:"required,multiWords"`
 	Email    any `json:"email" validate:"required,email"`
 	Role     any `json:"role" validate:"required,publicRoles"`
 }
 
 type UpdateUserRequest struct {
 	Username any `json:"username" validate:"required,string,min=3"`
-	FullName any `json:"full_name" validate:"required,string,min=3"`
+	FullName any `json:"fullName" validate:"required,string,min=3"`
 	Email    any `json:"email" validate:"required,email"`
 }
 
 type LoginUserRequest struct {
-	UsernameOrEmail any `json:"username_or_email" validate:"required,string,min=3"`
+	UsernameOrEmail any `json:"usernameOrEmail" validate:"required,string,min=3"`
 	Password        any `json:"password" validate:"required,string"`
 }
 
 type CreatePasswordChangeRequest struct {
-	Email any `validate:"required,email"`
+	Email any `json:"email" validate:"required,email"`
 }
 
 type PasswordChangeRequest struct {
-	Password any `validate:"password"`
+	Password any `json:"password" validate:"required,password"`
 }
 
 type CreateReviewRequest struct {

@@ -23,12 +23,12 @@ export default function FormModals({
   const getFormStateAndHelpers = useForms(formsConfig);
 
   useEffect(() => {
-    if (!shownModalId) {
+    if (!shownModalId || !formsConfig[shownModalId]) {
       return;
     }
     const { resetForm } = getFormStateAndHelpers(shownModalId);
     resetForm();
-  }, [shownModalId, showFormExtraData]);
+  }, [shownModalId, showFormExtraData, formsConfig]);
 
   return (
     <>

@@ -380,37 +380,34 @@ export function formFactory(extraData, extraActions) {
     },
     formUI: CreateProAndReviewForm,
     extraActions,
-    inputsToRequestMapper: (inputs) => {
-      const {
-        text,
-        rating,
-        services,
-        locationLng,
-        locationLat,
+    inputsToRequestMapper: ({
+      text,
+      rating,
+      services,
+      locationLng,
+      locationLat,
+      location,
+      businessId,
+      fullName,
+      email,
+      phone,
+    }) => ({
+      professional: {
         location,
-        businessId,
+        businessId: businessId || null,
         fullName,
-        email,
-        phone,
-      } = inputs;
-      return {
-        professional: {
-          location,
-          businessId: businessId || null,
-          fullName,
-          email: email || null,
-          phone: phone || null,
-          locationLat: parseFloat(locationLat),
-          locationLng: parseFloat(locationLng),
-        },
-        services: services
-          ? services.split(',').map((s) => parseInt(s, 10))
-          : null,
-        review: {
-          text: text || null,
-          rating: parseInt(rating, 10),
-        },
-      };
-    },
+        email: email || null,
+        phone: phone || null,
+        locationLat: parseFloat(locationLat),
+        locationLng: parseFloat(locationLng),
+      },
+      services: services
+        ? services.split(',').map((s) => parseInt(s, 10))
+        : null,
+      review: {
+        text: text || null,
+        rating: parseInt(rating, 10),
+      },
+    }),
   };
 }
