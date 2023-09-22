@@ -10,6 +10,7 @@ import {
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -222,6 +223,7 @@ function SearchDropdown({
     inputVal = inputValFromProps;
     inputValSetter = inputValSetterFromProps;
   }
+  const [inputFocus, setInputFocus] = useState(false);
 
   useOutsideClick({
     ref: wrapperRef,
@@ -229,7 +231,7 @@ function SearchDropdown({
   });
 
   const searchCall = searchHook((responseItems) => {
-    if (inputVal === '') {
+    if (inputVal === '' || !inputFocus) {
       // this is risky, inputVal is uncertain in the callback context, but it works
       return;
     }
@@ -246,6 +248,7 @@ function SearchDropdown({
   );
 
   const onInputFocus = useCallback(() => {
+    setInputFocus(true);
     setItems((prevItems) => {
       if (prevItems.length > 0) {
         return prevItems;
@@ -296,6 +299,13 @@ function SearchDropdown({
     return icon;
   }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
 
+  useEffect(() => {
+    if (!inputFocus && items.length === 0) {
+      // hide dropdown only when 0 results, it is hidden on different place when >0 items
+      setIsShown(false);
+    }
+  }, [inputFocus, items]);
+
   return (
     <Box sx={globalStyle.contextMenuLikeWrapper} ref={wrapperRef}>
       <InputGroup>
@@ -304,7 +314,7 @@ function SearchDropdown({
           onChange={onInputChange}
           onFocus={onInputFocus}
           value={inputVal}
-          onBlur={() => items.length === 0 && setIsShown(false)}
+          onBlur={() => setInputFocus(false)}
         />
 
         <InputRightElement>{inputIcon}</InputRightElement>
