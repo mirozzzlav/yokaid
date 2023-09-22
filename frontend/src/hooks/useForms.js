@@ -115,9 +115,10 @@ export default function useForms(formConfigs) {
 
       updateInputs: (name, val, concat = false) => {
         let isAdded = true;
+        const valStr = `${val}`;
 
         setFormStates((prevData) => {
-          if (prevData[name]?.includes(val)) {
+          if (prevData[formId]?.inputs[name].includes(valStr) && concat) {
             isAdded = false;
             return prevData;
           }
@@ -129,8 +130,8 @@ export default function useForms(formConfigs) {
                 ...prevData[formId].inputs,
                 [name]:
                   prevData[formId].inputs[name] && concat
-                    ? `${prevData[formId].inputs[name]},${val}`
-                    : `${val}`, // casting to string
+                    ? `${prevData[formId].inputs[name]},${valStr}`
+                    : valStr,
               },
             },
           };

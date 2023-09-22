@@ -42,13 +42,10 @@ export default function MultiInput({
   const removeItem = useCallback(
     (searchedValue) => {
       let resultVals = [];
-      let resultLabels = labels;
+      let resultLabels = [];
       values.forEach((v, i) => {
         if (v !== searchedValue) {
-          resultLabels = [
-            ...resultLabels.slice(1, i - 1),
-            ...resultLabels.slice(i),
-          ];
+          resultLabels = [...resultLabels, labels[i]];
           resultVals = [...resultVals, v];
         }
       });

@@ -302,11 +302,23 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 
 	infos, infosModelLoader := common.ProfessionalsBasicInfoModelLoader()
 
-	q := sH.QueriesRepo.GetProfessionalsBasicInfoQuery(
-		common.QueryPartial{
-			Query:  "full_name = ? or phone = ?",
-			Params: []any{req.Professional.Email, req.Professional.Phone},
-		}, false)
+	qPartial := common.QueryPartial{Query: "", Params: []any{}}
+
+	if req.Professional.Email != nil {
+		qPartial.Query = "email = ?"
+		qPartial.Params = []any{req.Professional.Email}
+	}
+	if req.Professional.Phone != nil {
+		if req.Professional.Email == nil {
+			qPartial.Query = "phone = ?"
+			qPartial.Params = []any{req.Professional.Phone}
+		} else {
+			qPartial.Query = "email ? OR phone = ?"
+			qPartial.Params = []any{req.Professional.Email, req.Professional.Phone}
+		}
+	}
+
+	q := sH.QueriesRepo.GetProfessionalsBasicInfoQuery(qPartial, false)
 
 	err := sH.QueryRunner.GetRows(q, infosModelLoader)
 	if err != nil {
