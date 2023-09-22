@@ -44,4 +44,30 @@ export default {
     },
   },
   maxRating: 5,
+  userMenuItems: {
+    unauthorized: [
+      {
+        link: '/login',
+        label: 'Login',
+        value: 'login',
+      },
+      {
+        link: '/signup',
+        label: 'Sign up',
+        value: 'signup',
+      },
+    ],
+    authorized: [
+      {
+        link: '/account',
+        label: 'Account',
+        value: 'account',
+      },
+      {
+        link: '/logout',
+        label: 'Log out',
+        value: 'logOut',
+      },
+    ],
+  },
 };

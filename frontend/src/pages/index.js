@@ -1,3 +1,4 @@
-import HomePage from 'src/pages/HomePage';
+import MapPage from 'src/pages/MapPage';
+import Page from 'src/pages/Page';
 
-export { HomePage };
+export { MapPage, Page };

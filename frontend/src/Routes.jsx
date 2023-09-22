@@ -1,17 +1,17 @@
 import React from 'react';
-import { HomePage } from 'src/pages';
 import { Route, Routes as RoutesReactDom } from 'react-router-dom';
+import { MapPage } from 'src/pages';
 
 const routes = [
   {
     name: 'home',
     path: '',
-    element: <HomePage />,
+    element: <MapPage />,
   },
   {
-    name: 'userActions',
+    name: 'map',
     path: ':action/:actionParams?',
-    element: <HomePage />,
+    element: <MapPage />,
   },
 ];
 

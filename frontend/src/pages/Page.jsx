@@ -1,11 +1,18 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Avatar, Box, Icon, IconButton, keyframes } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import { Dropdown } from 'src/components';
+import {
+  Dropdown,
+  FormModals,
+  loginFormFactory,
+  signupFormFactory,
+} from 'src/components';
 import { theme } from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
-import { unknownObjectValidator } from 'src/helpers';
+import { AuthContext } from 'src/providers';
+import config from 'src/config';
+import { useNavigateAction } from 'src/hooks';
 
 const loaderAnim = keyframes(`
   from {
@@ -57,14 +64,46 @@ const style = {
   },
 };
 
-function MainLayout({
-  children,
-  mode,
-  topContent,
-  userMenuItems,
-  userMenuBtnStyle,
-}) {
+function Page({ children, mode, topContent }) {
   const { isLoading } = useContext(LoaderContext);
+  const { isAuthorized } = useContext(AuthContext);
+  const { logOut } = useContext(AuthContext);
+
+  const { navigate, action, actionParams, navigateAction } =
+    useNavigateAction();
+  const userMenuItems = useMemo(
+    () =>
+      (isAuthorized
+        ? config.userMenuItems.authorized
+        : config.userMenuItems.unauthorized
+      ).map((item) => ({ ...item, onClick: () => navigate(item.link) })),
+    [isAuthorized],
+  );
+  const modalsConfig = useMemo(
+    () => ({
+      login: {
+        title: 'Login',
+        submitButton: {
+          label: 'Login',
+        },
+        form: loginFormFactory(),
+      },
+      signup: {
+        title: 'Sign up',
+        submitButton: {
+          label: 'Sign up',
+        },
+        form: signupFormFactory(),
+      },
+    }),
+    [action, actionParams],
+  );
+
+  useEffect(() => {
+    if (action === 'logout') {
+      logOut();
+    }
+  }, [action]);
 
   return (
     <Box sx={style.container(mode)}>
@@ -90,32 +129,38 @@ function MainLayout({
             style: {
               padding: 0,
               borderRadius: '50%',
-              ...userMenuBtnStyle,
+              ...(isAuthorized
+                ? {
+                    background: theme.colors.green['100'],
+                    ':hover': { background: theme.colors.green['200'] },
+                  }
+                : {
+                    background: theme.colors.gray['50'],
+                    ':hover': { background: theme.colors.gray['200'] },
+                  }),
             },
           }}
         />
       </Box>
-      <Box sx={style.content}>{children}</Box>
+      <Box sx={style.content}>
+        {children}
+        <FormModals
+          modalsConfig={modalsConfig}
+          shownModalId={action}
+          setShownModalId={navigateAction}
+        />
+      </Box>
     </Box>
   );
 }
-MainLayout.defaultProps = {
+Page.defaultProps = {
   mode: 'scroll',
-  userMenuBtnStyle: {},
 };
 
-MainLayout.propTypes = {
+Page.propTypes = {
   children: PropTypes.node.isRequired,
   mode: PropTypes.string,
   topContent: PropTypes.node.isRequired,
-  userMenuItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      onClick: PropTypes.func,
-      label: PropTypes.string,
-      id: PropTypes.string,
-    }),
-  ).isRequired,
-  userMenuBtnStyle: unknownObjectValidator,
 };
 
-export default MainLayout;
+export default Page;

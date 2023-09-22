@@ -1,30 +1,17 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Button } from '@chakra-ui/react';
-import MainLayout from 'src/layouts/MainLayout';
+import Page from 'src/pages/Page';
+
 import {
   createReviewFormFactory,
-  loginFormFactory,
-  signupFormFactory,
   FormModals,
   Map,
   SearchDropdown,
   ProfessionalInfoModal,
 } from 'src/components';
-import { useMenu, useGetProfessionals } from 'src/hooks';
-import {
-  AuthContext,
-  FilterContext,
-  InitialDataContext,
-  MapContext,
-} from 'src/providers';
+import { FilterContext, InitialDataContext, MapContext } from 'src/providers';
 import config from 'src/config';
+import { useGetProfessionals, useNavigateAction } from 'src/hooks';
 
 const style = {
   applyFiltersBtn: {
@@ -37,52 +24,18 @@ const style = {
   },
 };
 
-export default function HomePage() {
-  const { menuItems: userMenuItems, buttonStyle: userMenuBtnStyle } = useMenu();
-  const navigate = useNavigate();
-  const { action, actionParams } = useParams();
-  const { logOut } = useContext(AuthContext);
+export default function MapPage() {
+  const { navigate, navigateAction, action, actionParams } =
+    useNavigateAction();
   const {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
   const { professionals, callGetProfessionals } = useGetProfessionals();
-  const {
-    moveMap,
-    mapAreaRequestRef,
-
-    setMapAreaRequest,
-  } = useContext(MapContext);
-
-  const setShownModalId = useCallback((modalId) => {
-    if (modalId) {
-      navigate(modalId ? `/${modalId}` : '/');
-    } else {
-      navigate('/');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (action === 'logout') {
-      logOut();
-    }
-  }, [action]);
+  const { moveMap, mapAreaRequestRef, setMapAreaRequest } =
+    useContext(MapContext);
 
   const modalsConfig = useMemo(
     () => ({
-      login: {
-        title: 'Login',
-        submitButton: {
-          label: 'Login',
-        },
-        form: loginFormFactory(),
-      },
-      signup: {
-        title: 'Sign up',
-        submitButton: {
-          label: 'Sign up',
-        },
-        form: signupFormFactory(),
-      },
       'add-review': {
         title: 'Add review',
         submitButton: {
@@ -135,7 +88,7 @@ export default function HomePage() {
   }, [selectedMarkerId, professionals]);
 
   return (
-    <MainLayout
+    <Page
       mode="fullscreen"
       topContent={
         <>
@@ -198,8 +151,6 @@ export default function HomePage() {
           </Button>
         </>
       }
-      userMenuItems={userMenuItems}
-      userMenuBtnStyle={userMenuBtnStyle}
     >
       <Map
         markers={markers}
@@ -212,7 +163,7 @@ export default function HomePage() {
       <FormModals
         modalsConfig={modalsConfig}
         shownModalId={action}
-        setShownModalId={setShownModalId}
+        setShownModalId={navigateAction}
       />
       {selectedPro && (
         <ProfessionalInfoModal
@@ -221,6 +172,6 @@ export default function HomePage() {
           isShown={selectedMarkerId}
         />
       )}
-    </MainLayout>
+    </Page>
   );
 }

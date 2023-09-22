@@ -31,7 +31,6 @@ export default (mode) => {
     resolve: {
       alias: {
         src: resolve('src/'),
-        public: resolve('public/'),
       },
     },
   });

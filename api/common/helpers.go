@@ -106,7 +106,7 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 	}
 
 	if _responseMeta.Code == http.StatusBadRequest {
-		_responseMeta.Msg = "bad request, given inputs are not valid"
+		_responseMeta.Msg = "invalid request, please check your inputs"
 	}
 
 	if _responseMeta.Code == http.StatusNotFound {
