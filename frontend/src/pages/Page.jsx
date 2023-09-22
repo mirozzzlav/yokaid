@@ -69,14 +69,16 @@ function Page({ children, mode, topContent }) {
   const { isAuthorized } = useContext(AuthContext);
   const { logOut } = useContext(AuthContext);
 
-  const { navigate, action, actionParams, navigateAction } =
-    useNavigateAction();
+  const { navigateAction, action, actionParams } = useNavigateAction();
   const userMenuItems = useMemo(
     () =>
       (isAuthorized
         ? config.userMenuItems.authorized
         : config.userMenuItems.unauthorized
-      ).map((item) => ({ ...item, onClick: () => navigate(item.link) })),
+      ).map((item) => ({
+        ...item,
+        onClick: () => navigateAction(item.action),
+      })),
     [isAuthorized],
   );
   const modalsConfig = useMemo(

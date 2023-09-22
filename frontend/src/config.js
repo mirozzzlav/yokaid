@@ -47,24 +47,24 @@ export default {
   userMenuItems: {
     unauthorized: [
       {
-        link: '/login',
+        action: 'login',
         label: 'Login',
         value: 'login',
       },
       {
-        link: '/signup',
+        action: 'signup',
         label: 'Sign up',
         value: 'signup',
       },
     ],
     authorized: [
       {
-        link: '/account',
+        action: 'account',
         label: 'Account',
         value: 'account',
       },
       {
-        link: '/logout',
+        link: 'logout',
         label: 'Log out',
         value: 'logOut',
       },

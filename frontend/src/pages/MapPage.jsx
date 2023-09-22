@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { Button } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 
@@ -25,8 +25,13 @@ const style = {
 };
 
 export default function MapPage() {
-  const { navigate, navigateAction, action, actionParams } =
-    useNavigateAction();
+  const { navigateAction, action, actionParams } = useNavigateAction();
+
+  const professionalId = useMemo(
+    () => (action === 'professional-detail' ? actionParams : null),
+    [action, actionParams],
+  );
+
   const {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
@@ -41,13 +46,10 @@ export default function MapPage() {
         submitButton: {
           label: 'Submit',
         },
-        form: createReviewFormFactory(
-          actionParams ? JSON.parse(atob(actionParams)) : null,
-          {
-            onProfessionalFound: (professional) =>
-              navigate(`/add-review/${btoa(JSON.stringify(professional))}`),
-          },
-        ),
+        form: createReviewFormFactory(actionParams || null, {
+          onProfessionalFound: (professional) =>
+            navigateAction('add-review', btoa(JSON.stringify(professional))),
+        }),
       },
     }),
     [action, actionParams],
@@ -79,13 +81,12 @@ export default function MapPage() {
     }));
   }, [professionals]);
 
-  const [selectedMarkerId, setSelectedMarkerId] = useState(null);
   const selectedPro = useMemo(() => {
-    if (selectedMarkerId && professionals) {
-      return professionals.find(({ id }) => selectedMarkerId === id) || null;
+    if (professionalId && professionals) {
+      return professionals.find(({ id }) => professionalId === id) || null;
     }
     return null;
-  }, [selectedMarkerId, professionals]);
+  }, [professionalId, professionals]);
 
   return (
     <Page
@@ -93,7 +94,7 @@ export default function MapPage() {
       topContent={
         <>
           <Button
-            onClick={() => navigate('/add-review')}
+            onClick={() => navigateAction('add-review')}
             sx={style.addReviewBtn}
             colorScheme="blue"
           >
@@ -158,7 +159,7 @@ export default function MapPage() {
           setMapAreaRequest(mapAreaFromMap);
           callGetProfessionals();
         }}
-        onMarkerClick={setSelectedMarkerId}
+        onMarkerClick={(proId) => navigateAction('professional-detail', proId)}
       />
       <FormModals
         modalsConfig={modalsConfig}
@@ -168,8 +169,8 @@ export default function MapPage() {
       {selectedPro && (
         <ProfessionalInfoModal
           data={selectedPro}
-          close={() => setSelectedMarkerId(null)}
-          isShown={selectedMarkerId}
+          close={() => navigateAction(null)}
+          isShown={!!professionalId}
         />
       )}
     </Page>
