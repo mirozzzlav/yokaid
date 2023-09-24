@@ -94,12 +94,19 @@ export default function MapPage() {
       );
       return;
     }
+    setMapAreaRequest((prevMapAreaRequest) => {
+      if (proRequest) {
+        return {
+          position: proRequest.position,
+          bounds: config.map.defaultBounds,
+        };
+      }
+      if (prevMapAreaRequest) {
+        return prevMapAreaRequest;
+      }
 
-    setMapAreaRequest(
-      proRequest
-        ? { position: proRequest.position, bounds: config.map.defaultBounds }
-        : config.map.defaultArea,
-    );
+      return config.map.defaultArea;
+    });
   }, [action, actionParams, professionals]);
 
   return (

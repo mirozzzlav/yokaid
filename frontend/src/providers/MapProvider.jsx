@@ -31,7 +31,9 @@ export default function MapProvider({ children }) {
 
   useEffect(() => {
     moveMap(mapAreaRequest);
-  }, [mapAreaRequest]);
+  }, [mapAreaRequest.bounds, mapAreaRequest.position]);
+  /* using mapAreaRequest.bounds, mapAreaRequest.position deps separately because
+  the order of attributes bounds and position can change which can cause unnecessary re-renders */
 
   const contextVal = useMemo(
     () => ({
