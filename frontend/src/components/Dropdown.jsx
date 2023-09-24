@@ -241,6 +241,7 @@ function SearchDropdown({
   });
   const onItemClick = useCallback(
     (onClickData) => {
+      console.log(onClickData);
       onValueSet(onClickData);
       inputValSetter(onClickData.label);
     },

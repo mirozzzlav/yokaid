@@ -2,11 +2,9 @@ export const proxyApiSuffix = '/api';
 
 const apiUrl = `${window.location.origin}${proxyApiSuffix}`;
 
-const defaultMapBounds = [
-  51.48801054716571, -0.1518344879150391, 51.52198884392169,
-  -0.028238296508789066,
-];
-const defaultMapPosition = [51.505, -0.09];
+const defaultMapBounds = [47.7311798, 16.8331891, 49.6138162, 22.56571];
+const defaultMapPosition = [48.7411522, 19.4528646];
+
 const mapFilterColumnAlias = 'mapBounds';
 
 export default {
