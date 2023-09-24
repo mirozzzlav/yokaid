@@ -136,7 +136,8 @@ export default function Map({
       });
       const marker = L.marker([locationLat, locationLng], { icon }).on(
         'click',
-        () => onMarkerClick(markerId),
+        () =>
+          onMarkerClick({ id: markerId, position: [locationLat, locationLng] }),
       );
 
       if (mapLayersRef.current[markerId]) {

@@ -1,6 +1,7 @@
 import React, {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -11,7 +12,7 @@ import config from 'src/config';
 export const MapContext = createContext({});
 export default function MapProvider({ children }) {
   const mapRef = useRef(null);
-  const mapAreaRequestRef = useRef(config.map.defaultArea);
+  const [mapAreaRequest, setMapAreaRequest] = useState(config.map.defaultArea);
 
   const calculateZoom = useCallback((bounds) => {
     const widthFactor = 1.7;
@@ -21,21 +22,25 @@ export default function MapProvider({ children }) {
     return zoom < 3 ? 3 : zoom;
   }, []);
 
+  const moveMap = useCallback((mapArea) => {
+    if (!mapRef.current) {
+      return;
+    }
+    mapRef.current.setView(mapArea.position, calculateZoom(mapArea.bounds));
+  }, []);
+
+  useEffect(() => {
+    moveMap(mapAreaRequest);
+  }, [mapAreaRequest]);
+
   const contextVal = useMemo(
     () => ({
       mapRef,
-      moveMap: (mapArea) => {
-        if (!mapRef.current) {
-          return;
-        }
-        mapRef.current.setView(mapArea.position, calculateZoom(mapArea.bounds));
-      },
-      mapAreaRequestRef,
-      setMapAreaRequest: (newMapArea) => {
-        mapAreaRequestRef.current = newMapArea;
-      },
+      moveMap,
+      mapAreaRequest,
+      setMapAreaRequest,
     }),
-    [mapRef],
+    [mapRef, mapAreaRequest],
   );
 
   return (

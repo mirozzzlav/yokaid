@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Button } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 
@@ -27,33 +27,12 @@ const style = {
 export default function MapPage() {
   const { navigateAction, action, actionParams } = useNavigateAction();
 
-  const professionalId = useMemo(
-    () => (action === 'professional-detail' ? actionParams : null),
-    [action, actionParams],
-  );
-
   const {
     filters: { what: initialItemsWhat },
   } = useContext(InitialDataContext);
   const { professionals, callGetProfessionals } = useGetProfessionals();
-  const { moveMap, mapAreaRequestRef, setMapAreaRequest } =
-    useContext(MapContext);
+  const { moveMap, setMapAreaRequest } = useContext(MapContext);
 
-  const modalsConfig = useMemo(
-    () => ({
-      'add-review': {
-        title: 'Add review',
-        submitButton: {
-          label: 'Submit',
-        },
-        form: createReviewFormFactory(actionParams || null, {
-          onProfessionalFound: (professional) =>
-            navigateAction('add-review', btoa(JSON.stringify(professional))),
-        }),
-      },
-    }),
-    [action, actionParams],
-  );
   const {
     filterItemsHookCreator,
     updateFilter,
@@ -66,27 +45,62 @@ export default function MapPage() {
   const useFilterItemsWhat = filterItemsHookCreator('what');
   const useFilterItemsWhere = filterItemsHookCreator('where');
   useEffect(() => {
-    moveMap(mapAreaRequestRef.current);
     callGetProfessionals();
   }, []);
 
-  const markers = useMemo(() => {
-    if (!professionals) {
-      return null;
-    }
-    return professionals.map(({ locationLat, locationLng, id }) => ({
-      locationLat,
-      locationLng,
-      id,
-    }));
-  }, [professionals]);
+  const [markers, setMarkers] = useState(null);
+  const [selectedPro, setSelectedPro] = useState(null);
+  const modalsConfig = useMemo(
+    () => ({
+      'add-review': {
+        title: 'Add review',
+        submitButton: {
+          label: 'Submit',
+        },
+        form: createReviewFormFactory(selectedPro || null, {
+          onProfessionalFound: ({ id, locationLat, locationLng }) =>
+            navigateAction(
+              'add-review',
+              btoa(
+                JSON.stringify({ id, position: [locationLat, locationLng] }),
+              ),
+            ),
+        }),
+      },
+    }),
+    [selectedPro],
+  );
 
-  const selectedPro = useMemo(() => {
-    if (professionalId && professionals) {
-      return professionals.find(({ id }) => professionalId === id) || null;
+  useEffect(() => {
+    const proRequest =
+      (action === 'professional-detail' || action === 'add-review') &&
+      actionParams
+        ? actionParams
+        : null;
+
+    if (professionals) {
+      const tmpPro = proRequest
+        ? professionals.find(({ id }) => proRequest.id === id) || null
+        : null;
+
+      setSelectedPro(tmpPro);
+
+      setMarkers(
+        professionals.map(({ locationLat, locationLng, id }) => ({
+          locationLat,
+          locationLng,
+          id,
+        })),
+      );
+      return;
     }
-    return null;
-  }, [professionalId, professionals]);
+
+    setMapAreaRequest(
+      proRequest
+        ? { position: proRequest.position, bounds: config.map.defaultBounds }
+        : config.map.defaultArea,
+    );
+  }, [action, actionParams, professionals]);
 
   return (
     <Page
@@ -159,20 +173,23 @@ export default function MapPage() {
           setMapAreaRequest(mapAreaFromMap);
           callGetProfessionals();
         }}
-        onMarkerClick={(proId) => navigateAction('professional-detail', proId)}
+        onMarkerClick={(onClickData) =>
+          navigateAction(
+            'professional-detail',
+            btoa(JSON.stringify(onClickData)),
+          )
+        }
       />
       <FormModals
         modalsConfig={modalsConfig}
         shownModalId={action}
         setShownModalId={navigateAction}
       />
-      {selectedPro && (
-        <ProfessionalInfoModal
-          data={selectedPro}
-          close={() => navigateAction(null)}
-          isShown={!!professionalId}
-        />
-      )}
+      <ProfessionalInfoModal
+        data={action === 'professional-detail' ? selectedPro : null}
+        close={() => navigateAction(null)}
+        isShown={!!selectedPro}
+      />
     </Page>
   );
 }

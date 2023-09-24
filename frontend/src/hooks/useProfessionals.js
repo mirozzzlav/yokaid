@@ -11,7 +11,7 @@ export function useGetProfessionals() {
     setProfessionals(!response.error ? response.data : null);
   });
 
-  const { mapAreaRequestRef } = useContext(MapContext);
+  const { mapAreaRequest } = useContext(MapContext);
 
   useEffect(() => {
     if (!callId) {
@@ -21,9 +21,7 @@ export function useGetProfessionals() {
     call(
       `${config.api.endPointsURLs.getProfessionals}/${
         config.map.columnAlias
-      }=[${mapAreaRequestRef.current.bounds}]${
-        filterUrl ? `;${filterUrl}` : ''
-      }`,
+      }=[${mapAreaRequest.bounds}]${filterUrl ? `;${filterUrl}` : ''}`,
       'get',
     );
   }, [callId]);

@@ -7,6 +7,7 @@ import { theme } from 'src/style';
 import Rating from 'src/components/Rating';
 import config from 'src/config';
 import DataContent from 'src/components/DataContent';
+import MultiItem, { MultiInput } from 'src/components/MultiItem';
 
 const style = {
   review: {
@@ -37,7 +38,7 @@ function getSmile(rating) {
   return ':-|';
 }
 
-export default function ProfessionalInfo({ data }) {
+export default function ProfessionalInfo({ data, showRating, showReviews }) {
   const dataMapped = useMemo(() => {
     let res = [
       {
@@ -45,24 +46,23 @@ export default function ProfessionalInfo({ data }) {
         content: getProfessionalLabel(data),
       },
       {
-        headline: 'Services',
-        content: data.services.map(({ title }) => title).join(', '),
-      },
-      {
         headline: 'Location',
         content: data.location,
       },
+      {
+        headline: 'Services',
+        content: <MultiItem labels={data.services.map(({ title }) => title)} />,
+      },
     ];
-    if (data.rating) {
+    if (data.rating && showRating) {
       res = [
-        res[0],
+        ...res,
         {
           headline: 'Rating',
           content: (
             <Rating rating={data.rating} reviewsCount={data.reviewsCount} />
           ),
         },
-        res.slice(1),
       ];
     }
     return res;
@@ -72,7 +72,7 @@ export default function ProfessionalInfo({ data }) {
     <DataContent
       data={dataMapped}
       footer={
-        data.reviews ? (
+        data.reviews && showReviews ? (
           <Flex direction="column">
             {data.reviews.map(({ text, id, rating }) => (
               <Box key={id} sx={style.review}>
@@ -92,14 +92,23 @@ export default function ProfessionalInfo({ data }) {
   );
 }
 
+ProfessionalInfo.defaultProps = {
+  showRating: false,
+  showReviews: false,
+};
 ProfessionalInfo.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
+  showRating: PropTypes.bool,
+  showReviews: PropTypes.bool,
 };
 
 export function ProfessionalInfoModal({ isShown, close, data }) {
+  if (!data) {
+    return null;
+  }
   return (
     <Modal isShown={isShown} close={close} title="Professional info">
-      <ProfessionalInfo data={data} />
+      <ProfessionalInfo data={data} showRating showReviews />
     </Modal>
   );
 }

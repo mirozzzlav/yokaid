@@ -15,7 +15,7 @@ import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
-import MultiInput from 'src/components/MultiInput';
+import { MultiInput } from 'src/components/MultiItem';
 import { globalStyle } from 'src/style';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 
@@ -24,7 +24,9 @@ function useProInfoSearch(onSearchFinish) {
     onSearchFinish(
       response.data
         ? response.data.map((d) => ({
-            label: d.fullName,
+            label: `${d.fullName} - ${d.services
+              .map(({ title }) => title)
+              .join(', ')}`,
             value: d,
           }))
         : null,
@@ -179,7 +181,7 @@ export function CreateProAndReviewForm({
   extraActions,
   validationRules,
 }) {
-  const [serviceTitles, setServiceTitles] = useState('');
+  const [serviceTitles, setServiceTitles] = useState(null);
   return (
     <Box sx={globalStyle.formWrapper}>
       <FormControl
@@ -200,6 +202,7 @@ export function CreateProAndReviewForm({
             updateInputs('fullName', '');
           }}
           position="left"
+          width="100%"
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
       </FormControl>
@@ -228,6 +231,7 @@ export function CreateProAndReviewForm({
             updateInputs('location', '');
           }}
           position="left"
+          width="100%"
         />
         <FormErrorMessage>
           {inputsErrors?.location ||
@@ -289,19 +293,20 @@ export function CreateProAndReviewForm({
           onValueSet={({ value }) => {
             if (updateInputs('services', value.id, true)) {
               setServiceTitles((prevTitles) =>
-                prevTitles ? `${prevTitles},${value.title}` : value.title,
+                prevTitles ? [...prevTitles, value.title] : [value.title],
               );
             }
           }}
           showCloseIcon={false}
           position="left"
+          width="100%"
         />
         <MultiInput
-          values={inputs.services}
+          values={inputs.services ? inputs.services.split(',') : null}
           labels={serviceTitles}
           onItemRemove={(services, titles) => {
-            updateInputs('services', services);
-            setServiceTitles(titles);
+            updateInputs('services', services ? services.join(',') : '');
+            setServiceTitles(titles || null);
           }}
         />
         <FormErrorMessage>{inputsErrors?.services}</FormErrorMessage>

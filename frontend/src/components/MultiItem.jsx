@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { SmallCloseIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton } from '@chakra-ui/react';
@@ -9,7 +9,7 @@ const style = {
     padding: '5px 0',
     gap: '5px',
   },
-  iconBtnWrapper: {
+  element: {
     border: `1px solid ${theme.colors.gray[200]}`,
     background: theme.colors.gray[50],
     borderRadius: theme.radii.md,
@@ -28,28 +28,39 @@ const style = {
     fontSize: '0.9rem',
   },
 };
-export default function MultiInput({
-  labels: labelsStr,
-  values: valuesStr,
-  onItemRemove,
-}) {
-  if (!valuesStr || !labelsStr) {
+
+export default function MultiItem({ labels }) {
+  return (
+    <Flex sx={style.wrapper}>
+      {labels.map((v, i) => (
+        <Flex key={v} sx={style.element}>
+          <Box sx={style.label}>{labels[i]}</Box>
+        </Flex>
+      ))}
+    </Flex>
+  );
+}
+
+MultiItem.prototype.propTypes = {
+  labels: PropTypes.string.isRequired,
+};
+
+export function MultiInput({ labels, values, onItemRemove }) {
+  if (!labels || !values) {
     return null;
   }
-  const values = useMemo(() => valuesStr.split(','), [valuesStr]);
-  const labels = useMemo(() => labelsStr.split(','), [labelsStr]);
 
   const removeItem = useCallback(
     (searchedValue) => {
-      let resultVals = [];
-      let resultLabels = [];
+      let resultValues = null;
+      let resultLabels = null;
       values.forEach((v, i) => {
         if (v !== searchedValue) {
-          resultLabels = [...resultLabels, labels[i]];
-          resultVals = [...resultVals, v];
+          resultLabels = [...(resultLabels || []), labels[i]];
+          resultValues = [...(resultValues || []), v];
         }
       });
-      return [resultVals.join(','), resultLabels.join(',')];
+      return [resultValues, resultLabels];
     },
     [values, labels],
   );
@@ -57,14 +68,16 @@ export default function MultiInput({
   return (
     <Flex sx={style.wrapper}>
       {values.map((v, i) => (
-        <Flex key={v} sx={style.iconBtnWrapper}>
+        <Flex key={v} sx={style.element}>
           <Box sx={style.label}>{labels[i]}</Box>
-          <IconButton
-            sx={style.iconBtn}
-            variant="link"
-            onClick={() => onItemRemove(...removeItem(v))}
-            icon={<SmallCloseIcon />}
-          />
+          {onItemRemove && (
+            <IconButton
+              sx={style.iconBtn}
+              variant="link"
+              onClick={() => onItemRemove(...removeItem(v))}
+              icon={<SmallCloseIcon />}
+            />
+          )}
         </Flex>
       ))}
     </Flex>
