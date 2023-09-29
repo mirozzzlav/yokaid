@@ -4,17 +4,15 @@ import DatePickerFromLib from 'react-datepicker';
 import {
   Box,
   Button,
-  Flex,
   InputGroup,
   InputRightElement,
   useOutsideClick,
 } from '@chakra-ui/react';
-import { SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import { css } from '@emotion/css';
 import { toLocalDate } from 'src/helpers';
-import { globalStyle, theme } from 'src/style';
-import { SmallCloseIcon } from '@chakra-ui/icons';
+import theme from 'src/style';
 
 const style = {
   button: {
@@ -39,7 +37,7 @@ const style = {
   },
 };
 
-export default function DataPicker({
+export default function DatePicker({
   icon,
   placeholder,
   onValueSet,
@@ -66,9 +64,9 @@ export default function DataPicker({
   }, []);
 
   return (
-    <Box sx={globalStyle.contextMenuLikeWrapper} ref={wrapperRef}>
+    <Box sx={theme.styles.global.contextMenuLikeWrapper} ref={wrapperRef}>
       {isPickerShown && (
-        <Box sx={globalStyle.contextMenuLikeChild('left', '242px')}>
+        <Box sx={theme.styles.global.contextMenuLikeChild('left', '242px')}>
           <DatePickerFromLib
             selected={startDate}
             onChange={onChange}
@@ -109,12 +107,12 @@ export default function DataPicker({
   );
 }
 
-DataPicker.defaultProps = {
+DatePicker.defaultProps = {
   icon: <SearchIcon />,
   placeholder: '',
   onValueEmpty: () => {},
 };
-DataPicker.prototype.propTypes = {
+DatePicker.prototype.propTypes = {
   icon: PropTypes.node,
   placeholder: PropTypes.string,
   onValueSet: PropTypes.func.isRequired,

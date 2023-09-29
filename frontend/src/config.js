@@ -17,7 +17,7 @@ export default {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
       getProfessionals: `${apiUrl}/professionals/get`,
-      getProfessionalsInfo: `${apiUrl}/professionals/get-info`,
+      searchProfessionals: `${apiUrl}/professionals/search`,
       getInitialData: `${apiUrl}/frontend-data/get`,
       getFilterItems: `${apiUrl}/filter-items/get`,
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
@@ -29,16 +29,23 @@ export default {
     defaultZoom: 14,
     defaultPosition: defaultMapPosition,
     defaultBounds: defaultMapBounds,
-    columnAlias: mapFilterColumnAlias,
     defaultArea: {
       position: defaultMapPosition,
       bounds: defaultMapBounds,
     },
   },
-  defaultFilter: {
-    [mapFilterColumnAlias]: {
-      value: defaultMapBounds,
-      extraData: defaultMapPosition,
+  filter: {
+    filterNames: ['location', 'profession'],
+    APIColumnAliases: {
+      profession: 'serviceId',
+      location: mapFilterColumnAlias,
+    },
+    defaultFilter: {
+      location: {
+        columnAlias: mapFilterColumnAlias,
+        value: defaultMapBounds,
+        extraData: defaultMapPosition,
+      },
     },
   },
   maxRating: 5,

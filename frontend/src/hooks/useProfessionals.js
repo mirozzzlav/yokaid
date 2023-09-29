@@ -17,10 +17,10 @@ export function useGetProfessionals() {
     if (!callId) {
       return;
     }
-    const filterUrl = getFilterUrl([config.map.columnAlias]);
+    const filterUrl = getFilterUrl([config.filter.APIColumnAliases.location]);
     call(
       `${config.api.endPointsURLs.getProfessionals}/${
-        config.map.columnAlias
+        config.filter.APIColumnAliases.location
       }=[${mapAreaRequest.bounds}]${filterUrl ? `;${filterUrl}` : ''}`,
       'get',
     );
@@ -31,16 +31,36 @@ export function useGetProfessionals() {
       callGetProfessionals: () => {
         setCallId(Math.random());
       },
+      getProfessional: (idToFind) => {
+        if (!professionals) {
+          return null;
+        }
+        return professionals.find(({ id }) => id === idToFind) || null;
+      },
       professionals,
     }),
     [professionals],
   );
 }
 
-export function useCreateProWithReviewCall(onCallFinish) {
-  const call = useCall(onCallFinish);
-
-  return useCallback((inputs) => {
-    call(config.api.endPointsURLs.createProfessionalWithReview, 'post', inputs);
-  }, []);
+export function useSearchProfessional(onSearchFinish) {
+  const call = useCall((response) => {
+    onSearchFinish(
+      response.data
+        ? response.data.map((d) => ({
+            label: `${d.fullName} - ${d.services
+              .map(({ title }) => title)
+              .join(', ')}`,
+            value: d,
+          }))
+        : null,
+    );
+  });
+  return useCallback(
+    (professionalName) =>
+      call(
+        `${config.api.endPointsURLs.searchProfessionals}/${professionalName}`,
+      ),
+    [call],
+  );
 }

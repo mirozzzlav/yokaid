@@ -66,6 +66,17 @@ function isBase64(str) {
 function isInt(str) {
   return !Number.isNaN(parseInt(str, 10));
 }
+function getMergedStyle(style, responsiveStyle) {
+  const res = { ...style };
+  Object.keys(responsiveStyle).forEach((k) => {
+    res[k] = { ...style[k], ...responsiveStyle[k] };
+  });
+  return res;
+}
+
+function getStringFirstCaps(str) {
+  return str.substring(0, 1).toUpperCase() + str.substring(1);
+}
 
 export {
   unknownObjectValidator,
@@ -76,4 +87,6 @@ export {
   isFieldRequired,
   isBase64,
   isInt,
+  getMergedStyle,
+  getStringFirstCaps,
 };

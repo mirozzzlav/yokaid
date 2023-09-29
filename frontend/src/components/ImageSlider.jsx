@@ -1,7 +1,7 @@
 import React from 'react';
 import { css } from '@emotion/css';
 import PropTypes from 'prop-types';
-import { theme } from 'src/style';
+import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 
 const sliderStyle = {

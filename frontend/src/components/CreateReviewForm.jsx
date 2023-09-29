@@ -9,37 +9,15 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
-import { usePlacesSearch } from 'src/hooks';
+import { usePlacesSearch, useSearchProfessional } from 'src/hooks';
 import Rating from 'src/components/Rating';
 import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
 import { MultiInput } from 'src/components/MultiItem';
-import { globalStyle } from 'src/style';
+import theme from 'src/style';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
-
-function useProInfoSearch(onSearchFinish) {
-  const call = useCall((response) => {
-    onSearchFinish(
-      response.data
-        ? response.data.map((d) => ({
-            label: `${d.fullName} - ${d.services
-              .map(({ title }) => title)
-              .join(', ')}`,
-            value: d,
-          }))
-        : null,
-    );
-  });
-  return useCallback(
-    (professionalName) =>
-      call(
-        `${config.api.endPointsURLs.getProfessionalsInfo}/${professionalName}`,
-      ),
-    [call],
-  );
-}
 
 function useServicesSearch(onSearchFinish) {
   const call = useCall((response) => {
@@ -140,7 +118,7 @@ export default function CreateReviewForm({
   validationRules,
 }) {
   return (
-    <Box sx={globalStyle.formWrapper}>
+    <Box sx={theme.styles.global.formWrapper}>
       <ProfessionalInfo data={extraData} />
       <RatingFormControls
         inputs={inputs}
@@ -183,14 +161,14 @@ export function CreateProAndReviewForm({
 }) {
   const [serviceTitles, setServiceTitles] = useState(null);
   return (
-    <Box sx={globalStyle.formWrapper}>
+    <Box sx={theme.styles.global.formWrapper}>
       <FormControl
         isInvalid={inputsErrors?.fullName}
         isRequired={isFieldRequired(validationRules?.fullName)}
       >
         <FormLabel>Reviewed person</FormLabel>
         <SearchDropdown
-          searchHook={useProInfoSearch}
+          searchHook={useSearchProfessional}
           inputVal={inputs.fullName}
           inputValSetter={(v) => updateInputs('fullName', v)}
           onValueSet={({ value }) => {
@@ -202,7 +180,7 @@ export function CreateProAndReviewForm({
             updateInputs('fullName', '');
           }}
           position="left"
-          width="100%"
+          dropdownWidth="100%"
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
       </FormControl>
@@ -231,7 +209,7 @@ export function CreateProAndReviewForm({
             updateInputs('location', '');
           }}
           position="left"
-          width="100%"
+          dropdownWidth="100%"
         />
         <FormErrorMessage>
           {inputsErrors?.location ||
@@ -299,7 +277,7 @@ export function CreateProAndReviewForm({
           }}
           showCloseIcon={false}
           position="left"
-          width="100%"
+          dropdownWidth="100%"
         />
         <MultiInput
           values={inputs.services ? inputs.services.split(',') : null}

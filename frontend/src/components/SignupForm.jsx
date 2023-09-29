@@ -10,7 +10,7 @@ import {
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import { useSignupCall } from 'src/hooks';
-import { globalStyle } from 'src/style';
+import theme from 'src/style';
 
 const successMessage =
   'sign up has been successful, please check your email for the account activation';
@@ -24,7 +24,7 @@ export default function SignupForm({
   validationRules,
 }) {
   return (
-    <Box sx={globalStyle.formWrapper}>
+    <Box sx={theme.styles.global.formWrapper}>
       <FormControl
         isInvalid={inputsErrors?.fullName}
         isRequired={isFieldRequired(validationRules?.fullName)}

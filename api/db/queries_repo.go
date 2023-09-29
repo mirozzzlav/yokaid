@@ -97,35 +97,11 @@ func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool) common.Query {
 
-	query := `SELECT 
-	  professionals.id, 
-	  professionals.full_name, 
-	  professionals.phone, 
-	  professionals.email, 
-	  professionals.business_id, 
-	  professionals.location, 
-	  professionals.location_lat, 
-	  professionals.location_lng, 
-	  reviews_view.reviews,
-	  reviews_view.rating,
-	  services_view.services,
-	  reviews_count_view.reviews_count
-	FROM 
-	  professionals
-	  JOIN (
-	      SELECT JSON_AGG(
-			JSON_BUILD_OBJECT(
-			  'id', services.id, 'title', services.title
-			)
-	  	  ) AS services, professional_services.professional_id 
-	      FROM
-	        professional_services JOIN services ON professional_services.service_id = services.id 
-	      GROUP BY
-	        professional_services.professional_id
-	  ) AS services_view ON services_view.professional_id = professionals.id 
-	  JOIN (
+	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
+
+	reviewsQuery := `JOIN (
 		SELECT 
 		  professional_id, 
 		  round(avg(rating)) AS rating,
@@ -154,8 +130,38 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 	  SELECT count(reviews.id) AS reviews_count, reviews.professional_id 
 	  FROM reviews GROUP BY reviews.professional_id
 	) AS reviews_count_view
-	ON professionals.id = reviews_count_view.professional_id
-	WHERE professionals.active = true `
+	ON professionals.id = reviews_count_view.professional_id`
+
+	if !reviews {
+		reviewsQuery = ""
+		reviewsColumns = ""
+	}
+
+	query := fmt.Sprintf(`SELECT 
+	  professionals.id, 
+	  professionals.full_name, 
+	  professionals.phone, 
+	  professionals.email, 
+	  professionals.business_id, 
+	  professionals.location, 
+	  professionals.location_lat, 
+	  professionals.location_lng, 
+	  services_view.services 
+	  %s
+	FROM 
+	  professionals
+	  JOIN (
+	      SELECT JSON_AGG(
+			JSON_BUILD_OBJECT(
+			  'id', services.id, 'title', services.title
+			)
+	  	  ) AS services, professional_services.professional_id 
+	      FROM
+	        professional_services JOIN services ON professional_services.service_id = services.id 
+	      GROUP BY
+	        professional_services.professional_id
+	  ) AS services_view ON services_view.professional_id = professionals.id %s 
+ 	WHERE professionals.active = true `, reviewsColumns, reviewsQuery)
 
 	if filter.Query != "" {
 		return dbQuery{
@@ -177,6 +183,20 @@ func (qr queriesRepo) GetProfessionalsWithReviewsQuery(filter common.QueryPartia
 		},
 	}
 
+}
+func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial, activeOnly bool) common.Query {
+	q := "SELECT count(id) FROM professionals WHERE "
+	if activeOnly {
+		q = q + "active = true AND "
+	}
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  q + filter.Query,
+				Params: filter.Params,
+			},
+		},
+	}
 }
 
 func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial, activeOnly bool) common.Query {

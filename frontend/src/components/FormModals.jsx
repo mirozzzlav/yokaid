@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import { unknownObjectValidator } from 'src/helpers';
 import { useForms } from 'src/hooks';
+import { formModalsConfigPropType } from 'src/constants';
 
 export default function FormModals({
   modalsConfig,
@@ -81,14 +82,7 @@ export default function FormModals({
 }
 
 FormModals.prototype.propTypes = {
-  modalsConfig: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      title: PropTypes.string,
-      submitButtonLabel: PropTypes.string,
-      form: unknownObjectValidator,
-    }),
-  ).isRequired,
+  modalsConfig: PropTypes.arrayOf(formModalsConfigPropType).isRequired,
   shownModalId: PropTypes.string.isRequired,
   setShownModalId: PropTypes.func.isRequired,
 };

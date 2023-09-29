@@ -9,7 +9,6 @@ function useMapFilterItmes(onSearchFinish) {
     (results) =>
       results.map((place) => ({
         label: place.display_name,
-        filterColumnAlias: config.map.columnAlias,
         value: [
           parseFloat(place.boundingbox[0]),
           parseFloat(place.boundingbox[2]),
@@ -25,12 +24,11 @@ function useMapFilterItmes(onSearchFinish) {
   return usePlacesSearch(onSearchFinish, getItemsForMapFilter);
 }
 
-function filterItemsHookCreator(filterKey) {
-  if (filterKey === 'where') {
+function filterItemsHookCreator(filterName) {
+  if (filterName === 'location') {
     return useMapFilterItmes;
   }
 
-  // default is items for what filter
   return (onSearchFinish = null) => {
     // hook itself
     const call = useCall((response) => {
@@ -41,9 +39,7 @@ function filterItemsHookCreator(filterKey) {
     return useCallback(
       (searchedFilterItem) =>
         call(
-          `${config.api.endPointsURLs.getFilterItems}/${encodeURIComponent(
-            'services',
-          )}/${searchedFilterItem}`,
+          `${config.api.endPointsURLs.getFilterItems}/${config.filter.APIColumnAliases[filterName]}/${searchedFilterItem}`,
         ),
       [call],
     );
@@ -60,13 +56,16 @@ function filtersEqual(f1, f2) {
   }
   return (
     JSON.stringify(f1.value) === JSON.stringify(f2.value) &&
+    JSON.stringify(f1.columnAlias) === JSON.stringify(f2.columnAlias) &&
     JSON.stringify(f1?.extraData) === JSON.stringify(f2?.extraData)
   );
 }
 
 export default function FilterProvider({ children }) {
-  const [draft, setDraft] = useState(config.defaultFilter);
-  const [filter, setFilter] = useState(config.defaultFilter);
+  const [draft, setDraft] = useState(config.filter.defaultFilter);
+  const [filter, setFilter] = useState(config.filter.defaultFilter);
+  const [isShown, setIsShown] = useState(false);
+  const [filterInputValues, setFilterInputValues] = useState(null);
 
   const contextVal = useMemo(() => {
     const isFilterChanged = (() => {
@@ -75,7 +74,7 @@ export default function FilterProvider({ children }) {
           ? Object.keys(draft)
           : Object.keys(filter);
       return keys.some(
-        (columnAlias) => !filtersEqual(draft[columnAlias], filter[columnAlias]),
+        (filterName) => !filtersEqual(draft[filterName], filter[filterName]),
       );
     })();
 
@@ -84,16 +83,18 @@ export default function FilterProvider({ children }) {
       filter,
       draft,
       isFilterChanged,
-      getIsFilterEqual: (columnAlias) =>
-        filtersEqual(draft[columnAlias], filter[columnAlias]),
+      getIsFilterEqual: (filterName) =>
+        filtersEqual(draft[filterName], filter[filterName]),
       saveFilter: () => {
         setFilter(draft);
       },
       getFilterUrl: (skipFilterColumnAliases = []) =>
-        Object.entries(filter)
-          .filter(([k]) => !skipFilterColumnAliases.includes(k))
+        Object.values(filter)
+          .filter(
+            ({ columnAlias }) => !skipFilterColumnAliases.includes(columnAlias),
+          )
           .map(
-            ([columnAlias, { value }]) =>
+            ({ columnAlias, value }) =>
               `${columnAlias}=${
                 typeof value === 'object' ? JSON.stringify(value) : value
               }`,
@@ -105,21 +106,24 @@ export default function FilterProvider({ children }) {
           ...toUpdateFilter,
         }));
       },
-      resetFilter: (columnAliases) =>
-        setDraft((prevFilter) => {
-          if (!prevFilter) {
-            return null;
-          }
-          const newFilterEntries = Object.entries(prevFilter).filter(
-            ([k]) => !columnAliases.includes(k),
-          );
-
-          return newFilterEntries.length === 0
-            ? null
-            : Object.fromEntries(newFilterEntries);
-        }),
+      resetFilter: (filterName) =>
+        setDraft((prevFilter) => ({
+          ...config.filter.defaultFilter,
+          ...Object.fromEntries(
+            Object.entries(prevFilter).filter(([k]) => k !== filterName),
+          ),
+        })),
+      isFilterShown: isShown,
+      showFilter: () => setIsShown(true),
+      hideFilter: () => setIsShown(false),
+      filterInputValues,
+      getFilterInputValSetter: (filterName) => (inputVal) =>
+        setFilterInputValues((prevFilter) => ({
+          ...prevFilter,
+          [filterName]: inputVal,
+        })),
     };
-  }, [filter, draft]);
+  }, [filter, draft, isShown, filterInputValues]);
 
   return (
     <FilterContext.Provider value={contextVal}>

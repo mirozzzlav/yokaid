@@ -9,7 +9,7 @@ import {
   Box,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { globalStyle, theme } from 'src/style';
+import theme from 'src/style';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import { useLoginCall } from 'src/hooks';
 import { unknownObjectValidator } from 'src/helpers';
@@ -22,7 +22,7 @@ export default function LoginForm({
   updateInputs,
 }) {
   return (
-    <Box sx={globalStyle.formWrapper}>
+    <Box sx={theme.styles.global.formWrapper}>
       <FormControl isInvalid={inputsErrors?.usernameOrEmail}>
         <FormLabel>Username or email</FormLabel>
         <Input

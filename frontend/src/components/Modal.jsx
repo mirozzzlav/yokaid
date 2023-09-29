@@ -10,9 +10,14 @@ import {
   Button,
   ModalCloseButton,
 } from '@chakra-ui/react';
-import { theme } from 'src/style';
+import theme from 'src/style';
+import { buttonPropType } from 'src/constants';
 
 const style = {
+  modalContent: {
+    width: '400px',
+    maxWidth: 'calc(100vw - 30px)',
+  },
   modalBody: {
     maxHeight: '400px',
     overflowY: 'auto',
@@ -48,7 +53,7 @@ export default function Modal({
   return (
     <ModalChakra isOpen={isShown} onClose={close}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent sx={style.modalContent}>
         <ModalHeader>{title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody sx={style.modalBody} ref={bodyRef}>
@@ -86,12 +91,6 @@ Modal.prototype.propTypes = {
   close: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
-  submitButton: PropTypes.oneOfType([
-    PropTypes.shape({
-      label: PropTypes.string,
-      onClick: PropTypes.func,
-    }),
-    PropTypes.oneOf([null]),
-  ]),
+  submitButton: PropTypes.oneOfType([buttonPropType, PropTypes.oneOf([null])]),
   isScrolledDown: PropTypes.bool,
 };

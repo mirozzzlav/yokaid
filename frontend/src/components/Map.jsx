@@ -9,7 +9,7 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import { css } from '@emotion/css';
 import person from 'src/assets/person.png';
-import { theme } from 'src/style';
+import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import config from 'src/config';
 import { MapContext } from 'src/providers';

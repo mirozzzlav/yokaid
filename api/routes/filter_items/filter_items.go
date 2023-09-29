@@ -13,14 +13,14 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 		if !paramExist {
 			searchTerm = ""
 		}
-		filteredEntitiesStr, paramExist := ctx.Params.Get("filteredEntities")
-		if !paramExist || filteredEntitiesStr == "" {
+		columnAliasesStr, paramExist := ctx.Params.Get("columnAliases")
+		if !paramExist || columnAliasesStr == "" {
 			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 
 		}
-		filteredEntities := strings.Split(filteredEntitiesStr, ";")
+		columnAliases := strings.Split(columnAliasesStr, ";")
 		server.GetQueryRunner(ctx).Begin()
-		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(filteredEntities, searchTerm, 10)
+		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(columnAliases, searchTerm, 10)
 		if err != nil && err != common.ErrNoRows {
 			common.CheckErrAndPanic(err)
 		}
@@ -32,7 +32,7 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/filter-items/get/:filteredEntities/:searchTerm", false, http.MethodGet, getFilterItems(server)},
-		{"/filter-items/get/:filteredEntities", false, http.MethodGet, getFilterItems(server)},
+		{"/filter-items/get/:columnAliases/:searchTerm", false, http.MethodGet, getFilterItems(server)},
+		{"/filter-items/get/:columnAliases", false, http.MethodGet, getFilterItems(server)},
 	}
 }

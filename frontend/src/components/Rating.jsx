@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Box, Flex, IconButton } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
-import { theme } from 'src/style';
+import theme from 'src/style';
 import config from 'src/config';
 
 function RatingStar({ onClick, active }) {

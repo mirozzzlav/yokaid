@@ -16,9 +16,9 @@ export default function usePlacesSearch(
     onSearchFinish(mapResults);
   });
   return useCallback(
-    (searchedTerm) =>
+    (searchedPlace) =>
       call(
-        `https://nominatim.openstreetmap.org/search?q=${searchedTerm}&format=json`,
+        `https://nominatim.openstreetmap.org/search?city=${searchedPlace}&featureType=city&format=json`,
       ),
     [call],
   );

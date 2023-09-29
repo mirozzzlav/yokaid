@@ -7,7 +7,7 @@ import { SuccessMessage, ErrorMessage } from 'src/components/Messages';
 import FormModals from 'src/components/FormModals';
 import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
-import DataPicker from 'src/components/DataPicker';
+import DatePicker from 'src/components/DatePicker';
 import ProfessionalInfo, {
   ProfessionalInfoModal,
 } from 'src/components/ProfessionalInfo';
@@ -27,7 +27,7 @@ export {
   SearchDropdown,
   Dropdown,
   Map,
-  DataPicker,
+  DatePicker,
   ProfessionalInfo,
   ProfessionalInfoModal,
   Rating,

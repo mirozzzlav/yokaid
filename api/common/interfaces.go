@@ -43,7 +43,8 @@ type QueriesRepo interface {
 	GetUsersCountQuery(filter QueryPartial) Query
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
-	GetProfessionalsWithReviewsQuery(filter QueryPartial) Query
+	GetProfessionalsCountQuery(filter QueryPartial, activeOnly bool) Query
+	GetProfessionals(filter QueryPartial, reviews bool) Query
 	GetProfessionalsBasicInfoQuery(filter QueryPartial, activeOnly bool) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
@@ -63,7 +64,7 @@ type StoreHelpers interface {
 	RegisterUser(req RegisterUserRequest) (string, error)
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
-	GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]FilterItem, error)
+	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalServicesForFilter() (*[]FilterItem, error)
 	CreateProfessionalWithReview(req CreateProfessionalWithReviewRequest) error
 

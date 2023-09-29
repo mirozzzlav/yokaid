@@ -225,14 +225,14 @@ func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, passwor
 	return user, nil
 }
 
-func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
+func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
 	type filterMapItem struct {
 		Q       string
 		FilterQ string
 	}
-	var filteredEntitiesQueries = map[string]filterMapItem{
-		"services": {
-			Q:       "SELECT 'serviceId' AS filter_column_alias, title AS label, id AS value FROM services ",
+	var columnAliasesQueries = map[string]filterMapItem{
+		"serviceId": {
+			Q:       "SELECT title AS label, id AS value FROM services ",
 			FilterQ: "WHERE title ILIKE ? ",
 		},
 	}
@@ -240,8 +240,8 @@ func (sH *StoreHelpers) GetFilterItems(filteredEntities []string, searchedItem s
 	var queries []string
 	var params []any
 
-	for _, fId := range filteredEntities {
-		query, qExists := filteredEntitiesQueries[fId]
+	for _, fId := range columnAliases {
+		query, qExists := columnAliasesQueries[fId]
 		if qExists {
 			if searchedItem != "" {
 				queries = append(queries, query.Q+query.FilterQ)
@@ -299,36 +299,32 @@ func (sH *StoreHelpers) GetProfessionalServicesForFilter() (*[]common.FilterItem
 }
 
 func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfessionalWithReviewRequest) error {
-
-	infos, infosModelLoader := common.ProfessionalsBasicInfoModelLoader()
-
-	qPartial := common.QueryPartial{Query: "", Params: []any{}}
+	filter := common.QueryPartial{Query: "", Params: []any{}}
 
 	if req.Professional.Email != nil {
-		qPartial.Query = "email = ?"
-		qPartial.Params = []any{req.Professional.Email}
+		filter.Query = "email = ?"
+		filter.Params = []any{req.Professional.Email}
 	}
 	if req.Professional.Phone != nil {
 		if req.Professional.Email == nil {
-			qPartial.Query = "phone = ?"
-			qPartial.Params = []any{req.Professional.Phone}
+			filter.Query = "phone = ?"
+			filter.Params = []any{req.Professional.Phone}
 		} else {
-			qPartial.Query = "email ? OR phone = ?"
-			qPartial.Params = []any{req.Professional.Email, req.Professional.Phone}
+			filter.Query = "email ? OR phone = ?"
+			filter.Params = []any{req.Professional.Email, req.Professional.Phone}
 		}
 	}
 
-	q := sH.QueriesRepo.GetProfessionalsBasicInfoQuery(qPartial, false)
+	prosCount, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))
 
-	err := sH.QueryRunner.GetRows(q, infosModelLoader)
 	if err != nil {
 		return err
 	}
-	if infos != nil && len(*infos) > 0 {
+	if prosCount > 0 {
 		return common.ErrRecordExist
 	}
 
-	q = sH.QueriesRepo.CreateProfessionalQuery(req.Professional)
+	q := sH.QueriesRepo.CreateProfessionalQuery(req.Professional)
 	proIdAny, err := sH.QueryRunner.Exec(q, "id")
 	if err != nil {
 		return err

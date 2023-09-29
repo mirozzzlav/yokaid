@@ -7,9 +7,9 @@ export const InitialDataContext = React.createContext({});
 
 export default function InitialDataProvider({ children }) {
   const [initialData, setInitialData] = useState({
-    filters: {
-      what: null,
-    },
+    filters: Object.fromEntries(
+      config.filter.filterNames.map((fName) => [fName, null]),
+    ),
   });
   const onDataArrived = useCallback((response) => {
     if (response.error) {
