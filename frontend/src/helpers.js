@@ -56,13 +56,6 @@ function isFieldRequired(rule) {
   return rule.match(/\brequired\b/) !== null;
 }
 
-function isBase64(str) {
-  try {
-    return btoa(atob(str)) === str;
-  } catch (error) {
-    return false;
-  }
-}
 function isInt(str) {
   return !Number.isNaN(parseInt(str, 10));
 }
@@ -85,7 +78,6 @@ export {
   toLocalDate,
   toUTCDate,
   isFieldRequired,
-  isBase64,
   isInt,
   getMergedStyle,
   getStringFirstCaps,

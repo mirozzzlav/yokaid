@@ -65,13 +65,15 @@ function useStyle() {
       flexGrow: 1,
     },
     loader: (isLoading) => ({
-      height: '2px',
       width: '100%',
-      '> *': {
+      height: '2px',
+      background: '#fff',
+      '::after': {
+        content: "' '",
         height: '100%',
-        width: '0',
+        display: isLoading ? 'block' : 'none',
         backgroundColor: theme.colors.blue['600'],
-        ...(isLoading && { animation: `${loaderAnim} infinite 5s ease` }),
+        animation: `${loaderAnim} infinite 5s ease`,
       },
     }),
     filter: {
@@ -171,10 +173,8 @@ function Page({
 
   return (
     <Box sx={style.container(mode)}>
-      <Box sx={style.loader(isLoading)}>
-        <Box />
-      </Box>
       <Box sx={style.top}>
+        <Box sx={style.loader(isLoading)} />
         <Flex sx={style.topInner}>
           <IconButton
             aria-label="Company Logo"

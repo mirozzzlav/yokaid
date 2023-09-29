@@ -2,8 +2,9 @@ import useCall from 'src/hooks/useCall';
 import useAuthorizedCall from 'src/hooks/useAuthorizedCall';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import {
-  useGetProfessionals,
+  useFilterProfessionals,
   useSearchProfessional,
+  useGetProfessional,
 } from 'src/hooks/useProfessionals';
 import useForms from 'src/hooks/useForms';
 import { useLoginCall, useSignupCall } from 'src/hooks/useUser';
@@ -14,8 +15,9 @@ import useNavigateAction from 'src/hooks/useNavigateAction';
 export {
   useCall,
   useLocalStorage,
-  useGetProfessionals,
+  useFilterProfessionals,
   useSearchProfessional,
+  useGetProfessional,
   useForms,
   useLoginCall,
   useSignupCall,

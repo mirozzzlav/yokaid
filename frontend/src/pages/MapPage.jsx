@@ -19,7 +19,8 @@ import {
 import { FilterContext, InitialDataContext, MapContext } from 'src/providers';
 import config from 'src/config';
 import {
-  useGetProfessionals,
+  useFilterProfessionals,
+  useGetProfessional,
   useNavigateAction,
   useSearchProfessional,
 } from 'src/hooks';
@@ -29,6 +30,7 @@ import {
   unknownObjectValidator,
   getMergedStyle,
   getStringFirstCaps,
+  isInt,
 } from 'src/helpers';
 import PropTypes from 'prop-types';
 
@@ -103,6 +105,9 @@ function useStyle() {
       mainSearch: { flexBasis: '100%', flexGrow: 1 },
     },
     md: {
+      addReviewBtnMobile: {
+        display: 'none',
+      },
       mainSearch: { flexBasis: 'auto' },
     },
     lg: {
@@ -162,8 +167,9 @@ export default function MapPage() {
   const { navigateAction, action, actionParams } = useNavigateAction();
 
   const { filters: filtersInitialItems } = useContext(InitialDataContext);
-  const { professionals, callGetProfessionals, getProfessional } =
-    useGetProfessionals();
+  const { professionals, getFilteredProfessionals } = useFilterProfessionals();
+  const [professionalDetail, setProfessionalDetail] = useState(null);
+  const callGetProfessional = useGetProfessional(setProfessionalDetail);
   const { moveMap, setMapAreaRequest, mapAreaRequest } = useContext(MapContext);
 
   const {
@@ -182,11 +188,10 @@ export default function MapPage() {
   } = useContext(FilterContext);
 
   useEffect(() => {
-    callGetProfessionals();
+    getFilteredProfessionals();
   }, []);
 
   const [markers, setMarkers] = useState(null);
-  const [selectedPro, setSelectedPro] = useState(null);
   const modalsConfig = useMemo(
     () => ({
       'add-review': {
@@ -194,13 +199,12 @@ export default function MapPage() {
         submitButton: {
           label: 'Submit',
         },
-        form: createReviewFormFactory(selectedPro || null, {
-          onProfessionalFound: (foundPro) =>
-            navigateAction('add-review', btoa(JSON.stringify(foundPro))),
+        form: createReviewFormFactory(professionalDetail, {
+          onProfessionalFound: ({ id }) => navigateAction('add-review', id),
         }),
       },
     }),
-    [selectedPro, mapAreaRequest],
+    [professionalDetail, mapAreaRequest],
   );
   const style = useStyle();
   useEffect(() => {
@@ -218,14 +222,14 @@ export default function MapPage() {
   }, [professionals]);
 
   useEffect(() => {
-    const proRequest =
-      (action === 'professional-detail' || action === 'add-review') &&
-      actionParams
-        ? actionParams
-        : null;
-
-    setSelectedPro(proRequest);
-  }, [actionParams, professionals]);
+    if (action === 'professional-detail' || action === 'add-review') {
+      if (isInt(actionParams)) {
+        callGetProfessional(actionParams);
+      }
+      return;
+    }
+    setProfessionalDetail(null);
+  }, [actionParams]);
 
   return (
     <Page
@@ -241,11 +245,8 @@ export default function MapPage() {
           />
           <SearchDropdown
             searchHook={useSearchProfessional}
-            onValueSet={({ value }) => {
-              navigateAction(
-                'professional-detail',
-                btoa(JSON.stringify(value)),
-              );
+            onValueSet={({ value: { id } }) => {
+              navigateAction('professional-detail', id);
             }}
             position="left"
             placeholder="Search people"
@@ -299,7 +300,7 @@ export default function MapPage() {
                 }
                 if (getIsFilterEqual('location')) {
                   // if not location search getting pros according to filters
-                  callGetProfessionals();
+                  getFilteredProfessionals();
                 } else {
                   // if location search, moving map and then getting pros on different place
                   moveMap({
@@ -341,19 +342,16 @@ export default function MapPage() {
         markers={markers}
         onZoomOrMove={(mapAreaFromMap) => {
           setMapAreaRequest(mapAreaFromMap);
-          callGetProfessionals();
+          getFilteredProfessionals();
         }}
         onMarkerClick={({ id }) => {
-          navigateAction(
-            'professional-detail',
-            btoa(JSON.stringify(getProfessional(id))),
-          );
+          navigateAction('professional-detail', id);
         }}
       />
       <ProfessionalInfoModal
-        data={action === 'professional-detail' ? selectedPro : null}
+        data={action === 'professional-detail' ? professionalDetail : null}
         close={() => navigateAction(null)}
-        isShown={!!selectedPro}
+        isShown={!!professionalDetail}
       />
     </Page>
   );

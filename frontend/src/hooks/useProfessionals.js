@@ -3,7 +3,7 @@ import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
 
-export function useGetProfessionals() {
+export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
   const { getFilterUrl } = useContext(FilterContext);
   const [callId, setCallId] = useState(null);
@@ -28,18 +28,22 @@ export function useGetProfessionals() {
 
   return useMemo(
     () => ({
-      callGetProfessionals: () => {
+      getFilteredProfessionals: () => {
         setCallId(Math.random());
-      },
-      getProfessional: (idToFind) => {
-        if (!professionals) {
-          return null;
-        }
-        return professionals.find(({ id }) => id === idToFind) || null;
       },
       professionals,
     }),
     [professionals],
+  );
+}
+
+export function useGetProfessional(onSearchFinish) {
+  const call = useCall((response) => {
+    onSearchFinish(response.data ? response.data[0] : null);
+  });
+  return useCallback(
+    (proId) => call(`${config.api.endPointsURLs.getProfessionals}/id=${proId}`),
+    [call],
   );
 }
 
