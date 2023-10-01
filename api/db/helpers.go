@@ -310,7 +310,7 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 			filter.Query = "phone = ?"
 			filter.Params = []any{req.Professional.Phone}
 		} else {
-			filter.Query = "email ? OR phone = ?"
+			filter.Query = "email = ? OR phone = ?"
 			filter.Params = []any{req.Professional.Email, req.Professional.Phone}
 		}
 	}
