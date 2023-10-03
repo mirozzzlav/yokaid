@@ -50,7 +50,7 @@ function useStyle() {
     topInner: {
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0.5rem 1rem',
+      padding: '1rem 1rem',
       background: '#fff',
     },
     logoBtn: {
@@ -107,7 +107,7 @@ function useStyle() {
   const responsiveStyle = useBreakpointValue({
     base: {
       topInner: { flexWrap: 'wrap' },
-      topContent: { order: 3, padding: '0.5rem 0 0 0', width: '100%' },
+      topContent: { order: 3, padding: '1rem 0 0 0', width: '100%' },
     },
     md: {
       topContent: { order: 2 },

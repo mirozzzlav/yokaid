@@ -24,8 +24,8 @@ import {
   useNavigateAction,
   useSearchProfessional,
 } from 'src/hooks';
-import { AddIcon, SearchIcon } from '@chakra-ui/icons';
-import { FilterIcon } from 'src/components/icons';
+import { AddIcon } from '@chakra-ui/icons';
+import Icons from 'src/components/Icons';
 import {
   unknownObjectValidator,
   getMergedStyle,
@@ -36,26 +36,39 @@ import PropTypes from 'prop-types';
 
 function useStyle() {
   const style = {
-    applyFiltersBtn: {
-      flexShrink: 0,
-    },
     filter: {
       gap: '0.4rem',
+      flexWrap: 'wrap',
+    },
+    filterButtons: {
+      flexBasis: '100%',
+      gap: '0.4rem',
+      flexWrap: 'wrap',
+    },
+    filterBtn: {
+      flexShrink: 0,
+      flexGrow: 1,
+      flexBasis: '100%',
     },
     filterInfo: {
-      gap: '0.4rem',
       alignItems: 'center',
       cursor: 'pointer',
+      padding: 0,
+      flexGrow: 1,
+      border: `1px solid ${theme.colors.gray[200]}`,
+      borderRadius: theme.radii.md,
     },
-    mainSearch: {
-      flexGrow: 0,
-    },
-    filterInfoButton: {
-      flexGrow: 0,
+    filterInfoIcon: {
+      boxSizing: 'content-box',
+      padding: '0 0.4rem',
+      border: 'none',
+      background: theme.colors.gray[200],
+      height: '100%',
     },
     filterInfoBlock: {
+      borderLeft: `1px solid ${theme.colors.gray[200]}`,
+      padding: '0.4rem',
       flexGrow: 1,
-      gap: '0.4rem',
       fontSize: '0.8rem',
       flexShrink: 0,
       overflowX: 'hidden',
@@ -71,14 +84,22 @@ function useStyle() {
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
-      flexBasis: '100px',
-      maxWidth: '150px',
+      width: '120px',
       flexShrink: 0,
     },
+    mainSearch: {
+      flexGrow: 1,
+    },
     topContent: {
-      gap: '1rem',
       justifyContent: 'center',
       flexWrap: 'wrap',
+      gap: '0.5rem',
+    },
+    addReviewBtn: {
+      background: '#0b619e',
+    },
+    addReviewBtnMobile: {
+      background: '#0b619e',
     },
   };
 
@@ -90,31 +111,50 @@ function useStyle() {
       addReviewBtn: {
         display: 'none',
       },
-      filterInfo: {
-        flexGrow: 1,
-      },
-      mainSearch: { flexBasis: '100%', flexGrow: 1 },
     },
     sm: {
       addReviewBtnMobile: {
         display: 'none',
       },
-      filterInfo: {
-        flexGrow: 1,
-      },
-      mainSearch: { flexBasis: '100%', flexGrow: 1 },
     },
     md: {
       addReviewBtnMobile: {
         display: 'none',
       },
-      mainSearch: { flexBasis: 'auto' },
+      filterBtn: {
+        flexBasis: 'auto',
+      },
+      filterButtons: {
+        flexBasis: 'auto',
+      },
+      filterInfoBlock: {
+        padding: '0.4rem 1rem 0.4rem 1rem',
+      },
+      filterInfoVal: {
+        width: '160px',
+      },
     },
     lg: {
       filter: { flexDirection: 'row' },
+      filterBtn: {
+        flexBasis: 'auto',
+      },
+      filterButtons: {
+        flexBasis: 'auto',
+      },
       addReviewBtnMobile: {
         display: 'none',
       },
+      filterInfo: {
+        flexGrow: 0,
+      },
+      filterInfoBlock: {
+        padding: '0.4rem 1rem 0.4rem 1rem',
+      },
+      filterInfoVal: {
+        width: '160px',
+      },
+      mainSearch: { flexGrow: 0 },
     },
   });
 
@@ -129,11 +169,11 @@ function FilterInfo({
   const data = useMemo(
     () =>
       Object.fromEntries(
-        config.filter.filterNames.map((filterName) => [
-          filterName,
-          filterInputValuesFromProps && filterInputValuesFromProps[filterName]
-            ? filterInputValuesFromProps[filterName]
-            : 'any',
+        config.filter.elements.map(({ name, infoPlaceholder }) => [
+          name,
+          filterInputValuesFromProps && filterInputValuesFromProps[name]
+            ? filterInputValuesFromProps[name]
+            : infoPlaceholder,
         ]),
       ),
     [filterInputValuesFromProps],
@@ -142,13 +182,13 @@ function FilterInfo({
 
   return (
     <Flex sx={sx} onClick={onClick}>
-      <IconButton sx={style.filterInfoButton} icon={<FilterIcon />} />
       {Object.entries(data).map(([fName, value]) => (
         <Box sx={style.filterInfoBlock} key={fName}>
           <Text sx={style.filterInfoName}>{getStringFirstCaps(fName)}</Text>
           <Text sx={style.filterInfoVal}>{value}</Text>
         </Box>
       ))}
+      <Icons.FilterIcon sx={style.filterInfoIcon} />
     </Flex>
   );
 }
@@ -166,18 +206,19 @@ FilterInfo.prototype.propTypes = {
 export default function MapPage() {
   const { navigateAction, action, actionParams } = useNavigateAction();
 
-  const { filters: filtersInitialItems } = useContext(InitialDataContext);
+  const { filter: filterInitialItems } = useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
   const [professionalDetail, setProfessionalDetail] = useState(null);
   const callGetProfessional = useGetProfessional(setProfessionalDetail);
   const { moveMap, setMapAreaRequest, mapAreaRequest } = useContext(MapContext);
-
   const {
     filterItemsHookCreator,
     updateFilter,
     resetFilter,
+    resetDraft,
     saveFilter,
     isFilterChanged,
+    getIsFilterDefault,
     getIsFilterEqual,
     draft,
     isFilterShown,
@@ -195,7 +236,7 @@ export default function MapPage() {
   const modalsConfig = useMemo(
     () => ({
       'add-review': {
-        title: 'Add review',
+        title: 'Your review',
         submitButton: {
           label: 'Submit',
         },
@@ -249,7 +290,7 @@ export default function MapPage() {
               navigateAction('professional-detail', id);
             }}
             position="left"
-            placeholder="Search people"
+            placeholder="Find person by name"
             sx={style.mainSearch}
             resetOnValueSet
           />
@@ -259,63 +300,86 @@ export default function MapPage() {
       filterContent={
         isFilterShown ? (
           <Flex sx={style.filter}>
-            {config.filter.filterNames.map((filterName) => {
-              const useFilterItems = filterItemsHookCreator(filterName);
-              const setInputVal = getFilterInputValSetter(filterName);
-              return (
-                <SearchDropdown
-                  initialItems={filtersInitialItems[filterName]}
-                  key={filterName}
-                  searchHook={useFilterItems}
-                  onValueSet={({ value, extraData }) => {
-                    updateFilter({
-                      [filterName]: {
-                        value,
-                        extraData,
-                        ...(config.filter.APIColumnAliases[filterName]
-                          ? {
-                              columnAlias:
-                                config.filter.APIColumnAliases[filterName],
-                            }
-                          : null),
-                      },
-                    });
-                  }}
-                  onValueEmpty={() => resetFilter(filterName)}
-                  position="left"
-                  placeholder={getStringFirstCaps(filterName)}
-                  inputVal={
-                    (filterInputValues && filterInputValues[filterName]) || ''
+            {config.filter.elements.map(
+              ({ name: filterName, iconName, placeholder }) => {
+                const useFilterItems = filterItemsHookCreator(filterName);
+                const setInputVal = getFilterInputValSetter(filterName);
+                return (
+                  <SearchDropdown
+                    initialItems={filterInitialItems[filterName]}
+                    key={filterName}
+                    searchHook={useFilterItems}
+                    onValueSet={({ value, extraData }) => {
+                      updateFilter({
+                        [filterName]: {
+                          value,
+                          extraData,
+                          ...(config.filter.APIColumnAliases[filterName]
+                            ? {
+                                columnAlias:
+                                  config.filter.APIColumnAliases[filterName],
+                              }
+                            : null),
+                        },
+                      });
+                    }}
+                    onValueEmpty={() => resetDraft(filterName)}
+                    position="left"
+                    placeholder={placeholder}
+                    inputVal={
+                      (filterInputValues && filterInputValues[filterName]) || ''
+                    }
+                    inputValSetter={setInputVal}
+                    dropdownWidth="100%"
+                    {...(iconName
+                      ? { icon: React.createElement(Icons[iconName]) }
+                      : null)}
+                    sx={style.filterDropdown}
+                  />
+                );
+              },
+            )}
+            <Flex sx={style.filterButtons}>
+              <Button
+                onClick={() => {
+                  if (!isFilterChanged) {
+                    return;
                   }
-                  inputValSetter={setInputVal}
-                  dropdownWidth="100%"
-                />
-              );
-            })}
-            <Button
-              rightIcon={<SearchIcon />}
-              onClick={() => {
-                if (!isFilterChanged) {
-                  return;
-                }
-                if (getIsFilterEqual('location')) {
-                  // if not location search getting pros according to filters
-                  getFilteredProfessionals();
-                } else {
-                  // if location search, moving map and then getting pros on different place
-                  moveMap({
-                    position: draft.location.extraData,
-                    bounds: draft.location.value,
-                  });
-                }
-                saveFilter();
-                hideFilter();
-              }}
-              sx={style.applyFiltersBtn}
-              isDisabled={!isFilterChanged}
-            >
-              Search
-            </Button>
+                  if (getIsFilterEqual('location')) {
+                    // if not location search getting pros according to filters
+                    getFilteredProfessionals();
+                  } else {
+                    // if location search, moving map and then getting pros on different place
+                    moveMap({
+                      position: draft.location.extraData,
+                      bounds: draft.location.value,
+                    });
+                  }
+                  saveFilter();
+                }}
+                sx={style.filterBtn}
+                isDisabled={!isFilterChanged}
+                colorScheme="blue"
+              >
+                Apply Filter
+              </Button>
+
+              <Button
+                isDisabled={getIsFilterDefault()}
+                sx={style.filterBtn}
+                variant="ghost"
+                onClick={() => {
+                  if (getIsFilterDefault('location')) {
+                    getFilteredProfessionals();
+                  } else {
+                    moveMap(config.map.defaultArea);
+                  }
+                  resetFilter();
+                }}
+              >
+                Reset filter
+              </Button>
+            </Flex>
           </Flex>
         ) : null
       }
@@ -327,7 +391,7 @@ export default function MapPage() {
             colorScheme="blue"
             leftIcon={<AddIcon />}
           >
-            Your review
+            Write review
           </Button>
           <IconButton
             icon={<AddIcon />}

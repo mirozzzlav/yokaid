@@ -78,11 +78,32 @@ export default function FilterProvider({ children }) {
       );
     })();
 
+    const getIsFilterDefault = (filterName) => {
+      if (filterName) {
+        return filtersEqual(
+          filter[filterName],
+          config.filter.defaultFilter[filterName],
+        );
+      }
+      const keys =
+        Object.keys(draft).length > Object.keys(filter).length
+          ? Object.keys(draft)
+          : Object.keys(filter);
+
+      return keys.every((filterName) =>
+        filtersEqual(
+          config.filter.defaultFilter[filterName],
+          filter[filterName],
+        ),
+      );
+    };
+
     return {
       filterItemsHookCreator,
       filter,
       draft,
       isFilterChanged,
+      getIsFilterDefault,
       getIsFilterEqual: (filterName) =>
         filtersEqual(draft[filterName], filter[filterName]),
       saveFilter: () => {
@@ -106,13 +127,18 @@ export default function FilterProvider({ children }) {
           ...toUpdateFilter,
         }));
       },
-      resetFilter: (filterName) =>
+      resetDraft: (filterName) =>
         setDraft((prevFilter) => ({
           ...config.filter.defaultFilter,
           ...Object.fromEntries(
             Object.entries(prevFilter).filter(([k]) => k !== filterName),
           ),
         })),
+      resetFilter: () => {
+        setDraft(config.filter.defaultFilter);
+        setFilter(config.filter.defaultFilter);
+        setFilterInputValues(null);
+      },
       isFilterShown: isShown,
       showFilter: () => setIsShown(true),
       hideFilter: () => setIsShown(false),

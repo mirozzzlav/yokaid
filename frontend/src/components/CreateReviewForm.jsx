@@ -18,6 +18,7 @@ import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
 import { MultiInput } from 'src/components/MultiItem';
 import theme from 'src/style';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
+import Icons from 'src/components/Icons';
 
 function useServicesSearch(onSearchFinish) {
   const call = useCall((response) => {
@@ -210,6 +211,7 @@ export function CreateProAndReviewForm({
           }}
           position="left"
           dropdownWidth="100%"
+          icon={<Icons.LocationIcon />}
         />
         <FormErrorMessage>
           {inputsErrors?.location ||
@@ -263,7 +265,7 @@ export function CreateProAndReviewForm({
         isInvalid={inputsErrors?.services}
         isRequired={isFieldRequired(validationRules?.services)}
       >
-        <FormLabel>Services</FormLabel>
+        <FormLabel>Professions</FormLabel>
         <SearchDropdown
           inputVal={inputs.searchedService}
           inputValSetter={(v) => updateInputs('searchedService', v)}
@@ -278,6 +280,7 @@ export function CreateProAndReviewForm({
           showCloseIcon={false}
           position="left"
           dropdownWidth="100%"
+          icon={<Icons.WorkerIcon />}
         />
         <MultiInput
           values={inputs.services ? inputs.services.split(',') : null}

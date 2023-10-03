@@ -7,6 +7,21 @@ const defaultMapPosition = [48.7411522, 19.4528646];
 
 const mapFilterColumnAlias = 'mapBounds';
 
+const filterElements = [
+  {
+    name: 'location',
+    placeholder: 'Location',
+    infoPlaceholder: 'anywhere',
+    iconName: 'LocationIcon',
+  },
+  {
+    name: 'profession',
+    placeholder: 'Profession',
+    infoPlaceholder: 'any profession',
+    iconName: 'WorkerIcon',
+  },
+];
+
 export default {
   auth: {
     tokenType: 'bearer',
@@ -35,7 +50,8 @@ export default {
     },
   },
   filter: {
-    filterNames: ['location', 'profession'],
+    elements: filterElements,
+    getNames: () => filterElements.map(({ name }) => name),
     APIColumnAliases: {
       profession: 'serviceId',
       location: mapFilterColumnAlias,

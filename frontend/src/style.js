@@ -6,11 +6,21 @@ import { extendTheme } from '@chakra-ui/react';
 
 // Extend the default Chakra UI theme
 const originalTheme = extendTheme();
+
+const Input = {
+  baseStyle: {
+    group: {
+      borderColor: originalTheme.colors.borderColor,
+    },
+  },
+};
 const theme = extendTheme({
   components: {
+    TextArea: Input,
+    Input,
     Button: {
       baseStyle: {
-        fontWeight: 500,
+        fontWeight: originalTheme.fontWeights.light,
       },
     },
   },

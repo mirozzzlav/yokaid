@@ -7,8 +7,8 @@ export const InitialDataContext = React.createContext({});
 
 export default function InitialDataProvider({ children }) {
   const [initialData, setInitialData] = useState({
-    filters: Object.fromEntries(
-      config.filter.filterNames.map((fName) => [fName, null]),
+    filter: Object.fromEntries(
+      config.filter.getNames().map((fName) => [fName, null]),
     ),
   });
   const onDataArrived = useCallback((response) => {
@@ -16,7 +16,10 @@ export default function InitialDataProvider({ children }) {
       return;
     }
 
-    setInitialData(response.data);
+    setInitialData({
+      filter: response.data.filters,
+      validationRules: response.data.validationRules,
+    });
   }, []);
   const call = useCall(onDataArrived);
 
