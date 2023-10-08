@@ -50,8 +50,10 @@ export default function ProfessionalInfo({ data, showRating, showReviews }) {
         content: data.location,
       },
       {
-        headline: 'Services',
-        content: <MultiItem labels={data.services.map(({ title }) => title)} />,
+        headline: 'Professions',
+        content: (
+          <MultiItem labels={data.professions.map(({ title }) => title)} />
+        ),
       },
     ];
     if (data.rating && showRating) {

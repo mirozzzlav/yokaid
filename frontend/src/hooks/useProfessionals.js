@@ -42,7 +42,8 @@ export function useGetProfessional(onSearchFinish) {
     onSearchFinish(response.data ? response.data[0] : null);
   });
   return useCallback(
-    (proId) => call(`${config.api.endPointsURLs.getProfessionals}/id=${proId}`),
+    (professionalId) =>
+      call(`${config.api.endPointsURLs.getProfessionals}/id=${professionalId}`),
     [call],
   );
 }
@@ -52,7 +53,7 @@ export function useSearchProfessional(onSearchFinish) {
     onSearchFinish(
       response.data
         ? response.data.map((d) => ({
-            label: `${d.fullName} - ${d.services
+            label: `${d.fullName} - ${d.professions
               .map(({ title }) => title)
               .join(', ')}`,
             value: d,

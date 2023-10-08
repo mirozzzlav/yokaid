@@ -13,38 +13,41 @@ type queryRunner struct {
 	tx *sql.Tx
 }
 
+func createDataElement(colNames []string, colValues []any) map[string]any {
+	resultElem := make(map[string]any)
+
+	for i, colName := range colNames {
+		value := colValues[i]
+		valueBytes, err := common.GetJSONBytes(value)
+		if err == nil {
+			resultElem[columnNameToObjName(colName)] = valueBytes
+		} else {
+			valueBytes, isByteArray := value.([]byte)
+			if isByteArray {
+				resultElem[columnNameToObjName(colName)] = string(valueBytes)
+			} else {
+				resultElem[columnNameToObjName(colName)] = value
+			}
+		}
+	}
+	return resultElem
+}
+
 func createDataElementAsArray(colValues []any) []any {
 	resultElem := make([]any, len(colValues))
 
 	for i := range colValues {
 		value := colValues[i]
-		valueBytes, isByteArray := value.([]byte)
-		//column value can be byte array (for example json encoded into bytes)
-		if isByteArray {
-			var jsonV json.RawMessage
-			_ = json.Unmarshal(valueBytes, &jsonV)
-			resultElem[i] = jsonV
+		valueBytes, err := common.GetJSONBytes(value)
+		if err == nil {
+			resultElem[i] = valueBytes
 		} else {
-			resultElem[i] = value
-		}
-	}
-	return resultElem
-
-}
-
-func createDataElement(colNames []string, colValues []any) any {
-	resultElem := make(map[string]any, len(colNames))
-
-	for i, colName := range colNames {
-		value := colValues[i]
-		valueBytes, isByteArray := value.([]byte)
-		//column value can be byte array (for example json encoded into bytes)
-		if isByteArray {
-			var jsonV json.RawMessage
-			_ = json.Unmarshal(valueBytes, &jsonV)
-			resultElem[columnNameToObjName(colName)] = jsonV
-		} else {
-			resultElem[columnNameToObjName(colName)] = value
+			valueBytes, isByteArray := value.([]byte)
+			if isByteArray {
+				resultElem[i] = string(valueBytes)
+			} else {
+				resultElem[i] = value
+			}
 		}
 	}
 	return resultElem
@@ -120,8 +123,8 @@ func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 		return err
 	}
 
-	values := make([]interface{}, len(columns))
-	pointers := make([]interface{}, len(columns))
+	values := make([]any, len(columns))
+	pointers := make([]any, len(columns))
 	for i := range values {
 		pointers[i] = &values[i]
 	}
@@ -155,9 +158,9 @@ func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 	return nil
 }
 
-func (qr *queryRunner) GetScalar(q common.Query) (int, error) {
+func (qr *queryRunner) GetScalar(q common.Query) (any, error) {
 	qString, qParams := q.GetQuery()
-	var scalar int
+	var scalar any
 	err := qr.db.QueryRow(qString, qParams...).Scan(&scalar)
 
 	if err != nil {

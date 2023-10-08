@@ -1,6 +1,8 @@
 package common
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -14,7 +16,7 @@ import (
 	"unicode"
 )
 
-func randomString(length int, charset string) string {
+func RandomStringWithCharset(length int, charset string) string {
 	var charsetRune = []rune(charset)
 
 	b := make([]rune, length)
@@ -25,7 +27,7 @@ func randomString(length int, charset string) string {
 }
 
 func RandomString(length int) string {
-	return randomString(length, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_#$.!@")
+	return RandomStringWithCharset(length, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_#$.!@")
 }
 
 func SetOKJSONResponse(ctx *gin.Context, data any) {
@@ -79,7 +81,7 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 			ExtraData: nil,
 		}
 		if err == ErrNoRows {
-			_responseMeta.Code = http.StatusNoContent
+			_responseMeta.Code = http.StatusBadRequest
 			_responseMeta.Msg = "no results found for the given request"
 		}
 	} else {
@@ -241,8 +243,12 @@ func MultiWordsValidator(fl validator.FieldLevel) bool {
 	return len(textSplits) >= 2
 }
 
+func ValidatePhoneNumber(number string) bool {
+	return regexp.MustCompile(`(?:\+|00)[0-9]{12}|[0-9]{10}`).MatchString(number)
+}
+
 func PhoneNumberValidator(fl validator.FieldLevel) bool {
-	return regexp.MustCompile(`(?:\+|00)[0-9]{12}|[0-9]{10}`).MatchString(fl.Field().String())
+	return ValidatePhoneNumber(fl.Field().String())
 }
 
 func ConvertToInt(val any) (int, error) {
@@ -343,4 +349,52 @@ func GetRequestsValidationRules() (map[string]map[string]string, error) {
 	}
 
 	return requestsValidationRules, nil
+}
+
+func NewRoute(path string, method string, handler gin.HandlerFunc, flags ...bool) Route {
+	isPrivate := false
+
+	if len(flags) > 0 {
+		isPrivate = flags[0]
+	}
+
+	return Route{
+		Path:      path,
+		Method:    method,
+		Handler:   handler,
+		IsPrivate: isPrivate,
+	}
+}
+
+func SearchClosestHigher(nums []int, searchedNum int) (int, error) {
+	var inner func(searchedNumInner int) (int, error)
+
+	inner = func(searchedNumInner int) (int, error) {
+		for _, n := range nums {
+			currentDiff := n - searchedNumInner
+			if currentDiff > 0 {
+				if currentDiff == 1 {
+					return inner(n)
+				}
+				return searchedNumInner + 1, nil
+			}
+		}
+		if searchedNumInner < 999999 { // highest possible number is 999999
+			return searchedNumInner + 1, nil
+		}
+		return -1, errors.New("no closest number")
+	}
+
+	return inner(searchedNum)
+}
+
+func GetJSONBytes(data any) (json.RawMessage, error) {
+	var resJson json.RawMessage
+	valueBytes, _ := data.([]byte)
+
+	err := json.Unmarshal(valueBytes, &resJson)
+	if err != nil {
+		return []byte{}, err
+	}
+	return resJson, nil
 }

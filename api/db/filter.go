@@ -13,8 +13,8 @@ var filterError = errors.New("wrong filter specified")
 func getFilterSpecialSQL(fKey string, fOperator string, fValuePlaceholder string) (string, bool) {
 
 	var filterSQLSpecial = map[string]string{
-		"map_bounds": "location_lat >= ? AND location_lng >= ? AND location_lat <= ? AND location_lng <= ?",
-		"service_id": "EXISTS (SELECT 1 FROM professional_services ps WHERE ps.professional_id = professionals.id AND ps.service_id = ?)",
+		"map_bounds":    "location_lat >= ? AND location_lng >= ? AND location_lat <= ? AND location_lng <= ?",
+		"profession_id": "EXISTS (SELECT 1 FROM professional_professions ps WHERE ps.professional_id = professionals.id AND ps.profession_id = ?)",
 	}
 
 	specialSQL, keyExist := filterSQLSpecial[fKey]

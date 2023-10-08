@@ -8,6 +8,6 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/reviews/create", false, http.MethodPost, create(server)},
+		common.NewRoute("/reviews/create", http.MethodPost, create(server)),
 	}
 }

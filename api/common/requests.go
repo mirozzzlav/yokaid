@@ -26,6 +26,11 @@ type PasswordChangeRequest struct {
 	Password any `json:"password" validate:"required,password"`
 }
 
+type CodeVerificationRequest struct {
+	VerificationPhone string `json:"verificationPhone"`
+	VerificationCode  string `json:"verificationCode"`
+}
+
 type CreateReviewRequest struct {
 	Text   *string `json:"text" validate:"omitempty,string"`
 	Rating int     `json:"rating" validate:"required,numeric,min=1,max=5"`
@@ -43,14 +48,18 @@ type CreateProfessionalRequest struct {
 }
 
 type CreateProfessionalWithReviewRequest struct {
-	Professional CreateProfessionalRequest `json:"professional"`
-	Review       CreateReviewRequest       `json:"review"`
-	Services     []int                     `json:"services" validate:"required"`
+	Professional      CreateProfessionalRequest `json:"professional"`
+	Review            CreateReviewRequest       `json:"review"`
+	Professions       []int                     `json:"professions" validate:"required"`
+	VerificationPhone string                    `json:"verificationPhone"`
+	VerificationCode  string                    `json:"verificationCode"`
 }
 
 type CreateReviewForExistingProfessionalRequest struct {
-	ProfessionalId int                 `json:"professionalId" validate:"required"`
-	Review         CreateReviewRequest `json:"review"`
+	ProfessionalId    int                 `json:"professionalId" validate:"required"`
+	Review            CreateReviewRequest `json:"review"`
+	VerificationPhone string              `json:"verificationPhone"`
+	VerificationCode  string              `json:"verificationCode"`
 }
 
 // add here empty request instances that has validation rules

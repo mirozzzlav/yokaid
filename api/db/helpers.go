@@ -39,7 +39,7 @@ func (sH *StoreHelpers) GenerateUserName(fullName string) (string, error) {
 		Params: []any{tempUsername + "%"},
 	})
 
-	userDuplicates, err := sH.QueryRunner.GetScalar(q)
+	userDuplicatesAny, err := sH.QueryRunner.GetScalar(q)
 	if err == common.ErrNoRows {
 		return tempUsername, nil
 	}
@@ -47,6 +47,10 @@ func (sH *StoreHelpers) GenerateUserName(fullName string) (string, error) {
 		return "", err
 	}
 
+	userDuplicates, err := common.ConvertToInt(userDuplicatesAny)
+	if err != nil {
+		return "", err
+	}
 	usernameSuffix := ""
 	if userDuplicates != 0 {
 		usernameSuffix = fmt.Sprintf("@%d", userDuplicates)
@@ -150,7 +154,11 @@ func (sH *StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 		Query:  "email = ? or username = ?",
 		Params: []any{emailOrUsername, emailOrUsername},
 	})
-	usersCount, err := sH.QueryRunner.GetScalar(q)
+	usersCountAny, err := sH.QueryRunner.GetScalar(q)
+	if err != nil {
+		return 0, err
+	}
+	usersCount, err := common.ConvertToInt(usersCountAny)
 	if err != nil {
 		return 0, err
 	}
@@ -231,8 +239,8 @@ func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem stri
 		FilterQ string
 	}
 	var columnAliasesQueries = map[string]filterMapItem{
-		"serviceId": {
-			Q:       "SELECT title AS label, id AS value FROM services ",
+		"professionId": {
+			Q:       "SELECT title AS label, id AS value FROM professions ",
 			FilterQ: "WHERE title ILIKE ? ",
 		},
 	}
@@ -279,11 +287,11 @@ func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem stri
 	return filterItems, nil
 }
 
-func (sH *StoreHelpers) GetProfessionalServicesForFilter() (*[]common.FilterItem, error) {
+func (sH *StoreHelpers) GetProfessionalProfessionsForFilter() (*[]common.FilterItem, error) {
 
 	q := dbQuery{
 		partials: []common.QueryPartial{{
-			Query:  "SELECT 'serviceId' AS filter_column_alias, title AS label, id AS value FROM services LIMIT 10",
+			Query:  "SELECT 'professionId' AS filter_column_alias, title AS label, id AS value FROM professions LIMIT 10",
 			Params: []any{},
 		}},
 	}
@@ -315,31 +323,37 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 		}
 	}
 
-	prosCount, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))
+	prosCountAny, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))
 
 	if err != nil {
 		return err
 	}
+
+	prosCount, err := common.ConvertToInt(prosCountAny)
+	if err != nil {
+		return err
+	}
+
 	if prosCount > 0 {
 		return common.ErrRecordExist
 	}
 
 	q := sH.QueriesRepo.CreateProfessionalQuery(req.Professional)
-	proIdAny, err := sH.QueryRunner.Exec(q, "id")
+	professionalIdAny, err := sH.QueryRunner.Exec(q, "id")
 	if err != nil {
 		return err
 	}
-	proId, err := common.ConvertToInt(proIdAny)
+	professionalId, err := common.ConvertToInt(professionalIdAny)
 	if err != nil {
 		return err
 	}
-	q = sH.QueriesRepo.CreateProfessionalServicesQuery(proId, req.Services)
-	_, err = sH.QueryRunner.Exec(q, "service_id")
+	q = sH.QueriesRepo.CreateProfessionalProfessionsQuery(professionalId, req.Professions)
+	_, err = sH.QueryRunner.Exec(q, "profession_id")
 	if err != nil {
 		return err
 	}
 
-	q = sH.QueriesRepo.CreateReviewQuery(proId, req.Review)
+	q = sH.QueriesRepo.CreateReviewQuery(professionalId, req.Review)
 
 	_, err = sH.QueryRunner.Exec(q, "id")
 	if err != nil {
@@ -348,4 +362,57 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 
 	return nil
 
+}
+
+func (sH *StoreHelpers) CheckVerification(verificationPhone string, verificationCode string) (bool, error) {
+	dbQuery := sH.QueriesRepo.GetCheckVerificationQuery(verificationPhone, verificationCode)
+	_, err := sH.QueryRunner.GetScalar(dbQuery)
+
+	if err != nil {
+		if err == common.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (sH StoreHelpers) insertVerificationCode(code string, phone string) error {
+
+	_, err := sH.QueryRunner.Exec(
+		dbQuery{
+			partials: []common.QueryPartial{
+				{Query: "INSERT INTO verification_codes (phone, code) VALUES (?, ?)", Params: []any{phone, code}},
+			},
+		},
+		"phone",
+	)
+	return err
+}
+
+func (sH *StoreHelpers) AddOrUpdateVerification(code string, phone string) error {
+
+	query := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  `UPDATE verification_codes SET code = ? WHERE phone = ?`,
+				Params: []any{code, phone},
+			},
+		},
+	}
+
+	_, err := sH.QueryRunner.Exec(query, "phone")
+
+	if err == nil {
+		return nil
+	}
+
+	if err != common.ErrNoRows {
+		return err
+	}
+
+	err = sH.insertVerificationCode(code, phone)
+
+	return err
 }

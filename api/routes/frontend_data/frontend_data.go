@@ -15,7 +15,7 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		server.GetQueryRunner(ctx).Begin()
-		services, err := server.GetStoreHelpers(ctx).GetProfessionalServicesForFilter()
+		professions, err := server.GetStoreHelpers(ctx).GetProfessionalProfessionsForFilter()
 		common.CheckErrAndPanic(err)
 		validationRules, err := common.GetRequestsValidationRules()
 		common.CheckErrAndPanic(err)
@@ -23,15 +23,14 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 		server.GetQueryRunner(ctx).Commit()
 		common.SetOKJSONResponse(ctx, frontEndDataResponse{
 			Filters: map[string]*[]common.FilterItem{
-				"profession": services,
+				"profession": professions,
 			},
 			ValidationRules: validationRules,
 		})
 	}
 }
 func GetRoutes(server common.Server) []common.Route {
-
 	return []common.Route{
-		{"/frontend-data/get", false, http.MethodGet, getFrontendData(server)},
+		common.NewRoute("/frontend-data/get", http.MethodGet, getFrontendData(server)),
 	}
 }

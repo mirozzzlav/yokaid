@@ -8,9 +8,9 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/professionals/get", false, http.MethodGet, getProfessionals(server)},
-		{"/professionals/get/:filter", false, http.MethodGet, getProfessionals(server)},
-		{"/professionals/search/:searchName", false, http.MethodGet, searchProfessional(server)},
-		{"/professionals/create-with-review", false, http.MethodPost, create(server)},
+		common.NewRoute("/professionals/get", http.MethodGet, getProfessionals(server)),
+		common.NewRoute("/professionals/get/:filter", http.MethodGet, getProfessionals(server)),
+		common.NewRoute("/professionals/search/:searchName", http.MethodGet, searchProfessional(server)),
+		common.NewRoute("/professionals/create-with-review", http.MethodPost, create(server)),
 	}
 }

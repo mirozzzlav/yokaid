@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -8,19 +8,28 @@ import {
   Input,
   Textarea,
 } from '@chakra-ui/react';
-import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
+import {
+  ErrorMessage,
+  InfoMessage,
+  SuccessMessage,
+} from 'src/components/Messages';
 import { usePlacesSearch, useSearchProfessional } from 'src/hooks';
 import Rating from 'src/components/Rating';
 import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
+import {
+  unknownObjectValidator,
+  isFieldRequired,
+  verificationFormFactory,
+} from 'src/helpers';
 import { MultiInput } from 'src/components/MultiItem';
-import theme from 'src/style';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import Icons from 'src/components/Icons';
+import SMSCodeControl from 'src/components/SMSCodeControl';
+import { InitialDataContext } from 'src/providers';
 
-function useServicesSearch(onSearchFinish) {
+function useProfessionsSearch(onSearchFinish) {
   const call = useCall((response) => {
     onSearchFinish(
       response.data
@@ -33,8 +42,8 @@ function useServicesSearch(onSearchFinish) {
   });
 
   return useCallback(
-    (serviceTitle) =>
-      call(`${config.api.endPointsURLs.getServices}/${serviceTitle}`),
+    (professionTitle) =>
+      call(`${config.api.endPointsURLs.getProfessions}/${professionTitle}`),
     [call],
   );
 }
@@ -53,8 +62,8 @@ const inputNames = [
   'location',
   'phone',
   'email',
-  'searchedService',
-  'services',
+  'searchedProfession',
+  'professions',
   'text',
   'rating',
   'professionalId',
@@ -65,91 +74,9 @@ const validationRulesNames = [
   'createReviewForExistingProfessionalRequest',
 ];
 
-export function RatingFormControls({
-  inputs,
-  inputsErrors,
-  updateInputs,
-  validationRules,
-}) {
-  return (
-    <>
-      <FormControl
-        isInvalid={inputsErrors?.text}
-        isRequired={isFieldRequired(validationRules?.text)}
-      >
-        <FormLabel>Your Review</FormLabel>
-        <Textarea
-          value={inputs.text}
-          sx={style.reviewTextArea}
-          onChange={(e) => {
-            updateInputs('text', e.target.value);
-          }}
-        />
-        <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.rating}
-        isRequired={isFieldRequired(validationRules?.rating)}
-      >
-        <FormLabel>Rating</FormLabel>
-        <Rating
-          rating={inputs.rating}
-          onStarClick={(r) => updateInputs('rating', r)}
-          margin="0"
-        />
-        <FormErrorMessage>{inputsErrors?.rating}</FormErrorMessage>
-      </FormControl>
-    </>
-  );
-}
-RatingFormControls.prototype.propTypes = {
-  inputsErrors: unknownObjectValidator.isRequired,
-  inputs: unknownObjectValidator.isRequired,
-  updateInputs: PropTypes.func.isRequired,
-  validationRules: unknownObjectValidator.isRequired,
-};
-
-export default function CreateReviewForm({
-  errorMsg,
-  state,
-  inputsErrors,
-  inputs,
-  updateInputs,
-  extraData,
-  validationRules,
-}) {
-  return (
-    <Box sx={theme.styles.global.formWrapper}>
-      <ProfessionalInfo data={extraData} />
-      <RatingFormControls
-        inputs={inputs}
-        inputsErrors={inputsErrors}
-        updateInputs={updateInputs}
-        validationRules={validationRules}
-      />
-      {state.isError ? <ErrorMessage message={errorMsg} /> : null}
-      {state.isSuccess ? (
-        <SuccessMessage message="your review has been added" />
-      ) : null}
-    </Box>
-  );
-}
-CreateReviewForm.defaultProps = {
-  extraData: null,
-};
-
-CreateReviewForm.prototype.propTypes = {
-  errorMsg: PropTypes.string.isRequired,
-  state: PropTypes.string.isRequired,
-  inputsErrors: unknownObjectValidator.isRequired,
-  inputs: unknownObjectValidator.isRequired,
-  updateInputs: PropTypes.func.isRequired,
-  extraData: PropTypes.oneOfType([
-    unknownObjectValidator,
-    PropTypes.oneOf([null]),
-  ]),
-  validationRules: unknownObjectValidator.isRequired,
-};
+const codeControlText =
+  'To submit your review, fill in the code received by SMS. ' +
+  'You can do so on the bottom of this popup. The price of SMS is 0.5€';
 
 export function CreateProAndReviewForm({
   errorMsg,
@@ -160,9 +87,31 @@ export function CreateProAndReviewForm({
   extraActions,
   validationRules,
 }) {
-  const [serviceTitles, setServiceTitles] = useState(null);
+  const [professionTitles, setProfessionTitles] = useState(null);
+
+  const {
+    filter: { profession: filterProfession },
+  } = useContext(InitialDataContext);
+
+  const initialProfessions = useMemo(
+    () =>
+      filterProfession
+        ? filterProfession.map(({ label, value }) => ({
+            label,
+            value: {
+              id: value,
+              title: label,
+            },
+          }))
+        : null,
+    [filterProfession],
+  );
+
   return (
-    <Box sx={theme.styles.global.formWrapper}>
+    <Box>
+      <FormControl>
+        <InfoMessage message={codeControlText} />
+      </FormControl>
       <FormControl
         isInvalid={inputsErrors?.fullName}
         isRequired={isFieldRequired(validationRules?.fullName)}
@@ -262,17 +211,18 @@ export function CreateProAndReviewForm({
         <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
       </FormControl>
       <FormControl
-        isInvalid={inputsErrors?.services}
-        isRequired={isFieldRequired(validationRules?.services)}
+        isInvalid={inputsErrors?.professions}
+        isRequired={isFieldRequired(validationRules?.professions)}
       >
         <FormLabel>Professions</FormLabel>
         <SearchDropdown
-          inputVal={inputs.searchedService}
-          inputValSetter={(v) => updateInputs('searchedService', v)}
-          searchHook={useServicesSearch}
+          inputVal={inputs.searchedProfession}
+          inputValSetter={(v) => updateInputs('searchedProfession', v)}
+          initialItems={initialProfessions}
+          searchHook={useProfessionsSearch}
           onValueSet={({ value }) => {
-            if (updateInputs('services', value.id, true)) {
-              setServiceTitles((prevTitles) =>
+            if (updateInputs('professions', value.id, true)) {
+              setProfessionTitles((prevTitles) =>
                 prevTitles ? [...prevTitles, value.title] : [value.title],
               );
             }
@@ -283,20 +233,30 @@ export function CreateProAndReviewForm({
           icon={<Icons.WorkerIcon />}
         />
         <MultiInput
-          values={inputs.services ? inputs.services.split(',') : null}
-          labels={serviceTitles}
-          onItemRemove={(services, titles) => {
-            updateInputs('services', services ? services.join(',') : '');
-            setServiceTitles(titles || null);
+          values={inputs.professions ? inputs.professions.split(',') : null}
+          labels={professionTitles}
+          onItemRemove={(professions, titles) => {
+            updateInputs(
+              'professions',
+              professions ? professions.join(',') : '',
+            );
+            setProfessionTitles(titles || null);
           }}
         />
-        <FormErrorMessage>{inputsErrors?.services}</FormErrorMessage>
+        <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
       </FormControl>
 
       <RatingFormControls
         inputs={inputs}
         inputsErrors={inputsErrors}
         updateInputs={updateInputs}
+        validationRules={validationRules}
+      />
+      <SMSCodeControl
+        inputsErrors={inputsErrors}
+        inputs={inputs}
+        inputsUpdater={updateInputs}
+        formState={state}
         validationRules={validationRules}
       />
 
@@ -325,9 +285,151 @@ CreateProAndReviewForm.prototype.propTypes = {
   validationRules: unknownObjectValidator.isRequired,
 };
 
+export function RatingFormControls({
+  inputs,
+  inputsErrors,
+  updateInputs,
+  validationRules,
+}) {
+  return (
+    <>
+      <FormControl
+        isInvalid={inputsErrors?.rating}
+        isRequired={isFieldRequired(validationRules?.rating)}
+      >
+        <FormLabel>Rating</FormLabel>
+        <Rating
+          rating={inputs.rating}
+          onStarClick={(r) => updateInputs('rating', r)}
+          margin="0"
+        />
+        <FormErrorMessage>{inputsErrors?.rating}</FormErrorMessage>
+      </FormControl>
+      <FormControl
+        isInvalid={inputsErrors?.text}
+        isRequired={isFieldRequired(validationRules?.text)}
+      >
+        <FormLabel>Your Review</FormLabel>
+        <Textarea
+          value={inputs.text}
+          sx={style.reviewTextArea}
+          onChange={(e) => {
+            updateInputs('text', e.target.value);
+          }}
+        />
+        <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
+      </FormControl>
+    </>
+  );
+}
+RatingFormControls.prototype.propTypes = {
+  inputsErrors: unknownObjectValidator.isRequired,
+  inputs: unknownObjectValidator.isRequired,
+  updateInputs: PropTypes.func.isRequired,
+  validationRules: unknownObjectValidator.isRequired,
+};
+
+export default function CreateReviewForm({
+  errorMsg,
+  state,
+  inputsErrors,
+  inputs,
+  updateInputs,
+  extraData,
+  validationRules,
+}) {
+  return (
+    <Box>
+      <FormControl>
+        <InfoMessage message={codeControlText} />
+      </FormControl>
+      <ProfessionalInfo data={extraData} />
+      <RatingFormControls
+        inputs={inputs}
+        inputsErrors={inputsErrors}
+        updateInputs={updateInputs}
+        validationRules={validationRules}
+      />
+      <SMSCodeControl
+        inputsErrors={inputsErrors}
+        inputs={inputs}
+        inputsUpdater={updateInputs}
+        formState={state}
+        validationRules={validationRules}
+      />
+      {state.isError ? <ErrorMessage message={errorMsg} /> : null}
+      {state.isSuccess ? (
+        <SuccessMessage message="your review has been added" />
+      ) : null}
+    </Box>
+  );
+}
+CreateReviewForm.defaultProps = {
+  extraData: null,
+};
+
+CreateReviewForm.prototype.propTypes = {
+  errorMsg: PropTypes.string.isRequired,
+  state: PropTypes.string.isRequired,
+  inputsErrors: unknownObjectValidator.isRequired,
+  inputs: unknownObjectValidator.isRequired,
+  updateInputs: PropTypes.func.isRequired,
+  extraData: PropTypes.oneOfType([
+    unknownObjectValidator,
+    PropTypes.oneOf([null]),
+  ]),
+  validationRules: unknownObjectValidator.isRequired,
+};
+
 export function formFactory(extraData, extraActions) {
+  let formObject = {
+    inputNames,
+    validationRulesNames,
+    hook: (onCallFinish) => {
+      const call = useCall(onCallFinish);
+
+      return (inputs) =>
+        call(
+          config.api.endPointsURLs.createProfessionalWithReview,
+          'post',
+          inputs,
+        );
+    },
+    formUI: CreateProAndReviewForm,
+    extraActions,
+    inputsToRequestMapper: ({
+      text,
+      rating,
+      professions,
+      locationLng,
+      locationLat,
+      location,
+      businessId,
+      fullName,
+      email,
+      phone,
+    }) => ({
+      professional: {
+        location,
+        businessId: businessId || null,
+        fullName,
+        email: email || null,
+        phone: phone || null,
+        locationLat: parseFloat(locationLat),
+        locationLng: parseFloat(locationLng),
+      },
+      professions: professions
+        ? professions.split(',').map((s) => parseInt(s, 10))
+        : null,
+      review: {
+        text: text || null,
+        rating: parseInt(rating, 10),
+      },
+    }),
+  };
+
   if (extraData) {
-    return {
+    formObject = {
       inputNames,
       validationRulesNames,
       hook: (onCallFinish) => {
@@ -350,50 +452,5 @@ export function formFactory(extraData, extraActions) {
       },
     };
   }
-
-  return {
-    inputNames,
-    validationRulesNames,
-    hook: (onCallFinish) => {
-      const call = useCall(onCallFinish);
-
-      return (inputs) =>
-        call(
-          config.api.endPointsURLs.createProfessionalWithReview,
-          'post',
-          inputs,
-        );
-    },
-    formUI: CreateProAndReviewForm,
-    extraActions,
-    inputsToRequestMapper: ({
-      text,
-      rating,
-      services,
-      locationLng,
-      locationLat,
-      location,
-      businessId,
-      fullName,
-      email,
-      phone,
-    }) => ({
-      professional: {
-        location,
-        businessId: businessId || null,
-        fullName,
-        email: email || null,
-        phone: phone || null,
-        locationLat: parseFloat(locationLat),
-        locationLng: parseFloat(locationLng),
-      },
-      services: services
-        ? services.split(',').map((s) => parseInt(s, 10))
-        : null,
-      review: {
-        text: text || null,
-        rating: parseInt(rating, 10),
-      },
-    }),
-  };
+  return verificationFormFactory(formObject);
 }

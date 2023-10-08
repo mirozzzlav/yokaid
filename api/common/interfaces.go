@@ -26,7 +26,7 @@ type Server interface {
 }
 
 type QueryRunner interface {
-	GetScalar(q Query) (int, error)
+	GetScalar(q Query) (any, error)
 	GetRows(q Query, fn func(rowBytes []byte)) error
 	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 	Begin() error
@@ -49,9 +49,11 @@ type QueriesRepo interface {
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
-	CreateProfessionalServicesQuery(proId int, serviceId []int) Query
-	CreateReviewQuery(proId int, req CreateReviewRequest) Query
-	GetServicesQuery(filter QueryPartial) Query
+	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
+	CreateReviewQuery(professionalId int, req CreateReviewRequest) Query
+	GetProfessionsQuery(filter QueryPartial) Query
+	GetCheckVerificationQuery(verificationPhone string, verificationCode string) Query
+	DeleteVerificationCodeQuery(phone string) Query
 }
 
 type StoreHelpers interface {
@@ -65,8 +67,10 @@ type StoreHelpers interface {
 	GetUser(usernameOrEmail string) (*User, error)
 	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
-	GetProfessionalServicesForFilter() (*[]FilterItem, error)
+	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
 	CreateProfessionalWithReview(req CreateProfessionalWithReviewRequest) error
+	CheckVerification(verificationPhone string, verificationCode string) (bool, error)
+	AddOrUpdateVerification(code string, phone string) error
 
 	// only for testing
 	Insert() int

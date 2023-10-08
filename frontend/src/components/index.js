@@ -3,7 +3,11 @@ import { formFactory as signupFormFactory } from 'src/components/SignupForm';
 import { formFactory as createReviewFormFactory } from 'src/components/CreateReviewForm';
 import ForgotPassword from 'src/components/ForgotPassword';
 import NewPassword from 'src/components/NewPassword';
-import { SuccessMessage, ErrorMessage } from 'src/components/Messages';
+import Message, {
+  ErrorMessage,
+  SuccessMessage,
+  InfoMessage,
+} from 'src/components/Messages';
 import FormModals from 'src/components/FormModals';
 import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
@@ -14,6 +18,7 @@ import ProfessionalInfo, {
 import Rating from 'src/components/Rating';
 import MultiItem, { MultiInput } from 'src/components/MultiItem';
 import DataContent from 'src/components/DataContent';
+import SMSCodeControl from 'src/components/SMSCodeControl';
 
 export {
   loginFormFactory,
@@ -22,8 +27,7 @@ export {
   FormModals,
   ForgotPassword,
   NewPassword,
-  SuccessMessage,
-  ErrorMessage,
+  Message,
   SearchDropdown,
   Dropdown,
   Map,
@@ -34,4 +38,8 @@ export {
   MultiInput,
   MultiItem,
   DataContent,
+  SMSCodeControl,
+  ErrorMessage,
+  InfoMessage,
+  SuccessMessage,
 };

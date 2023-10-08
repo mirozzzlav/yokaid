@@ -8,14 +8,14 @@ import (
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/example/response", false, http.MethodGet, jsonResponse(server)},
-		{"/example/email", false, http.MethodGet, submitEmail(server)},
-		{"/example/panic", false, http.MethodGet, panicError(server)},
-		{"/example/query/:username", false, http.MethodGet, query(server)},
-		{"/example/transaction/:username", false, http.MethodGet, transaction(server)},
-		{"/example/second-transaction/:username", false, http.MethodGet, secondTransaction(server)},
-		{"/example/third-transaction/", false, http.MethodGet, thirdTransaction(server)},
-		{"/example/validate/:id", false, http.MethodPut, validate(server)},
-		{"/example/password/:password", false, http.MethodGet, password(server)},
+		common.NewRoute("/example/response", http.MethodGet, jsonResponse(server)),
+		common.NewRoute("/example/email", http.MethodGet, submitEmail(server)),
+		common.NewRoute("/example/panic", http.MethodGet, panicError(server)),
+		common.NewRoute("/example/query/:username", http.MethodGet, query(server)),
+		common.NewRoute("/example/transaction/:username", http.MethodGet, transaction(server)),
+		common.NewRoute("/example/second-transaction/:username", http.MethodGet, secondTransaction(server)),
+		common.NewRoute("/example/third-transaction/", http.MethodGet, thirdTransaction(server)),
+		common.NewRoute("/example/validate/:id", http.MethodPut, validate(server)),
+		common.NewRoute("/example/password/:password", http.MethodGet, password(server)),
 	}
 }

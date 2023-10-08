@@ -6,6 +6,26 @@ import { extendTheme } from '@chakra-ui/react';
 
 // Extend the default Chakra UI theme
 const originalTheme = extendTheme();
+// console.log(originalTheme.components);
+
+const Modal = {
+  baseStyle: {
+    header: {
+      background: originalTheme.colors.gray[50],
+      borderBottom: `1px solid ${originalTheme.colors.gray[200]}`,
+      fontWeight: originalTheme.fontWeights.light,
+      borderTopLeftRadius: originalTheme.radii.md,
+      borderTopRightRadius: originalTheme.radii.md,
+      marginBottom: originalTheme.space[4],
+    },
+    closeButton: {
+      top: '15px',
+    },
+    body: {
+      paddingTop: 0,
+    },
+  },
+};
 
 const Input = {
   baseStyle: {
@@ -14,10 +34,32 @@ const Input = {
     },
   },
 };
+
+const FormControl = {
+  baseStyle: {
+    container: {
+      marginBottom: originalTheme.space[2],
+      ':last-child': {
+        margin: 0,
+      },
+    },
+  },
+};
+
+const FormLabel = {
+  baseStyle: {
+    marginBottom: 0,
+    fontWeight: originalTheme.fontWeights.normal,
+  },
+};
+
 const theme = extendTheme({
   components: {
+    Modal,
     TextArea: Input,
     Input,
+    Form: FormControl,
+    FormLabel,
     Button: {
       baseStyle: {
         fontWeight: originalTheme.fontWeights.light,
@@ -26,20 +68,6 @@ const theme = extendTheme({
   },
   styles: {
     global: {
-      formWrapper: {
-        '> *': {
-          marginBottom: originalTheme.space[2],
-          '> label': {
-            marginBottom: 0,
-          },
-          'textarea, input': {
-            paddingLeft: originalTheme.space[2],
-          },
-          input: {
-            paddingRight: '40px',
-          },
-        },
-      },
       contextMenuLikeWrapper: {
         position: 'relative',
       },

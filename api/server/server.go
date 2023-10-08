@@ -106,9 +106,9 @@ func (s *server) initRouter() {
 	}
 
 	router.Use(
-		jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
+		//jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
 		panicMiddleware(s),
-		auth.Middleware(s),
+		//auth.Middleware(s),
 		func(ctx *gin.Context) {
 			// init repo + store helper
 			qRunner := s.queryRunnerInitializer(ctx, s.db)
@@ -154,13 +154,18 @@ func (s *server) GetAuthUser() *common.AuthUser {
 	return s.authUser
 }
 
-func (s *server) IsPrivateRoute(path string) bool {
+func (s *server) findInRoutes(matchFunc func(route common.Route) bool) bool {
 	for _, route := range s.routes {
-		if route.Path == path && route.IsPrivate {
+
+		if matchFunc(route) {
 			return true
 		}
 	}
 	return false
+}
+
+func (s *server) IsPrivateRoute(path string) bool {
+	return s.findInRoutes(func(route common.Route) bool { return route.Path == path && route.IsPrivate })
 }
 
 func (s *server) GetValidate() *validator.Validate {

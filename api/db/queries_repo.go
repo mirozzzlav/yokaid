@@ -146,21 +146,21 @@ func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool)
 	  professionals.location, 
 	  professionals.location_lat, 
 	  professionals.location_lng, 
-	  services_view.services 
+	  professions_view.professions 
 	  %s
 	FROM 
 	  professionals
 	  JOIN (
 	      SELECT JSON_AGG(
 			JSON_BUILD_OBJECT(
-			  'id', services.id, 'title', services.title
+			  'id', professions.id, 'title', professions.title
 			)
-	  	  ) AS services, professional_services.professional_id 
+	  	  ) AS professions, professional_professions.professional_id 
 	      FROM
-	        professional_services JOIN services ON professional_services.service_id = services.id 
+	        professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
 	      GROUP BY
-	        professional_services.professional_id
-	  ) AS services_view ON services_view.professional_id = professionals.id %s 
+	        professional_professions.professional_id
+	  ) AS professions_view ON professions_view.professional_id = professionals.id %s 
  	WHERE professionals.active = true `, reviewsColumns, reviewsQuery)
 
 	if filter.Query != "" {
@@ -202,15 +202,15 @@ func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial, act
 func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial, activeOnly bool) common.Query {
 	query := `SELECT 
 				professionals.id, full_name, phone, email, business_id, location, location_lat, location_lng,
-				JSON_AGG(JSON_BUILD_OBJECT('id', services.id, 'title', services.title)) as services
+				JSON_AGG(JSON_BUILD_OBJECT('id', professions.id, 'title', professions.title)) as professions
 			  FROM
 				professionals 
 			  JOIN 
-			    professional_services
-			  ON professionals.id = professional_services.professional_id
+			    professional_professions
+			  ON professionals.id = professional_professions.professional_id
 			  JOIN
-				services
-			  ON professional_services.service_id = services.id 
+				professions
+			  ON professional_professions.profession_id = professions.id 
 			  WHERE `
 
 	if activeOnly {
@@ -271,19 +271,19 @@ func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalReque
 	}
 }
 
-func (qr queriesRepo) CreateProfessionalServicesQuery(proId int, services []int) common.Query {
+func (qr queriesRepo) CreateProfessionalProfessionsQuery(professionalId int, professions []int) common.Query {
 
 	var valPlaceholders []string
 	var params []any
-	for _, s := range services {
+	for _, s := range professions {
 		valPlaceholders = append(valPlaceholders, "(?, ?)")
-		params = append(params, proId, s)
+		params = append(params, professionalId, s)
 	}
 
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: "INSERT INTO professional_services (professional_id, service_id) VALUES" +
+				Query: "INSERT INTO professional_professions (professional_id, profession_id) VALUES" +
 					strings.Join(valPlaceholders, ","),
 				Params: params,
 			},
@@ -291,13 +291,13 @@ func (qr queriesRepo) CreateProfessionalServicesQuery(proId int, services []int)
 	}
 }
 
-func (qr queriesRepo) CreateReviewQuery(proId int, req common.CreateReviewRequest) common.Query {
+func (qr queriesRepo) CreateReviewQuery(professionalId int, req common.CreateReviewRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query: `INSERT INTO reviews (professional_id, text, rating) VALUES (?, ?, ?)`,
 				Params: []any{
-					proId,
+					professionalId,
 					req.Text,
 					req.Rating,
 				},
@@ -306,11 +306,11 @@ func (qr queriesRepo) CreateReviewQuery(proId int, req common.CreateReviewReques
 	}
 }
 
-func (qr queriesRepo) GetServicesQuery(filter common.QueryPartial) common.Query {
+func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Query {
 	query := `SELECT 
 				id, title 
 			  FROM
-				services 
+				professions 
 			  WHERE `
 
 	q := dbQuery{
@@ -320,6 +320,33 @@ func (qr queriesRepo) GetServicesQuery(filter common.QueryPartial) common.Query 
 				Params: []any{},
 			},
 			filter,
+		},
+	}
+	return q
+}
+
+func (qr queriesRepo) GetCheckVerificationQuery(verificationPhone string, verificationCode string) common.Query {
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "SELECT 1  FROM verification_codes WHERE phone = ? AND code = ?",
+				Params: []any{verificationPhone, verificationCode},
+			},
+		},
+	}
+	return q
+}
+
+func (qr queriesRepo) DeleteVerificationCodeQuery(phone string) common.Query {
+	query := `DELETE FROM verification_codes WHERE phone = ?`
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: []any{phone},
+			},
 		},
 	}
 	return q

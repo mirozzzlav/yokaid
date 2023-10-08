@@ -32,7 +32,7 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/filter-items/get/:columnAliases/:searchTerm", false, http.MethodGet, getFilterItems(server)},
-		{"/filter-items/get/:columnAliases", false, http.MethodGet, getFilterItems(server)},
+		common.NewRoute("/filter-items/get/:columnAliases/:searchTerm", http.MethodGet, getFilterItems(server)),
+		common.NewRoute("/filter-items/get/:columnAliases", http.MethodGet, getFilterItems(server)),
 	}
 }

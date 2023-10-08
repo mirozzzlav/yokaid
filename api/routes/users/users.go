@@ -6,28 +6,26 @@ import (
 )
 
 var errMeta = map[string]common.ResponseMeta{
-	"badRequest":        common.ResponseMeta{Code: http.StatusBadRequest},
-	"badRequestExpired": common.ResponseMeta{Code: http.StatusBadRequest, Msg: "link has expired"},
+	"badRequest":        {Code: http.StatusBadRequest},
+	"badRequestExpired": {Code: http.StatusBadRequest, Msg: "link has expired"},
 }
 
 func GetRoutes(server common.Server) []common.Route {
 
 	return []common.Route{
-		{"/users/login", false, http.MethodPost, login(server)},
-		{"/users/update/:id", true, http.MethodPut, update(server)},
-		{"/users/activate/:activation_token", false, http.MethodPut, activate(server)},
-		{"/users/register", false, http.MethodPost, register(server)},
-		{
+		common.NewRoute("/users/login", http.MethodPost, login(server)),
+		common.NewRoute("/users/update/:id", http.MethodPut, update(server), true),
+		common.NewRoute("/users/activate/:activation_token", http.MethodPut, activate(server)),
+		common.NewRoute("/users/register", http.MethodPost, register(server)),
+		common.NewRoute(
 			"/users/password-change-request",
-			false,
 			http.MethodPost,
 			createRequestForPasswordChange(server),
-		},
-		{
+		),
+		common.NewRoute(
 			"/users/password-change/:password_change_token",
-			false,
 			http.MethodPut,
 			passwordChange(server),
-		},
+		),
 	}
 }

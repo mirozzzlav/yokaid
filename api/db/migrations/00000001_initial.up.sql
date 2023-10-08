@@ -77,17 +77,17 @@ CREATE TABLE "review_images" (
     "image_id" integer NOT NULL
 ) WITH (oids = false);
 
-CREATE TABLE "services" (
+CREATE TABLE "professions" (
     "id" serial NOT NULL,
     "title" character varying(256) NOT NULL,
-    CONSTRAINT "services_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "professions_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
 
-CREATE TABLE "professional_services" (
-    "service_id" integer NOT NULL,
+CREATE TABLE "professional_professions" (
+    "profession_id" integer NOT NULL,
     "professional_id" integer NOT NULL,
-    CONSTRAINT "professional_services_service_id_professional_id" PRIMARY KEY ("service_id", "professional_id")
+    CONSTRAINT "professional_professions_profession_id_professional_id" PRIMARY KEY ("profession_id", "professional_id")
 );
 
 ALTER TABLE ONLY "policies" ADD CONSTRAINT "policies_action_fkey" FOREIGN KEY (action) REFERENCES actions(name) NOT DEFERRABLE;
@@ -99,8 +99,8 @@ ALTER TABLE ONLY "password_change_requests" ADD CONSTRAINT "requests_user_fkey" 
 
 ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_user_fkey" FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "review_images" ADD CONSTRAINT "review_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "professional_services" ADD CONSTRAINT "professional_services_service_id_fkey" FOREIGN KEY (service_id) REFERENCES services(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "professional_services" ADD CONSTRAINT "professional_services_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_profession_id_fkey" FOREIGN KEY (profession_id) REFERENCES professions(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 /*
 INSERT INTO "users" ("username", "full_name", "email", "hashed_password", "active", "created_at", "role") VALUES

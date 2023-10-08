@@ -4,6 +4,7 @@ import { InitialDataContext } from 'src/providers';
 function mapValidationErrors(errors) {
   const messages = {
     min: (field) => `${field} is too short or haven't reach min limit`,
+    max: (field) => `${field} is too long or above the limit`,
     required: (field) => `${field} is empty`,
     email: () => 'email has wrong format',
     multiWords: (field) => `${field} has to have at least 2 words`,
@@ -118,7 +119,11 @@ export default function useForms(formConfigs) {
         const valStr = `${val}`;
 
         setFormStates((prevData) => {
-          if (prevData[formId]?.inputs[name].includes(valStr) && concat) {
+          if (
+            prevData[formId]?.inputs[name] &&
+            prevData[formId].inputs[name].includes(valStr) &&
+            concat
+          ) {
             isAdded = false;
             return prevData;
           }

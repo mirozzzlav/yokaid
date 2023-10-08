@@ -73,6 +73,25 @@ function getStringFirstCaps(str) {
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
+function verificationFormFactory(formObject) {
+  return {
+    ...formObject,
+    inputNames: [
+      ...formObject.inputNames,
+      'verificationPhone',
+      'verificationCode',
+    ],
+    inputsToRequestMapper: (inputs) => ({
+      ...(formObject.inputsToRequestMapper
+        ? formObject.inputsToRequestMapper(inputs)
+        : inputs),
+
+      verificationPhone: inputs.verificationPhone,
+      verificationCode: inputs.verificationCode,
+    }),
+  };
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
@@ -83,4 +102,5 @@ export {
   isInt,
   getMergedStyle,
   getStringFirstCaps,
+  verificationFormFactory,
 };

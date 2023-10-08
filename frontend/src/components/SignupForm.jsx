@@ -24,7 +24,7 @@ export default function SignupForm({
   validationRules,
 }) {
   return (
-    <Box sx={theme.styles.global.formWrapper}>
+    <Box>
       <FormControl
         isInvalid={inputsErrors?.fullName}
         isRequired={isFieldRequired(validationRules?.fullName)}

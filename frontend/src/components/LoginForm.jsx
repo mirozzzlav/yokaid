@@ -22,7 +22,7 @@ export default function LoginForm({
   updateInputs,
 }) {
   return (
-    <Box sx={theme.styles.global.formWrapper}>
+    <Box>
       <FormControl isInvalid={inputsErrors?.usernameOrEmail}>
         <FormLabel>Username or email</FormLabel>
         <Input

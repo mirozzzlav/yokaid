@@ -46,18 +46,18 @@ type User struct {
 }
 
 type professional struct {
-	ID           int       `json:"id"`
-	FullName     string    `json:"fullName"`
-	Phone        string    `json:"phone"`
-	Email        string    `json:"email"`
-	Rating       int       `json:"rating"`
-	BusinessId   string    `json:"businessId"`
-	Location     string    `json:"location"`
-	LocationLat  float64   `json:"locationLat"`
-	LocationLng  float64   `json:"locationLng"`
-	Services     []service `json:"services"`
-	Reviews      []review  `json:"reviews"`
-	ReviewsCount int       `json:"reviewsCount"`
+	ID           int          `json:"id"`
+	FullName     string       `json:"fullName"`
+	Phone        string       `json:"phone"`
+	Email        string       `json:"email"`
+	Rating       int          `json:"rating"`
+	BusinessId   string       `json:"businessId"`
+	Location     string       `json:"location"`
+	LocationLat  float64      `json:"locationLat"`
+	LocationLng  float64      `json:"locationLng"`
+	Professions  []profession `json:"professions"`
+	Reviews      []review     `json:"reviews"`
+	ReviewsCount int          `json:"reviewsCount"`
 }
 
 type review struct {
@@ -67,7 +67,7 @@ type review struct {
 	Images *[]imagePath `json:"images"`
 	//CreatedAt timeCustom   `json:"createdAt"`
 }
-type service struct {
+type profession struct {
 	Id    int    `json:"id"`
 	Title string `json:"title"`
 }
@@ -112,12 +112,12 @@ func ProfessionalsModelLoader() (*[]professional, func(rowBytes []byte)) {
 	}
 }
 
-func ServicesModelLoader() (*[]service, func(rowBytes []byte)) {
-	var services []service
-	return &services, func(rowBytes []byte) {
-		var service service
-		_ = json.Unmarshal(rowBytes, &service)
-		services = append(services, service)
+func ProfessionsModelLoader() (*[]profession, func(rowBytes []byte)) {
+	var professions []profession
+	return &professions, func(rowBytes []byte) {
+		var profession profession
+		_ = json.Unmarshal(rowBytes, &profession)
+		professions = append(professions, profession)
 	}
 }
 

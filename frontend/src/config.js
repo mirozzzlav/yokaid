@@ -37,7 +37,8 @@ export default {
       getFilterItems: `${apiUrl}/filter-items/get`,
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
       createReview: `${apiUrl}/reviews/create`,
-      getServices: `${apiUrl}/services/get`,
+      getProfessions: `${apiUrl}/professions/get`,
+      getCode: `${apiUrl}/code/get`,
     },
   },
   map: {
@@ -53,7 +54,7 @@ export default {
     elements: filterElements,
     getNames: () => filterElements.map(({ name }) => name),
     APIColumnAliases: {
-      profession: 'serviceId',
+      profession: 'professionId',
       location: mapFilterColumnAlias,
     },
     defaultFilter: {
