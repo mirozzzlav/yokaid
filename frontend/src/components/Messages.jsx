@@ -90,10 +90,10 @@ function InfoMessage({ message }) {
     <Message
       message={message}
       extraStyle={{
-        background: theme.colors.yellow[100],
-        border: `1px solid ${theme.colors.yellow[300]}`,
+        background: theme.colors.orange[100],
+        border: `1px solid ${theme.colors.orange[300]}`,
         '> svg, >p': {
-          color: theme.colors.yellow[700],
+          color: theme.colors.orange[700],
         },
       }}
       icon={<InfoIcon />}

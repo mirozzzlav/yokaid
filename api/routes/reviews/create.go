@@ -16,7 +16,7 @@ func create(server common.Server) gin.HandlerFunc {
 		if !codeValid {
 			panic(common.NewHttpError(
 				nil,
-				common.ResponseMeta{Code: http.StatusBadRequest, Msg: "Verification failed, try to use different SMS code"},
+				common.ResponseMeta{Code: http.StatusBadRequest, Msg: "It appears that you've entered an incorrect SMS code. Please double-check the code and try again."},
 			))
 		}
 		err = server.GetValidate().Struct(req)
@@ -35,6 +35,6 @@ func create(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		server.GetQueryRunner(ctx).Commit()
-		common.SetOKJSONResponse(ctx, "review has been successfully created")
+		common.SetOKJSONResponse(ctx, "Review has been successfully created.")
 	}
 }

@@ -9,7 +9,11 @@ import (
 func getCode(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		httpError := common.NewHttpError(
-			nil, common.ResponseMeta{Code: http.StatusBadRequest, Msg: "Unable to send you the SMS code, check your phone number."})
+			nil, common.ResponseMeta{
+				Code: http.StatusBadRequest,
+				Msg: `We are unable to send an SMS code to your phone at the moment. 
+						Please double-check the phone number you entered, and try again.`,
+			})
 
 		phone, paramExists := ctx.Params.Get("phone")
 		if !paramExists {
@@ -30,13 +34,13 @@ func getCode(server common.Server) gin.HandlerFunc {
 			panic(
 				common.NewHttpError(
 					nil,
-					common.ResponseMeta{Code: http.StatusBadRequest, Msg: "Unknown error, please try to get your code again"},
+					common.ResponseMeta{Code: http.StatusBadRequest, Msg: "Unknown error, please try to get your code again."},
 				),
 			)
 		}
 		common.CheckErrAndPanic(err)
 		server.GetQueryRunner(ctx).Commit()
-		common.SetOKJSONResponse(ctx, "Verification SMS code has been sent to given phone number")
+		common.SetOKJSONResponse(ctx, "Verification successful.")
 
 	}
 }

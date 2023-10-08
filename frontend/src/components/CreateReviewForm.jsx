@@ -74,9 +74,9 @@ const validationRulesNames = [
   'createReviewForExistingProfessionalRequest',
 ];
 
-const codeControlText =
-  'To submit your review, fill in the code received by SMS. ' +
-  'You can do so on the bottom of this popup. The price of SMS is 0.5€';
+const codeControlText = `Please provide your phone number for SMS verification code delivery. 
+Once you receive the code, use it to confirm your review. You can do this at the bottom of this popup. 
+The cost of the SMS is 0.5€.`;
 
 export function CreateProAndReviewForm({
   errorMsg,
@@ -262,7 +262,7 @@ export function CreateProAndReviewForm({
 
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage message="your review has been noticed, after admin approval it will be publicly visible" />
+        <SuccessMessage message="Thank you for your review! Once it's approved by our team, it will be visible to everyone." />
       ) : null}
     </Box>
   );
@@ -359,7 +359,7 @@ export default function CreateReviewForm({
       />
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage message="your review has been added" />
+        <SuccessMessage message="Your review has been successfully posted." />
       ) : null}
     </Box>
   );

@@ -56,7 +56,7 @@ export default function SMSCodeControl({
       setLocalDataValue('smsCodeControl', 'phone', phone);
       setCallGetCodeError('');
     } else {
-      setCallGetCodeError('Unable to get SMS code, check filled in phone.');
+      setCallGetCodeError(response.error.msg);
     }
   });
 
@@ -90,7 +90,7 @@ export default function SMSCodeControl({
         (callGetCodeError || callGetCodeError === null) && (
           <Box sx={style.message}>
             <InfoMessage
-              message={`You have unused SMS code sent to phone number ${inputs.verificationPhone}, you can use it here.`}
+              message={`You have an unused SMS code that has been sent to the phone number ${inputs.verificationPhone}. You can go ahead and use it here.`}
             />
           </Box>
         )}
