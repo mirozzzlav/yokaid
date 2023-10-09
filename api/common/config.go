@@ -13,21 +13,21 @@ type logsConfig struct {
 	LogsToFile   bool
 }
 type config struct {
-	AppName                  string
-	AppMailFrom              string
-	AppMailAPIKey            string
-	EnableNotifications      bool
-	DBDriver                 string
-	DBSource                 string
-	TokenSymmetricKey        string
-	AccessTokenDuration      time.Duration
-	Url                      string
-	AssetsFolder             string
-	AssetsRelativeUrl        string
-	Policy                   AuthPolicyConfig
-	Logs                     logsConfig
-	PublicRoles              []string
-	VerificationCodeLifeTime int // in minutes
+	AppName             string
+	AppMailFrom         string
+	AppMailAPIKey       string
+	EnableNotifications bool
+	DBDriver            string
+	DBSource            string
+	TokenSymmetricKey   string
+	AccessTokenDuration time.Duration
+	Url                 string
+	AssetsFolder        string
+	AssetsRelativeUrl   string
+	Policy              AuthPolicyConfig
+	Logs                logsConfig
+	PublicRoles         []string
+	InputFormats        map[string]string
 }
 
 var publicRoles = []string{"guest"}
@@ -87,7 +87,9 @@ var Config, _ = func(mode string) (config, error) {
 				m = r.role == 'admin' || ((r.role == p.role || r.user == p.user) && r.act == p.act && keyMatch(r.resource,p.resource))
 			`,
 		},
-		Logs:                     getLogsConfig(),
-		VerificationCodeLifeTime: 60,
+		Logs: getLogsConfig(),
+		InputFormats: map[string]string{
+			"phone": "+421 9xx xxx xxx",
+		},
 	}, nil
 }(GetEnvMode())

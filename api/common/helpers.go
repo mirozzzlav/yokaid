@@ -108,7 +108,7 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 	}
 
 	if _responseMeta.Code == http.StatusBadRequest {
-		_responseMeta.Msg = "invalid request, please check your inputs"
+		_responseMeta.Msg = "your request is invalid, please review the information you've provided"
 	}
 
 	if _responseMeta.Code == http.StatusNotFound {
@@ -244,7 +244,7 @@ func MultiWordsValidator(fl validator.FieldLevel) bool {
 }
 
 func ValidatePhoneNumber(number string) bool {
-	return regexp.MustCompile(`(?:\+|00)[0-9]{12}|[0-9]{10}`).MatchString(number)
+	return regexp.MustCompile(`\+[0-9]{2,3}\s(?:[0-9]{2,4}\s){2}[0-9]{2,4}`).MatchString(number) && len(number) == 16
 }
 
 func PhoneNumberValidator(fl validator.FieldLevel) bool {

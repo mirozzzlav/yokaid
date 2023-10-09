@@ -1,16 +1,19 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { InitialDataContext } from 'src/providers';
 
-function mapValidationErrors(errors) {
+function mapValidationErrors(errors, formats) {
   const messages = {
     min: (field) => `${field} is too short or haven't reach min limit`,
     max: (field) => `${field} is too long or above the limit`,
     required: (field) => `${field} is empty`,
-    email: () => 'email has wrong format',
-    multiWords: (field) => `${field} has to have at least 2 words`,
+    email: () => 'fix the email',
+    multiWords: (field) =>
+      formats[field]
+        ? `ensure the ${field} match the format: ${formats[field]}`
+        : `${field} has to have at least 2 words`,
     requiredWithout: (field, withoutField) =>
       `${field} or ${withoutField} have to be filled in`,
-    phone: () => 'phone is in wrong format, no spaces allowed',
+    phone: () => `ensure the phone match the format: ${formats?.phone}`,
   };
 
   return Object.fromEntries(
@@ -36,7 +39,7 @@ const getDefaultFormState = (inputNames) => ({
 });
 
 export default function useForms(formConfigs) {
-  const { validationRules } = useContext(InitialDataContext);
+  const { validationRules, inputFormats } = useContext(InitialDataContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.entries(formConfigs).map(([id, { inputNames }]) => [
@@ -160,7 +163,9 @@ export default function useForms(formConfigs) {
             setRequestState(formId, requestStatesConsts.error);
             setErrorMsg(response.error.msg || 'Form request failed');
             if (response.error.extraData) {
-              setInputsErrors(mapValidationErrors(response.error.extraData));
+              setInputsErrors(
+                mapValidationErrors(response.error.extraData, inputFormats),
+              );
             }
             return;
           }

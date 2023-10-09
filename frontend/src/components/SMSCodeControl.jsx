@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -20,6 +20,7 @@ import {
   InfoMessage,
   SuccessMessage,
 } from 'src/components/Messages';
+import { InitialDataContext } from 'src/providers';
 
 const style = {
   wrapper: {
@@ -59,6 +60,7 @@ export default function SMSCodeControl({
       setCallGetCodeError(response.error.msg);
     }
   });
+  const { inputFormats } = useContext(InitialDataContext);
 
   useEffect(() => {
     const localDataPhone = getLocalDataValue('smsCodeControl', 'phone');
@@ -95,12 +97,12 @@ export default function SMSCodeControl({
           </Box>
         )}
       <FormControl>
-        <FormLabel>Phone</FormLabel>
+        <FormLabel>Your Phone</FormLabel>
         <InputGroup>
           <Input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="Your phone number"
+            placeholder={inputFormats?.phone}
           />
           <InputRightElement sx={{ width: 'auto' }}>
             <Button onClick={onGetCodeClick}>Get code</Button>

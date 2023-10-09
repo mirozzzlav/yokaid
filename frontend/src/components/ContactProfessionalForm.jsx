@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
   Input,
@@ -15,6 +15,7 @@ import {
 } from 'src/components/Messages';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import config from 'src/config';
+import { InitialDataContext } from 'src/providers';
 import useCall from '../hooks/useCall';
 
 const successMessage = 'Your message has been sent to professional.';
@@ -32,7 +33,9 @@ export default function ContactProfessionalForm({
   inputs,
   updateInputs,
   validationRules,
+  extraData,
 }) {
+  const { inputFormats } = useContext(InitialDataContext);
   return (
     <Box>
       <FormControl
@@ -40,12 +43,16 @@ export default function ContactProfessionalForm({
         isRequired={isFieldRequired(validationRules?.userPhone)}
       >
         <FormControl>
-          <InfoMessage message="Once you submit a message using this form, we will re-send it via SMS to the selected professional." />
+          {extraData?.fullName ? (
+            <InfoMessage
+              message={`Once you send a message over this form, we will re-send it to ${extraData.fullName} via SMS.`}
+            />
+          ) : null}
         </FormControl>
-        <FormLabel>Phone</FormLabel>
+        <FormLabel>Your Phone</FormLabel>
         <Input
           type="text"
-          placeholder="Your phone number"
+          placeholder={inputFormats?.phone}
           value={inputs.userPhone}
           onChange={(e) => {
             updateInputs('userPhone', e.target.value);
@@ -74,6 +81,10 @@ export default function ContactProfessionalForm({
   );
 }
 
+ContactProfessionalForm.defaultProps = {
+  extraData: null,
+};
+
 ContactProfessionalForm.prototype.propTypes = {
   errorMsg: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,
@@ -81,9 +92,13 @@ ContactProfessionalForm.prototype.propTypes = {
   inputs: unknownObjectValidator.isRequired,
   updateInputs: PropTypes.func.isRequired,
   validationRules: unknownObjectValidator.isRequired,
+  extraData: PropTypes.oneOfType([
+    unknownObjectValidator,
+    PropTypes.oneOf([null]),
+  ]),
 };
 
-export function formFactory(professionalId) {
+export function formFactory(professional) {
   return {
     inputNames: ['userPhone', 'message'],
     hook: (onCallFinish) => {
@@ -91,11 +106,12 @@ export function formFactory(professionalId) {
       return (inputs) =>
         call(config.api.endPointsURLs.contactProfessional, 'post', inputs);
     },
+    extraData: professional,
     formUI: ContactProfessionalForm,
     validationRulesNames: ['contactProfessionalRequest'],
     inputsToRequestMapper: (inputs) => ({
       ...inputs,
-      professionalId,
+      professionalId: professional.id,
     }),
   };
 }

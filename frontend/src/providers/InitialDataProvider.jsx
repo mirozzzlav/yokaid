@@ -16,10 +16,7 @@ export default function InitialDataProvider({ children }) {
       return;
     }
 
-    setInitialData({
-      filter: response.data.filters,
-      validationRules: response.data.validationRules,
-    });
+    setInitialData(response.data);
   }, []);
   const call = useCall(onDataArrived);
 

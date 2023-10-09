@@ -263,10 +263,10 @@ export default function MapPage() {
         submitButton: {
           label: 'Send',
         },
-        form: contactProfessionalFactory(professionalId),
+        form: contactProfessionalFactory(professionalDetail),
       },
     }),
-    [professionalDetail, mapAreaRequest, professionalId],
+    [professionalDetail, mapAreaRequest],
   );
   const style = useStyle();
   useEffect(() => {
@@ -285,7 +285,7 @@ export default function MapPage() {
 
   useEffect(() => {
     setProfessionalDetail(null);
-    if (action !== 'contact-professional' && professionalId) {
+    if (professionalId) {
       callGetProfessional(actionParams);
     }
   }, [professionalId]);

@@ -90,14 +90,12 @@ export function CreateProAndReviewForm({
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
 
-  const {
-    filter: { profession: filterProfession },
-  } = useContext(InitialDataContext);
+  const { filter, inputFormats } = useContext(InitialDataContext);
 
   const initialProfessions = useMemo(
     () =>
-      filterProfession
-        ? filterProfession.map(({ label, value }) => ({
+      filter?.profession
+        ? filter.profession.map(({ label, value }) => ({
             label,
             value: {
               id: value,
@@ -105,7 +103,7 @@ export function CreateProAndReviewForm({
             },
           }))
         : null,
-    [filterProfession],
+    [filter],
   );
 
   return (
@@ -132,6 +130,7 @@ export function CreateProAndReviewForm({
           }}
           position="left"
           dropdownWidth="100%"
+          placeholder={inputFormats?.fullName}
         />
         <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
       </FormControl>
@@ -194,6 +193,7 @@ export function CreateProAndReviewForm({
           onChange={(e) => {
             updateInputs('phone', e.target.value);
           }}
+          placeholder={inputFormats?.phone}
         />
         <FormErrorMessage>{inputsErrors?.phone}</FormErrorMessage>
       </FormControl>

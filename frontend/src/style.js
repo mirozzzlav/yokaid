@@ -53,6 +53,14 @@ const FormLabel = {
   },
 };
 
+const FormError = {
+  baseStyle: {
+    text: {
+      marginTop: '2px',
+    },
+  },
+};
+
 const theme = extendTheme({
   components: {
     Modal,
@@ -60,6 +68,7 @@ const theme = extendTheme({
     Input,
     Form: FormControl,
     FormLabel,
+    FormError,
     Button: {
       baseStyle: {
         fontWeight: originalTheme.fontWeights.light,
