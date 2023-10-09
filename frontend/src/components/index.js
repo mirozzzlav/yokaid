@@ -1,6 +1,7 @@
 import { formFactory as loginFormFactory } from 'src/components/LoginForm';
 import { formFactory as signupFormFactory } from 'src/components/SignupForm';
 import { formFactory as createReviewFormFactory } from 'src/components/CreateReviewForm';
+import { formFactory as contactProfessionalFactory } from 'src/components/ContactProfessionalForm';
 import ForgotPassword from 'src/components/ForgotPassword';
 import NewPassword from 'src/components/NewPassword';
 import Message, {
@@ -25,6 +26,7 @@ export {
   loginFormFactory,
   signupFormFactory,
   createReviewFormFactory,
+  contactProfessionalFactory,
   FormModals,
   ForgotPassword,
   NewPassword,

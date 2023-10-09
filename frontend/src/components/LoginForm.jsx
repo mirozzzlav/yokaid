@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import theme from 'src/style';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
-import { useLoginCall } from 'src/hooks';
+import { useLoginCall } from 'src/hooks/useUser';
 import { unknownObjectValidator } from 'src/helpers';
 
 export default function LoginForm({

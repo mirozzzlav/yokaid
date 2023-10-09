@@ -62,6 +62,12 @@ type CreateReviewForExistingProfessionalRequest struct {
 	VerificationCode  string              `json:"verificationCode"`
 }
 
+type ContactProfessionalRequest struct {
+	ProfessionalId int    `json:"professionalId" validate:"required"`
+	UserPhone      string `json:"userPhone" validate:"required,phone"`
+	Message        string `json:"message" validate:"required,min=5"`
+}
+
 // add here empty request instances that has validation rules
 var requests = []any{
 	RegisterUserRequest{},
@@ -71,4 +77,5 @@ var requests = []any{
 	PasswordChangeRequest{},
 	CreateProfessionalWithReviewRequest{},
 	CreateReviewForExistingProfessionalRequest{},
+	ContactProfessionalRequest{},
 }

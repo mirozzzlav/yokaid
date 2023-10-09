@@ -2,7 +2,7 @@ import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
-import { ProfessionalInfoDropdown } from 'src/components';
+import { ProfessionalInfoDropdown } from 'src/components/ProfessionalInfo';
 
 export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);

@@ -39,6 +39,7 @@ export default {
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
       getCode: `${apiUrl}/code/get`,
+      contactProfessional: `${apiUrl}/professionals/contact`,
     },
   },
   map: {

@@ -12,6 +12,7 @@ import theme from 'src/style';
 
 import {
   createReviewFormFactory,
+  contactProfessionalFactory,
   Map,
   SearchDropdown,
   ProfessionalInfoModal,
@@ -233,6 +234,19 @@ export default function MapPage() {
   }, []);
 
   const [markers, setMarkers] = useState(null);
+  const professionalId = useMemo(() => {
+    if (
+      action === 'professional-detail' ||
+      action === 'add-review' ||
+      action === 'contact-professional'
+    ) {
+      if (isInt(actionParams)) {
+        return parseInt(actionParams, 10);
+      }
+    }
+    return null;
+  }, [actionParams]);
+
   const modalsConfig = useMemo(
     () => ({
       'add-review': {
@@ -244,8 +258,15 @@ export default function MapPage() {
           onProfessionalFound: ({ id }) => navigateAction('add-review', id),
         }),
       },
+      'contact-professional': {
+        title: 'Contact professional',
+        submitButton: {
+          label: 'Send',
+        },
+        form: contactProfessionalFactory(professionalId),
+      },
     }),
-    [professionalDetail, mapAreaRequest],
+    [professionalDetail, mapAreaRequest, professionalId],
   );
   const style = useStyle();
   useEffect(() => {
@@ -263,14 +284,11 @@ export default function MapPage() {
   }, [professionals]);
 
   useEffect(() => {
-    if (action === 'professional-detail' || action === 'add-review') {
-      if (isInt(actionParams)) {
-        callGetProfessional(actionParams);
-      }
-      return;
-    }
     setProfessionalDetail(null);
-  }, [actionParams]);
+    if (action !== 'contact-professional' && professionalId) {
+      callGetProfessional(actionParams);
+    }
+  }, [professionalId]);
 
   return (
     <Page
@@ -416,6 +434,10 @@ export default function MapPage() {
         data={action === 'professional-detail' ? professionalDetail : null}
         close={() => navigateAction(null)}
         isShown={!!professionalDetail}
+        contactProfessionalButton={{
+          label: 'Send message',
+          onClick: () => navigateAction('contact-professional', professionalId),
+        }}
       />
     </Page>
   );

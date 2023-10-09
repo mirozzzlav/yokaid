@@ -13,7 +13,8 @@ import {
   InfoMessage,
   SuccessMessage,
 } from 'src/components/Messages';
-import { usePlacesSearch, useSearchProfessional } from 'src/hooks';
+import { useSearchProfessional } from 'src/hooks/useProfessionals';
+import usePlacesSearch from 'src/hooks/usePlacesSearch';
 import Rating from 'src/components/Rating';
 import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
@@ -198,7 +199,7 @@ export function CreateProAndReviewForm({
       </FormControl>
       <FormControl
         isInvalid={inputsErrors?.email}
-        isRequired={isFieldRequired(validationRules?.phone)}
+        isRequired={isFieldRequired(validationRules?.email)}
       >
         <FormLabel>Email</FormLabel>
         <Input

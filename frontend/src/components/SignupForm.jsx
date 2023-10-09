@@ -9,8 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
-import { useSignupCall } from 'src/hooks';
-import theme from 'src/style';
+import { useSignupCall } from 'src/hooks/useUser';
 
 const successMessage =
   'sign up has been successful, please check your email for the account activation';

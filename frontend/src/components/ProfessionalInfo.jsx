@@ -8,6 +8,7 @@ import Rating from 'src/components/Rating';
 import config from 'src/config';
 import DataContent from 'src/components/DataContent';
 import MultiItem, { MultiInput } from 'src/components/MultiItem';
+import { buttonPropType } from 'src/constants';
 
 const style = {
   review: {
@@ -129,12 +130,22 @@ ProfessionalInfo.prototype.propTypes = {
   compact: PropTypes.bool,
 };
 
-export function ProfessionalInfoModal({ isShown, close, data }) {
+export function ProfessionalInfoModal({
+  isShown,
+  close,
+  data,
+  contactProfessionalButton,
+}) {
   if (!data) {
     return null;
   }
   return (
-    <Modal isShown={isShown} close={close} title="Professional info">
+    <Modal
+      isShown={isShown}
+      close={close}
+      title="Professional info"
+      submitButton={contactProfessionalButton}
+    >
       <ProfessionalInfo data={data} showRating showReviews />
     </Modal>
   );
@@ -144,6 +155,7 @@ ProfessionalInfoModal.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
   isShown: PropTypes.bool.isRequired,
   close: PropTypes.func.isRequired,
+  contactProfessionalButton: buttonPropType.isRequired,
 };
 
 export function ProfessionalInfoDropdown(data) {
