@@ -3,17 +3,18 @@ import PropTypes from 'prop-types';
 import { SmallCloseIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton } from '@chakra-ui/react';
 import theme from 'src/style';
+import { unknownObjectValidator } from 'src/helpers';
 
 const style = {
   wrapper: {
-    padding: '5px 0',
-    gap: '5px',
+    gap: theme.space[1],
+    flexWrap: 'wrap',
   },
   element: {
-    border: `1px solid ${theme.colors.gray[200]}`,
-    background: theme.colors.gray[50],
+    border: `1px solid ${theme.colors.orange[200]}`,
+    background: `${theme.colors.orange[50]}`,
     borderRadius: theme.radii.md,
-    padding: '0px 5px',
+    padding: '3px 5px',
   },
   iconBtn: {
     display: 'block',
@@ -31,7 +32,7 @@ const style = {
 
 export default function MultiItem({ labels }) {
   return (
-    <Flex sx={style.wrapper}>
+    <Flex sx={{ ...style.wrapper }}>
       {labels.map((v, i) => (
         <Flex key={v} sx={style.element}>
           <Box sx={style.label}>{labels[i]}</Box>
@@ -45,7 +46,7 @@ MultiItem.prototype.propTypes = {
   labels: PropTypes.string.isRequired,
 };
 
-export function MultiInput({ labels, values, onItemRemove }) {
+export function MultiInput({ labels, values, onItemRemove, padding }) {
   if (!labels || !values) {
     return null;
   }
@@ -66,7 +67,7 @@ export function MultiInput({ labels, values, onItemRemove }) {
   );
 
   return (
-    <Flex sx={style.wrapper}>
+    <Flex sx={{ ...style.wrapper, padding }}>
       {values.map((v, i) => (
         <Flex key={v} sx={style.element}>
           <Box sx={style.label}>{labels[i]}</Box>
@@ -83,8 +84,13 @@ export function MultiInput({ labels, values, onItemRemove }) {
     </Flex>
   );
 }
+
+MultiInput.defaultProps = {
+  padding: `${theme.space[1]} 0 0 0`,
+};
 MultiInput.prototype.propTypes = {
   values: PropTypes.string.isRequired,
   labels: PropTypes.string.isRequired,
   onItemRemove: PropTypes.func.isRequired,
+  padding: PropTypes.string,
 };

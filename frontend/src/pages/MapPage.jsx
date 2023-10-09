@@ -292,7 +292,7 @@ export default function MapPage() {
             position="left"
             placeholder="Find person by name"
             sx={style.mainSearch}
-            resetOnValueSet
+            setInputValOnValSet={false}
           />
         </Flex>
       }

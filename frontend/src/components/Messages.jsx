@@ -52,10 +52,10 @@ function SuccessMessage({ message }) {
     <Message
       message={message}
       extraStyle={{
-        background: theme.colors.green[100],
-        border: `1px solid ${theme.colors.green[300]}`,
-        '> svg, >p': {
-          color: theme.colors.green[700],
+        background: theme.colors.green[50],
+        border: `1px solid ${theme.colors.green[200]}`,
+        '> svg': {
+          color: theme.colors.green[500],
         },
       }}
       icon={<CheckIcon />}
@@ -71,10 +71,10 @@ function ErrorMessage({ message }) {
     <Message
       message={message}
       extraStyle={{
-        background: theme.colors.red[100],
-        border: `1px solid ${theme.colors.red[300]}`,
-        '> svg, >p': {
-          color: theme.colors.red[700],
+        background: theme.colors.red[50],
+        border: `1px solid ${theme.colors.red[200]}`,
+        '> svg': {
+          color: theme.colors.red[400],
         },
       }}
       icon={<InfoIcon />}
@@ -90,11 +90,9 @@ function InfoMessage({ message }) {
     <Message
       message={message}
       extraStyle={{
-        background: theme.colors.orange[100],
-        border: `1px solid ${theme.colors.orange[300]}`,
-        '> svg, >p': {
-          color: theme.colors.orange[700],
-        },
+        background: theme.colors.orange[50],
+        border: `1px solid ${theme.colors.orange[200]}`,
+        '> svg': { color: theme.colors.orange[400] },
       }}
       icon={<InfoIcon />}
     />

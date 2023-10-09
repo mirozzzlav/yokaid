@@ -26,35 +26,43 @@ const listElemStyle = {
   width: '100%',
   textAlign: 'left',
   borderRadius: 0,
-  padding: '0 1rem',
 };
 const style = {
   list: (isShown) => ({
     background: theme.colors.white,
     borderRadius: theme.radii.base,
-    border: `1px solid ${theme.colors.gray[400]}`,
+    border: `1px solid ${theme.colors.gray[300]}`,
     overflow: 'hidden',
     ...(!isShown ? { display: 'none' } : null),
+    boxShadow: theme.shadows.base,
   }),
   noResults: {
     ...listElemStyle,
     display: 'flex',
     alignItems: 'center',
-    height: theme.sizes[10],
+    padding: '0.5rem 1rem',
   },
   listElem: {
     ...listElemStyle,
+    cursor: 'pointer',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     display: 'block',
     fontWeight: theme.fontWeights.normal,
     ':hover': {
-      background: theme.colors.gray[100],
+      background: theme.colors.gray[50],
     },
     ':focus-visible': {
       boxShadow: 'none',
       fontWeight: theme.fontWeights.bold,
+    },
+    '> *': {
+      padding: '0.5rem 0',
+      margin: '0 1rem',
+    },
+    ':last-child > *': {
+      border: 'none',
     },
   },
   searchDropdownWrapper: {
@@ -82,7 +90,7 @@ function DropdownList({
       ) : (
         <Box>
           {items.map(({ label, value, ...restItem }, i) => (
-            <Button
+            <Box
               sx={style.listElem}
               onBlur={() => i === items.length - 1 && setIsShown(false)}
               variant="ghost"
@@ -106,8 +114,12 @@ function DropdownList({
                 setIsShown(false);
               }}
             >
-              {`${label}`}
-            </Button>
+              <Box>
+                {restItem.renderer
+                  ? React.createElement(restItem.renderer, value)
+                  : `${label}`}
+              </Box>
+            </Box>
           ))}
         </Box>
       )}
@@ -207,7 +219,7 @@ function SearchDropdown({
   initialItems,
   inputVal: inputValFromProps,
   inputValSetter: inputValSetterFromProps,
-  resetOnValueSet,
+  setInputValOnValSet,
   icon,
   onValueSet,
   onValueEmpty,
@@ -247,10 +259,10 @@ function SearchDropdown({
   const onItemClick = useCallback(
     (onClickData) => {
       onValueSet(onClickData);
-      if (resetOnValueSet) {
-        inputValSetter('');
-      } else {
+      if (setInputValOnValSet) {
         inputValSetter(onClickData.label);
+      } else {
+        inputValSetter('');
       }
     },
     [onValueSet],
@@ -357,7 +369,7 @@ SearchDropdown.defaultProps = {
   initialItems: null,
   inputVal: null,
   inputValSetter: null,
-  resetOnValueSet: false,
+  setInputValOnValSet: true,
   dropdownWidth: '300px',
   onValueEmpty: () => {},
   sx: null,
@@ -371,7 +383,7 @@ SearchDropdown.propTypes = {
     PropTypes.func,
     PropTypes.oneOf([null]),
   ]),
-  resetOnValueSet: PropTypes.bool,
+  setInputValOnValSet: PropTypes.bool,
   icon: PropTypes.node,
   onValueSet: PropTypes.func.isRequired,
   onValueEmpty: PropTypes.func,

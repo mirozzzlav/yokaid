@@ -227,6 +227,7 @@ export function CreateProAndReviewForm({
               );
             }
           }}
+          setInputValOnValSet={false}
           showCloseIcon={false}
           position="left"
           dropdownWidth="100%"

@@ -45,7 +45,7 @@ RatingStar.defaultProps = {
 const style = {
   reviewsCount: {
     fontSize: '0.8rem',
-    margin: '3px 0',
+    margin: '0.5rem 0 0 0',
   },
 };
 export default function Rating({

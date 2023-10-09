@@ -21,6 +21,9 @@ const style = {
   reviewText: {
     marginBottom: '20px',
   },
+  infoDropdown: {
+    fontSize: '0.9rem',
+  },
 };
 
 export function getProfessionalLabel({ businessId, fullName }) {
@@ -38,8 +41,16 @@ function getSmile(rating) {
   return ':-|';
 }
 
-export default function ProfessionalInfo({ data, showRating, showReviews }) {
+export default function ProfessionalInfo({
+  data,
+  showRating,
+  showReviews,
+  compact,
+}) {
   const dataMapped = useMemo(() => {
+    const professions = (
+      <MultiItem labels={data.professions.map(({ title }) => title)} />
+    );
     let res = [
       {
         headline: 'Name / Business',
@@ -49,20 +60,31 @@ export default function ProfessionalInfo({ data, showRating, showReviews }) {
         headline: 'Location',
         content: data.location,
       },
-      {
-        headline: 'Professions',
-        content: (
-          <MultiItem labels={data.professions.map(({ title }) => title)} />
-        ),
-      },
+      { headline: 'Professions', content: professions },
     ];
+    if (compact) {
+      res = [
+        {
+          headline: getProfessionalLabel(data),
+          content: data.location,
+        },
+        {
+          content: professions,
+        },
+      ];
+    }
+
     if (data.rating && showRating) {
       res = [
         ...res,
         {
           headline: 'Rating',
           content: (
-            <Rating rating={data.rating} reviewsCount={data.reviewsCount} />
+            <Rating
+              rating={data.rating}
+              reviewsCount={data.reviewsCount}
+              margin="0"
+            />
           ),
         },
       ];
@@ -73,6 +95,7 @@ export default function ProfessionalInfo({ data, showRating, showReviews }) {
   return (
     <DataContent
       data={dataMapped}
+      compact={compact}
       footer={
         data.reviews && showReviews ? (
           <Flex direction="column">
@@ -97,11 +120,13 @@ export default function ProfessionalInfo({ data, showRating, showReviews }) {
 ProfessionalInfo.defaultProps = {
   showRating: false,
   showReviews: false,
+  compact: false,
 };
 ProfessionalInfo.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
   showRating: PropTypes.bool,
   showReviews: PropTypes.bool,
+  compact: PropTypes.bool,
 };
 
 export function ProfessionalInfoModal({ isShown, close, data }) {
@@ -120,3 +145,14 @@ ProfessionalInfoModal.prototype.propTypes = {
   isShown: PropTypes.bool.isRequired,
   close: PropTypes.func.isRequired,
 };
+
+export function ProfessionalInfoDropdown(data) {
+  return (
+    <ProfessionalInfo
+      data={data}
+      showRating={false}
+      showReviews={false}
+      compact
+    />
+  );
+}

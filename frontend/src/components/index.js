@@ -14,6 +14,7 @@ import Map from 'src/components/Map';
 import DatePicker from 'src/components/DatePicker';
 import ProfessionalInfo, {
   ProfessionalInfoModal,
+  ProfessionalInfoDropdown,
 } from 'src/components/ProfessionalInfo';
 import Rating from 'src/components/Rating';
 import MultiItem, { MultiInput } from 'src/components/MultiItem';
@@ -34,6 +35,7 @@ export {
   DatePicker,
   ProfessionalInfo,
   ProfessionalInfoModal,
+  ProfessionalInfoDropdown,
   Rating,
   MultiInput,
   MultiItem,

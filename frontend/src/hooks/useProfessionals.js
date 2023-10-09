@@ -2,6 +2,7 @@ import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
+import { ProfessionalInfoDropdown } from 'src/components';
 
 export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
@@ -53,6 +54,7 @@ export function useSearchProfessional(onSearchFinish) {
     onSearchFinish(
       response.data
         ? response.data.map((d) => ({
+            renderer: ProfessionalInfoDropdown,
             label: `${d.fullName} - ${d.professions
               .map(({ title }) => title)
               .join(', ')}`,
