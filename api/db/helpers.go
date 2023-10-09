@@ -310,17 +310,11 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 	filter := common.QueryPartial{Query: "", Params: []any{}}
 
 	if req.Professional.Email != nil {
-		filter.Query = "email = ?"
-		filter.Params = []any{req.Professional.Email}
-	}
-	if req.Professional.Phone != nil {
-		if req.Professional.Email == nil {
-			filter.Query = "phone = ?"
-			filter.Params = []any{req.Professional.Phone}
-		} else {
-			filter.Query = "email = ? OR phone = ?"
-			filter.Params = []any{req.Professional.Email, req.Professional.Phone}
-		}
+		filter.Query = "phone = ? OR email = ?"
+		filter.Params = []any{req.Professional.Phone, req.Professional.Email}
+	} else {
+		filter.Query = "phone = ?"
+		filter.Params = []any{req.Professional.Phone}
 	}
 
 	prosCountAny, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))

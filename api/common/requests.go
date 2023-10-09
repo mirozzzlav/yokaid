@@ -42,8 +42,8 @@ type CreateProfessionalRequest struct {
 	LocationLat float64 `json:"locationLat" validate:"required,numeric"`
 	LocationLng float64 `json:"locationLng" validate:"required,numeric"`
 	BusinessId  *string `json:"businessId" validate:"omitempty,string"`
-	Phone       *string `json:"phone" validate:"required_without=Email,omitempty,phone"`
-	Email       *string `json:"email" validate:"required_without=Phone,omitempty,email"`
+	Phone       string  `json:"phone" validate:"required,phone"`
+	Email       *string `json:"email" validate:"omitempty,email"`
 	// either email or phone has to be filled in
 }
 

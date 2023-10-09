@@ -52,14 +52,16 @@ CREATE TABLE "images" (
 CREATE TABLE "professionals" (
     "id" "serial" NOT NULL,
     "full_name" character varying(32) NOT NULL,
-    "phone" character varying(16) NULL,
+    "phone" character varying(16) NOT NULL,
     "email" character varying(64) NULL,
     "business_id" character varying(64) NULL, -- ico / company name?
     "location" character varying(512) NOT NULL,
     "location_lat" real NOT NULL,
     "location_lng" real NOT NULL,
     "active" boolean DEFAULT FALSE NOT NULL,
-    CONSTRAINT "professionals_pk" PRIMARY KEY ("id")
+    CONSTRAINT "professionals_pk" PRIMARY KEY ("id"),
+    CONSTRAINT "professionals_phone_key" UNIQUE ("phone"),
+    CONSTRAINT "professionals_email_key" UNIQUE ("email")
 );
 
 CREATE TABLE "reviews" (
