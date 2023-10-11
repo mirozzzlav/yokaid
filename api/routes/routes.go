@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"net/http"
 	"some-app/api/common"
 	"some-app/api/routes/examples"
 	filterItems "some-app/api/routes/filter_items"
@@ -22,10 +21,6 @@ func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, filterItems.GetRoutes(server)...)
 	routes = append(routes, professions.GetRoutes(server)...)
 	routes = append(routes, reviews.GetRoutes(server)...)
-	routes = append(
-		routes,
-		common.Route{Path: "/code/get/:phone", IsPrivate: false, Method: http.MethodGet, Handler: getCode(server)},
-		common.Route{Path: "/code/get", IsPrivate: false, Method: http.MethodGet, Handler: getCode(server)},
-	)
+	routes = append(routes)
 	return routes
 }

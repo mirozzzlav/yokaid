@@ -34,6 +34,7 @@ const requestStatesConsts = {
 
 const getDefaultFormState = (inputNames) => ({
   errorMsg: '',
+  successData: null,
   inputsErrors: null,
   inputs: Object.fromEntries(inputNames.map((inputName) => [inputName, ''])),
 });
@@ -83,7 +84,7 @@ export default function useForms(formConfigs) {
   const getFormStateAndHelpers = useCallback(
     (formId) => ({
       setErrorMsg: (errorMsg) => updateFormState(formId, { errorMsg }),
-
+      setSuccessData: (data) => updateFormState(formId, { successData: data }),
       setRequestState: (requestState) => setRequestState(formId, requestState),
       setInputs: (inputs) => updateFormState(formId, { inputs }),
       setInputsErrors: (inputsErrors) =>
@@ -111,6 +112,7 @@ export default function useForms(formConfigs) {
       submitForm: () => setRequestState(formId, requestStatesConsts.loading),
       formRequestState: {
         isError: requestStates[formId] === requestStatesConsts.error,
+        isLoading: requestStates[formId] === requestStatesConsts.loading,
         isSuccess: requestStates[formId] === requestStatesConsts.success,
         isFinished:
           requestStates[formId] === requestStatesConsts.error ||
@@ -153,12 +155,13 @@ export default function useForms(formConfigs) {
 
   const calls = Object.fromEntries(
     Object.entries(formConfigs).map(([formId, formConfig]) => {
-      const { resetForm, setInputsErrors, setErrorMsg } =
+      const { resetForm, setInputsErrors, setErrorMsg, setSuccessData } =
         getFormStateAndHelpers(formId);
       return [
         formId,
         formConfig.hook((response) => {
           setInputsErrors(null);
+          setSuccessData(null);
           if (response.error) {
             setRequestState(formId, requestStatesConsts.error);
             setErrorMsg(response.error.msg || 'Form request failed');
@@ -169,8 +172,13 @@ export default function useForms(formConfigs) {
             }
             return;
           }
-
           resetForm();
+          if (typeof response.data === 'string') {
+            setSuccessData({ msg: response.data });
+          } else {
+            setSuccessData(response.data);
+          }
+
           setRequestState(formId, requestStatesConsts.success);
         }),
       ];

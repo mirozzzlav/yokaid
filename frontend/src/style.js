@@ -13,7 +13,7 @@ const Modal = {
     header: {
       background: originalTheme.colors.gray[50],
       borderBottom: `1px solid ${originalTheme.colors.gray[200]}`,
-      fontWeight: originalTheme.fontWeights.light,
+      fontWeight: originalTheme.fontWeights.medium,
       borderTopLeftRadius: originalTheme.radii.md,
       borderTopRightRadius: originalTheme.radii.md,
       marginBottom: originalTheme.space[4],
@@ -27,17 +27,12 @@ const Modal = {
   },
 };
 
-const Input = {
-  baseStyle: {
-    group: {
-      borderColor: originalTheme.colors.borderColor,
-    },
-  },
-};
-
 const FormControl = {
   baseStyle: {
     container: {
+      'input, textarea': {
+        background: '#fff',
+      },
       marginBottom: originalTheme.space[2],
       ':last-child': {
         margin: 0,
@@ -56,7 +51,8 @@ const FormLabel = {
 const FormError = {
   baseStyle: {
     text: {
-      marginTop: '2px',
+      marginTop: originalTheme.space[1],
+      color: originalTheme.colors.red[500],
     },
   },
 };
@@ -64,8 +60,6 @@ const FormError = {
 const theme = extendTheme({
   components: {
     Modal,
-    TextArea: Input,
-    Input,
     Form: FormControl,
     FormLabel,
     FormError,

@@ -325,31 +325,4 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 	return q
 }
 
-func (qr queriesRepo) GetCheckVerificationQuery(verificationPhone string, verificationCode string) common.Query {
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "SELECT 1  FROM verification_codes WHERE phone = ? AND code = ?",
-				Params: []any{verificationPhone, verificationCode},
-			},
-		},
-	}
-	return q
-}
-
-func (qr queriesRepo) DeleteVerificationCodeQuery(phone string) common.Query {
-	query := `DELETE FROM verification_codes WHERE phone = ?`
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  query,
-				Params: []any{phone},
-			},
-		},
-	}
-	return q
-}
-
 var QueriesRepo = queriesRepo{}

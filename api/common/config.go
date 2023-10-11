@@ -28,11 +28,22 @@ type config struct {
 	Logs                logsConfig
 	PublicRoles         []string
 	InputFormats        map[string]string
+	SMSPaymentPhone     string
 }
 
 var publicRoles = []string{"guest"}
 var ErrNoRows = errors.New("no rows in result set")
 var ErrRecordExist = errors.New("given record already exist")
+
+type reviewStates struct {
+	New  string
+	Paid string
+}
+
+var ReviewStates = reviewStates{
+	New:  "new",
+	Paid: "paid",
+}
 
 func getLogsConfig() logsConfig {
 	logsToScreen, err := strconv.ParseBool(os.Getenv("LOGS_TO_SCREEN"))
@@ -91,5 +102,6 @@ var Config, _ = func(mode string) (config, error) {
 		InputFormats: map[string]string{
 			"phone": "+421 9xx xxx xxx",
 		},
+		SMSPaymentPhone: "2200",
 	}, nil
 }(GetEnvMode())

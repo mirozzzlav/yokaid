@@ -306,7 +306,7 @@ func (sH *StoreHelpers) GetProfessionalProfessionsForFilter() (*[]common.FilterI
 	return filterItems, nil
 }
 
-func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfessionalWithReviewRequest) error {
+func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndProfessionalRequest) (int, error) {
 	filter := common.QueryPartial{Query: "", Params: []any{}}
 
 	if req.Professional.Email != nil {
@@ -320,93 +320,41 @@ func (sH *StoreHelpers) CreateProfessionalWithReview(req common.CreateProfession
 	prosCountAny, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	prosCount, err := common.ConvertToInt(prosCountAny)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if prosCount > 0 {
-		return common.ErrRecordExist
+		return 0, common.ErrRecordExist
 	}
 
 	q := sH.QueriesRepo.CreateProfessionalQuery(req.Professional)
 	professionalIdAny, err := sH.QueryRunner.Exec(q, "id")
 	if err != nil {
-		return err
+		return 0, err
 	}
 	professionalId, err := common.ConvertToInt(professionalIdAny)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	q = sH.QueriesRepo.CreateProfessionalProfessionsQuery(professionalId, req.Professions)
 	_, err = sH.QueryRunner.Exec(q, "profession_id")
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	q = sH.QueriesRepo.CreateReviewQuery(professionalId, req.Review)
 
-	_, err = sH.QueryRunner.Exec(q, "id")
+	reviewIdAny, err := sH.QueryRunner.Exec(q)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	reviewId, _ := common.ConvertToInt(reviewIdAny)
+	return reviewId, nil
 
-}
-
-func (sH *StoreHelpers) CheckVerification(verificationPhone string, verificationCode string) (bool, error) {
-	dbQuery := sH.QueriesRepo.GetCheckVerificationQuery(verificationPhone, verificationCode)
-	_, err := sH.QueryRunner.GetScalar(dbQuery)
-
-	if err != nil {
-		if err == common.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (sH StoreHelpers) insertVerificationCode(code string, phone string) error {
-
-	_, err := sH.QueryRunner.Exec(
-		dbQuery{
-			partials: []common.QueryPartial{
-				{Query: "INSERT INTO verification_codes (phone, code) VALUES (?, ?)", Params: []any{phone, code}},
-			},
-		},
-		"phone",
-	)
-	return err
-}
-
-func (sH *StoreHelpers) AddOrUpdateVerification(code string, phone string) error {
-
-	query := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  `UPDATE verification_codes SET code = ? WHERE phone = ?`,
-				Params: []any{code, phone},
-			},
-		},
-	}
-
-	_, err := sH.QueryRunner.Exec(query, "phone")
-
-	if err == nil {
-		return nil
-	}
-
-	if err != common.ErrNoRows {
-		return err
-	}
-
-	err = sH.insertVerificationCode(code, phone)
-
-	return err
 }

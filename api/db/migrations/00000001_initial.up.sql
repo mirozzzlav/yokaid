@@ -70,6 +70,8 @@ CREATE TABLE "reviews" (
 	"text" text NULL,
 	"rating" integer NOT NULL,
 	"created_at" timestamp NOT NULL DEFAULT now(),
+	"reviewer_phone" character varying(16) NOT NULL,
+    "state" character varying(16) NOT NULL DEFAULT 'new',
 
     CONSTRAINT "reviews_pk" PRIMARY KEY ("id")
 ) WITH (oids = false);

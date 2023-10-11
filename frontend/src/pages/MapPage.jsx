@@ -207,7 +207,7 @@ FilterInfo.prototype.propTypes = {
 export default function MapPage() {
   const { navigateAction, action, actionParams } = useNavigateAction();
 
-  const { filter: filterInitialItems } = useContext(InitialDataContext);
+  const { filters: filterInitialItems } = useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
   const [professionalDetail, setProfessionalDetail] = useState(null);
   const callGetProfessional = useGetProfessional(setProfessionalDetail);

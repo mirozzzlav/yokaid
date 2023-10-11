@@ -15,9 +15,7 @@ function RatingStar({ onClick, active }) {
         icon={
           <StarIcon
             sx={{
-              color: active
-                ? theme.colors.yellow[300]
-                : theme.colors.blackAlpha[200],
+              color: active ? theme.colors.orange[300] : theme.colors.gray[300],
             }}
           />
         }
@@ -27,7 +25,7 @@ function RatingStar({ onClick, active }) {
   return (
     <StarIcon
       sx={{
-        color: active ? theme.colors.yellow[300] : theme.colors.blackAlpha[200],
+        color: active ? theme.colors.orange[300] : theme.colors.blackAlpha[300],
       }}
     />
   );

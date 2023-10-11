@@ -85,11 +85,12 @@ ErrorMessage.propTypes = {
   message: PropTypes.string.isRequired,
 };
 
-function InfoMessage({ message }) {
+function InfoMessage({ message, margin }) {
   return (
     <Message
       message={message}
       extraStyle={{
+        margin,
         background: theme.colors.orange[50],
         border: `1px solid ${theme.colors.orange[200]}`,
         '> svg': { color: theme.colors.orange[400] },
@@ -99,6 +100,7 @@ function InfoMessage({ message }) {
   );
 }
 InfoMessage.propTypes = {
+  margin: PropTypes.string,
   message: PropTypes.string.isRequired,
 };
 

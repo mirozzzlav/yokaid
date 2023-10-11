@@ -6,6 +6,7 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  InputGroup,
   Textarea,
 } from '@chakra-ui/react';
 import {
@@ -19,16 +20,13 @@ import Rating from 'src/components/Rating';
 import { SearchDropdown } from 'src/components/Dropdown';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-import {
-  unknownObjectValidator,
-  isFieldRequired,
-  verificationFormFactory,
-} from 'src/helpers';
+import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
 import { MultiInput } from 'src/components/MultiItem';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import Icons from 'src/components/Icons';
-import SMSCodeControl from 'src/components/SMSCodeControl';
 import { InitialDataContext } from 'src/providers';
+import LocalDataFormControl from 'src/components/LocalDataFormControl';
+import theme from 'src/style';
 
 function useProfessionsSearch(onSearchFinish) {
   const call = useCall((response) => {
@@ -53,6 +51,22 @@ const style = {
   reviewTextArea: {
     minHeight: '200px',
   },
+  formGroup: {
+    '> div': {
+      padding: `${theme.space[4]} ${theme.space[3]}`,
+      borderRadius: theme.radii.md,
+      border: `1px solid ${theme.colors.gray[200]}`,
+      background: theme.colors.gray[50],
+    },
+    '> h4': {
+      fontWeight: theme.fontWeights.medium,
+      marginBottom: theme.space[1],
+    },
+    marginBottom: theme.space[4],
+    ':last-child': {
+      margin: 0,
+    },
+  },
 };
 
 const inputNames = [
@@ -63,11 +77,11 @@ const inputNames = [
   'location',
   'phone',
   'email',
-  'searchedProfession',
   'professions',
   'text',
   'rating',
   'professionalId',
+  'reviewerPhone',
 ];
 
 const validationRulesNames = [
@@ -75,12 +89,33 @@ const validationRulesNames = [
   'createReviewForExistingProfessionalRequest',
 ];
 
-const codeControlText = `Please provide your phone number for SMS verification code delivery. 
-Once you receive the code, use it to confirm your review. You can do this at the bottom of this popup. 
-The cost of the SMS is 0.5€.`;
+const getSuccessMessage = (smsCode, smsPaymentPhone) =>
+  `Thank you for your review! Please the code "${smsCode}" to ${smsPaymentPhone} to publish the review.`;
+
+function FormGroup({ groupLabel, children }) {
+  return (
+    <Box sx={style.formGroup}>
+      {groupLabel && <h4>{groupLabel}</h4>}
+      <Box>{children}</Box>
+    </Box>
+  );
+}
+
+FormGroup.defaultProps = {
+  groupLabel: '',
+};
+FormGroup.prototype.propTypes = {
+  groupLabel: PropTypes.string,
+  children: PropTypes.node.isRequired,
+};
+
+const codeControlText =
+  'Each review costs 0.5€. After submitting this form, you will receive a code. Please send the ' +
+  'SMS with that code to 2200 using the phone number you provided in this form.';
 
 export function CreateProAndReviewForm({
   errorMsg,
+  successData,
   state,
   inputsErrors,
   inputs,
@@ -89,13 +124,13 @@ export function CreateProAndReviewForm({
   validationRules,
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
-
-  const { filter, inputFormats } = useContext(InitialDataContext);
-
+  const [searchedProfession, setSearchedProfession] = useState('');
+  const { filters, inputFormats, smsPaymentPhone } =
+    useContext(InitialDataContext);
   const initialProfessions = useMemo(
     () =>
-      filter?.profession
-        ? filter.profession.map(({ label, value }) => ({
+      filters?.profession
+        ? filters.profession.map(({ label, value }) => ({
             label,
             value: {
               id: value,
@@ -103,7 +138,7 @@ export function CreateProAndReviewForm({
             },
           }))
         : null,
-    [filter],
+    [filters],
   );
 
   return (
@@ -111,160 +146,171 @@ export function CreateProAndReviewForm({
       <FormControl>
         <InfoMessage message={codeControlText} />
       </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.fullName}
-        isRequired={isFieldRequired(validationRules?.fullName)}
-      >
-        <FormLabel>Reviewed person</FormLabel>
-        <SearchDropdown
-          searchHook={useSearchProfessional}
-          inputVal={inputs.fullName}
-          inputValSetter={(v) => updateInputs('fullName', v)}
-          onValueSet={({ value }) => {
-            if (extraActions.onProfessionalFound) {
-              extraActions.onProfessionalFound(value);
-            }
-          }}
-          onValueEmpty={() => {
-            updateInputs('fullName', '');
-          }}
-          position="left"
-          dropdownWidth="100%"
-          placeholder={inputFormats?.fullName}
-        />
-        <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
-      </FormControl>
+      <FormGroup groupLabel="Reviewed person">
+        <FormControl
+          isInvalid={inputsErrors?.fullName}
+          isRequired={isFieldRequired(validationRules?.fullName)}
+        >
+          <FormLabel>Full name</FormLabel>
+          <SearchDropdown
+            searchHook={useSearchProfessional}
+            inputVal={inputs.fullName}
+            inputValSetter={(v) => updateInputs('fullName', v)}
+            onValueSet={({ value }) => {
+              if (extraActions.onProfessionalFound) {
+                extraActions.onProfessionalFound(value);
+              }
+            }}
+            onValueEmpty={() => {
+              updateInputs('fullName', '');
+            }}
+            position="left"
+            dropdownWidth="100%"
+            placeholder={inputFormats?.fullName}
+          />
+          <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
+        </FormControl>
 
-      <FormControl
-        isInvalid={
-          inputsErrors?.locationLat ||
-          inputsErrors?.locationLng ||
-          inputsErrors?.location
-        }
-        isRequired={isFieldRequired(validationRules?.location)}
-      >
-        <FormLabel>Location</FormLabel>
-        <SearchDropdown
-          inputVal={inputs.location}
-          inputValSetter={(v) => updateInputs('location', v)}
-          searchHook={usePlacesSearch}
-          onValueSet={({ value: [lat, lng], label }) => {
-            updateInputs('locationLat', parseFloat(lat));
-            updateInputs('locationLng', parseFloat(lng));
-            updateInputs('location', label);
-          }}
-          onValueEmpty={() => {
-            updateInputs('locationLat', '');
-            updateInputs('locationLng', '');
-            updateInputs('location', '');
-          }}
-          position="left"
-          dropdownWidth="100%"
-          icon={<Icons.LocationIcon />}
-        />
-        <FormErrorMessage>
-          {inputsErrors?.location ||
+        <FormControl
+          isInvalid={
             inputsErrors?.locationLat ||
-            inputsErrors?.locationLng}
-        </FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.businessId}
-        isRequired={isFieldRequired(validationRules?.businessId)}
-      >
-        <FormLabel>Business Id</FormLabel>
-        <Input
-          type="text"
-          value={inputs.businessId}
-          onChange={(e) => {
-            updateInputs('businessId', e.target.value);
-          }}
-        />
-        <FormErrorMessage>{inputsErrors?.businessId}</FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.phone}
-        isRequired={isFieldRequired(validationRules?.phone)}
-      >
-        <FormLabel>Phone</FormLabel>
-        <Input
-          type="text"
-          value={inputs.phone}
-          onChange={(e) => {
-            updateInputs('phone', e.target.value);
-          }}
-          placeholder={inputFormats?.phone}
-        />
-        <FormErrorMessage>{inputsErrors?.phone}</FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.email}
-        isRequired={isFieldRequired(validationRules?.email)}
-      >
-        <FormLabel>Email</FormLabel>
-        <Input
-          type="text"
-          value={inputs.email}
-          onChange={(e) => {
-            updateInputs('email', e.target.value);
-          }}
-        />
-        <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.professions}
-        isRequired={isFieldRequired(validationRules?.professions)}
-      >
-        <FormLabel>Professions</FormLabel>
-        <SearchDropdown
-          inputVal={inputs.searchedProfession}
-          inputValSetter={(v) => updateInputs('searchedProfession', v)}
-          initialItems={initialProfessions}
-          searchHook={useProfessionsSearch}
-          onValueSet={({ value }) => {
-            if (updateInputs('professions', value.id, true)) {
-              setProfessionTitles((prevTitles) =>
-                prevTitles ? [...prevTitles, value.title] : [value.title],
+            inputsErrors?.locationLng ||
+            inputsErrors?.location
+          }
+          isRequired={isFieldRequired(validationRules?.location)}
+        >
+          <FormLabel>Location</FormLabel>
+          <SearchDropdown
+            inputVal={inputs.location}
+            inputValSetter={(v) => updateInputs('location', v)}
+            searchHook={usePlacesSearch}
+            onValueSet={({ value: [lat, lng], label }) => {
+              updateInputs('locationLat', parseFloat(lat));
+              updateInputs('locationLng', parseFloat(lng));
+              updateInputs('location', label);
+            }}
+            onValueEmpty={() => {
+              updateInputs('locationLat', '');
+              updateInputs('locationLng', '');
+              updateInputs('location', '');
+            }}
+            position="left"
+            dropdownWidth="100%"
+            icon={<Icons.LocationIcon />}
+          />
+          <FormErrorMessage>
+            {inputsErrors?.location ||
+              inputsErrors?.locationLat ||
+              inputsErrors?.locationLng}
+          </FormErrorMessage>
+        </FormControl>
+        <FormControl
+          isInvalid={inputsErrors?.businessId}
+          isRequired={isFieldRequired(validationRules?.businessId)}
+        >
+          <FormLabel>Business Id</FormLabel>
+          <InputGroup>
+            <Input
+              type="text"
+              value={inputs.businessId}
+              onChange={(e) => {
+                updateInputs('businessId', e.target.value);
+              }}
+            />
+          </InputGroup>
+          <FormErrorMessage>{inputsErrors?.businessId}</FormErrorMessage>
+        </FormControl>
+        <FormControl
+          isInvalid={inputsErrors?.phone}
+          isRequired={isFieldRequired(validationRules?.phone)}
+        >
+          <FormLabel>Phone</FormLabel>
+          <Input
+            type="text"
+            value={inputs.phone}
+            onChange={(e) => {
+              updateInputs('phone', e.target.value);
+            }}
+            placeholder={inputFormats?.phone}
+          />
+          <FormErrorMessage>{inputsErrors?.phone}</FormErrorMessage>
+        </FormControl>
+        <FormControl
+          isInvalid={inputsErrors?.email}
+          isRequired={isFieldRequired(validationRules?.email)}
+        >
+          <FormLabel>Email</FormLabel>
+          <Input
+            type="text"
+            value={inputs.email}
+            onChange={(e) => {
+              updateInputs('email', e.target.value);
+            }}
+          />
+          <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
+        </FormControl>
+        <FormControl
+          isInvalid={inputsErrors?.professions}
+          isRequired={isFieldRequired(validationRules?.professions)}
+        >
+          <FormLabel>Professions</FormLabel>
+          <SearchDropdown
+            inputVal={searchedProfession}
+            inputValSetter={(v) => setSearchedProfession(v)}
+            initialItems={initialProfessions}
+            searchHook={useProfessionsSearch}
+            onValueSet={({ value }) => {
+              if (updateInputs('professions', value.id, true)) {
+                setProfessionTitles((prevTitles) =>
+                  prevTitles ? [...prevTitles, value.title] : [value.title],
+                );
+              }
+            }}
+            setInputValOnValSet={false}
+            showCloseIcon={false}
+            position="left"
+            dropdownWidth="100%"
+            icon={<Icons.WorkerIcon />}
+          />
+          <MultiInput
+            values={inputs.professions ? inputs.professions.split(',') : null}
+            labels={professionTitles}
+            onItemRemove={(professions, titles) => {
+              updateInputs(
+                'professions',
+                professions ? professions.join(',') : '',
               );
-            }
-          }}
-          setInputValOnValSet={false}
-          showCloseIcon={false}
-          position="left"
-          dropdownWidth="100%"
-          icon={<Icons.WorkerIcon />}
+              setProfessionTitles(titles || null);
+            }}
+          />
+          <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
+        </FormControl>
+      </FormGroup>
+      <FormGroup groupLabel="Your review">
+        <RatingFormControls
+          inputs={inputs}
+          inputsErrors={inputsErrors}
+          updateInputs={updateInputs}
+          validationRules={validationRules}
         />
-        <MultiInput
-          values={inputs.professions ? inputs.professions.split(',') : null}
-          labels={professionTitles}
-          onItemRemove={(professions, titles) => {
-            updateInputs(
-              'professions',
-              professions ? professions.join(',') : '',
-            );
-            setProfessionTitles(titles || null);
-          }}
+      </FormGroup>
+      <FormGroup>
+        <LocalDataFormControl
+          value={inputs.reviewerPhone}
+          valueSetter={(v) => updateInputs('reviewerPhone', v)}
+          label="Your phone"
+          placeholder={inputFormats?.phone}
+          isRequired={isFieldRequired(validationRules?.reviewerPhone)}
+          error={inputsErrors?.reviewerPhone || null}
+          formState={state}
         />
-        <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
-      </FormControl>
-
-      <RatingFormControls
-        inputs={inputs}
-        inputsErrors={inputsErrors}
-        updateInputs={updateInputs}
-        validationRules={validationRules}
-      />
-      <SMSCodeControl
-        inputsErrors={inputsErrors}
-        inputs={inputs}
-        inputsUpdater={updateInputs}
-        formState={state}
-        validationRules={validationRules}
-      />
+      </FormGroup>
 
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage message="Thank you for your review! Once it's approved by our team, it will be visible to everyone." />
+        <SuccessMessage
+          message={getSuccessMessage(successData.smsCode, smsPaymentPhone)}
+        />
       ) : null}
     </Box>
   );
@@ -272,10 +318,15 @@ export function CreateProAndReviewForm({
 
 CreateProAndReviewForm.defaultProps = {
   extraActions: null,
+  successData: null,
 };
 
 CreateProAndReviewForm.prototype.propTypes = {
   errorMsg: PropTypes.string.isRequired,
+  successData: PropTypes.oneOfType([
+    unknownObjectValidator,
+    PropTypes.oneOf([null]),
+  ]),
   state: PropTypes.string.isRequired,
   inputsErrors: unknownObjectValidator.isRequired,
   inputs: unknownObjectValidator.isRequired,
@@ -296,6 +347,19 @@ export function RatingFormControls({
   return (
     <>
       <FormControl
+        isInvalid={inputsErrors?.text}
+        isRequired={isFieldRequired(validationRules?.text)}
+      >
+        <Textarea
+          value={inputs.text}
+          sx={style.reviewTextArea}
+          onChange={(e) => {
+            updateInputs('text', e.target.value);
+          }}
+        />
+        <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
+      </FormControl>
+      <FormControl
         isInvalid={inputsErrors?.rating}
         isRequired={isFieldRequired(validationRules?.rating)}
       >
@@ -306,20 +370,6 @@ export function RatingFormControls({
           margin="0"
         />
         <FormErrorMessage>{inputsErrors?.rating}</FormErrorMessage>
-      </FormControl>
-      <FormControl
-        isInvalid={inputsErrors?.text}
-        isRequired={isFieldRequired(validationRules?.text)}
-      >
-        <FormLabel>Your Review</FormLabel>
-        <Textarea
-          value={inputs.text}
-          sx={style.reviewTextArea}
-          onChange={(e) => {
-            updateInputs('text', e.target.value);
-          }}
-        />
-        <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
       </FormControl>
     </>
   );
@@ -333,6 +383,7 @@ RatingFormControls.prototype.propTypes = {
 
 export default function CreateReviewForm({
   errorMsg,
+  successData,
   state,
   inputsErrors,
   inputs,
@@ -340,38 +391,54 @@ export default function CreateReviewForm({
   extraData,
   validationRules,
 }) {
+  const { inputFormats, smsPaymentPhone } = useContext(InitialDataContext);
   return (
     <Box>
       <FormControl>
         <InfoMessage message={codeControlText} />
       </FormControl>
-      <ProfessionalInfo data={extraData} />
-      <RatingFormControls
-        inputs={inputs}
-        inputsErrors={inputsErrors}
-        updateInputs={updateInputs}
-        validationRules={validationRules}
-      />
-      <SMSCodeControl
-        inputsErrors={inputsErrors}
-        inputs={inputs}
-        inputsUpdater={updateInputs}
-        formState={state}
-        validationRules={validationRules}
-      />
+      <FormGroup groupLabel="Reviewed person">
+        <ProfessionalInfo data={extraData} />
+      </FormGroup>
+      <FormGroup groupLabel="Review">
+        <RatingFormControls
+          inputs={inputs}
+          inputsErrors={inputsErrors}
+          updateInputs={updateInputs}
+          validationRules={validationRules}
+        />
+      </FormGroup>
+      <FormGroup>
+        <LocalDataFormControl
+          value={inputs.reviewerPhone}
+          valueSetter={(v) => updateInputs('reviewerPhone', v)}
+          label="Your phone"
+          placeholder={inputFormats?.phone}
+          isRequired={isFieldRequired(validationRules?.reviewerPhone)}
+          error={inputsErrors?.reviewerPhone || null}
+          formState={state}
+        />
+      </FormGroup>
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage message="Your review has been successfully posted." />
+        <SuccessMessage
+          message={getSuccessMessage(successData?.smsCode, smsPaymentPhone)}
+        />
       ) : null}
     </Box>
   );
 }
 CreateReviewForm.defaultProps = {
   extraData: null,
+  successData: null,
 };
 
 CreateReviewForm.prototype.propTypes = {
   errorMsg: PropTypes.string.isRequired,
+  successData: PropTypes.oneOfType([
+    unknownObjectValidator,
+    PropTypes.oneOf([null]),
+  ]),
   state: PropTypes.string.isRequired,
   inputsErrors: unknownObjectValidator.isRequired,
   inputs: unknownObjectValidator.isRequired,
@@ -410,6 +477,7 @@ export function formFactory(extraData, extraActions) {
       fullName,
       email,
       phone,
+      reviewerPhone,
     }) => ({
       professional: {
         location,
@@ -426,6 +494,7 @@ export function formFactory(extraData, extraActions) {
       review: {
         text: text || null,
         rating: parseInt(rating, 10),
+        reviewerPhone,
       },
     }),
   };
@@ -443,16 +512,17 @@ export function formFactory(extraData, extraActions) {
       formUI: CreateReviewForm,
       extraData,
       inputsToRequestMapper: (inputs) => {
-        const { text, rating } = inputs;
+        const { text, rating, reviewerPhone } = inputs;
         return {
           professionalId: parseInt(extraData.id, 10),
           review: {
             text: text || null,
             rating: parseInt(rating, 10),
+            reviewerPhone,
           },
         };
       },
     };
   }
-  return verificationFormFactory(formObject);
+  return formObject;
 }

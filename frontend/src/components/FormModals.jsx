@@ -44,6 +44,7 @@ export default function FormModals({
         ]) => {
           const {
             errorMsg,
+            successData,
             inputsErrors,
             inputs,
             updateInputs,
@@ -64,6 +65,7 @@ export default function FormModals({
               }}
             >
               {React.createElement(formUI, {
+                successData,
                 errorMsg,
                 state: formRequestState,
                 inputsErrors,

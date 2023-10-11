@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -364,28 +363,6 @@ func NewRoute(path string, method string, handler gin.HandlerFunc, flags ...bool
 		Handler:   handler,
 		IsPrivate: isPrivate,
 	}
-}
-
-func SearchClosestHigher(nums []int, searchedNum int) (int, error) {
-	var inner func(searchedNumInner int) (int, error)
-
-	inner = func(searchedNumInner int) (int, error) {
-		for _, n := range nums {
-			currentDiff := n - searchedNumInner
-			if currentDiff > 0 {
-				if currentDiff == 1 {
-					return inner(n)
-				}
-				return searchedNumInner + 1, nil
-			}
-		}
-		if searchedNumInner < 999999 { // highest possible number is 999999
-			return searchedNumInner + 1, nil
-		}
-		return -1, errors.New("no closest number")
-	}
-
-	return inner(searchedNum)
 }
 
 func GetJSONBytes(data any) (json.RawMessage, error) {

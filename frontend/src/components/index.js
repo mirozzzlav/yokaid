@@ -21,6 +21,7 @@ import Rating from 'src/components/Rating';
 import MultiItem, { MultiInput } from 'src/components/MultiItem';
 import DataContent from 'src/components/DataContent';
 import SMSCodeControl from 'src/components/SMSCodeControl';
+import LocalDataFormControl from 'src/components/LocalDataFormControl';
 
 export {
   loginFormFactory,
@@ -43,6 +44,7 @@ export {
   MultiItem,
   DataContent,
   SMSCodeControl,
+  LocalDataFormControl,
   ErrorMessage,
   InfoMessage,
   SuccessMessage,

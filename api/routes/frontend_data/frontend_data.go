@@ -10,6 +10,7 @@ type frontEndDataResponse struct {
 	Filters         map[string]*[]common.FilterItem `json:"filters"`
 	ValidationRules map[string]map[string]string    `json:"validationRules"`
 	InputFormats    map[string]string               `json:"inputFormats"`
+	SMSPaymentPhone string                          `json:"smsPaymentPhone"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
@@ -31,6 +32,7 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 				"phone":    common.Config.InputFormats["phone"],
 				"fullName": "First name + Last name",
 			},
+			SMSPaymentPhone: common.Config.SMSPaymentPhone,
 		})
 	}
 }

@@ -11,9 +11,6 @@ import { ErrorMessage, SuccessMessage } from 'src/components/Messages';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import { useSignupCall } from 'src/hooks/useUser';
 
-const successMessage =
-  'sign up has been successful, please check your email for the account activation';
-
 export default function SignupForm({
   errorMsg,
   state,
@@ -54,7 +51,9 @@ export default function SignupForm({
       </FormControl>
 
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
-      {state.isSuccess ? <SuccessMessage message={successMessage} /> : null}
+      {state.isSuccess ? (
+        <SuccessMessage message="sign up has been successful, please check your email for the account activation" />
+      ) : null}
     </Box>
   );
 }

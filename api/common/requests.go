@@ -26,14 +26,10 @@ type PasswordChangeRequest struct {
 	Password any `json:"password" validate:"required,password"`
 }
 
-type CodeVerificationRequest struct {
-	VerificationPhone string `json:"verificationPhone"`
-	VerificationCode  string `json:"verificationCode"`
-}
-
 type CreateReviewRequest struct {
-	Text   *string `json:"text" validate:"omitempty,string"`
-	Rating int     `json:"rating" validate:"required,numeric,min=1,max=5"`
+	Text          *string `json:"text" validate:"omitempty,string"`
+	Rating        int     `json:"rating" validate:"required,numeric,min=1,max=5"`
+	ReviewerPhone string  `json:"reviewerPhone" validate:"required,phone"`
 }
 
 type CreateProfessionalRequest struct {
@@ -47,19 +43,15 @@ type CreateProfessionalRequest struct {
 	// either email or phone has to be filled in
 }
 
-type CreateProfessionalWithReviewRequest struct {
-	Professional      CreateProfessionalRequest `json:"professional"`
-	Review            CreateReviewRequest       `json:"review"`
-	Professions       []int                     `json:"professions" validate:"required"`
-	VerificationPhone string                    `json:"verificationPhone"`
-	VerificationCode  string                    `json:"verificationCode"`
+type CreateReviewAndProfessionalRequest struct {
+	Professional CreateProfessionalRequest `json:"professional"`
+	Review       CreateReviewRequest       `json:"review"`
+	Professions  []int                     `json:"professions" validate:"required"`
 }
 
 type CreateReviewForExistingProfessionalRequest struct {
-	ProfessionalId    int                 `json:"professionalId" validate:"required"`
-	Review            CreateReviewRequest `json:"review"`
-	VerificationPhone string              `json:"verificationPhone"`
-	VerificationCode  string              `json:"verificationCode"`
+	ProfessionalId int                 `json:"professionalId" validate:"required"`
+	Review         CreateReviewRequest `json:"review"`
 }
 
 type ContactProfessionalRequest struct {
@@ -75,7 +67,7 @@ var requests = []any{
 	LoginUserRequest{},
 	CreatePasswordChangeRequest{},
 	PasswordChangeRequest{},
-	CreateProfessionalWithReviewRequest{},
+	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
 	ContactProfessionalRequest{},
 }
