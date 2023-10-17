@@ -42,29 +42,36 @@ function getSmile(rating) {
   return ':-|';
 }
 
-export default function ProfessionalInfo({
-  data,
-  showRating,
-  showReviews,
-  compact,
-}) {
+export function Reviews({ reviews }) {
+  return (
+    <Flex direction="column">
+      {reviews.map(({ text, id, rating }) => (
+        <Box key={id} sx={style.review}>
+          <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
+          <Rating rating={rating} size="0.8rem" position="right" margin="0" />
+        </Box>
+      ))}
+    </Flex>
+  );
+}
+
+Reviews.prototype.propTypes = {
+  reviews: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number,
+      text: PropTypes.string,
+      rating: PropTypes.number,
+    }),
+  ).isRequired,
+};
+
+export default function ProfessionalInfo({ data, compact }) {
   const dataMapped = useMemo(() => {
     const professions = (
       <MultiItem labels={data.professions.map(({ title }) => title)} />
     );
-    let res = [
-      {
-        headline: 'Name / Business',
-        content: getProfessionalLabel(data),
-      },
-      {
-        headline: 'Location',
-        content: data.location,
-      },
-      { headline: 'Professions', content: professions },
-    ];
     if (compact) {
-      res = [
+      return [
         {
           headline: getProfessionalLabel(data),
           content: data.location,
@@ -75,96 +82,67 @@ export default function ProfessionalInfo({
       ];
     }
 
-    if (data.rating && showRating) {
+    let res = [
+      {
+        headline: 'Name / Business',
+        content: getProfessionalLabel(data),
+      },
+      {
+        headline: 'Location',
+        content: data.location,
+      },
+      { headline: 'Professions', content: professions },
+      {
+        headline: 'Rating',
+        content: (
+          <Rating
+            rating={data.rating}
+            reviewsCount={data.reviewsCount}
+            margin="0"
+          />
+        ),
+      },
+    ];
+
+    if (data.phone) {
       res = [
         ...res,
         {
-          headline: 'Rating',
+          headline: 'Contact',
           content: (
-            <Rating
-              rating={data.rating}
-              reviewsCount={data.reviewsCount}
-              margin="0"
+            <MultiItem
+              labels={[data.phone, ...(data.email ? [data.email] : [])]}
             />
           ),
         },
       ];
     }
+
+    if (data.reviews) {
+      res = [
+        ...res,
+        {
+          headline: 'Reviews',
+          content: <Reviews reviews={data.reviews} />,
+        },
+      ];
+    }
+
     return res;
   }, [data]);
 
-  return (
-    <DataContent
-      data={dataMapped}
-      compact={compact}
-      footer={
-        data.reviews && showReviews ? (
-          <Flex direction="column">
-            {data.reviews.map(({ text, id, rating }) => (
-              <Box key={id} sx={style.review}>
-                <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
-                <Rating
-                  rating={rating}
-                  size="0.8rem"
-                  position="right"
-                  margin="0"
-                />
-              </Box>
-            ))}
-          </Flex>
-        ) : null
-      }
-    />
-  );
+  return <DataContent data={dataMapped} compact={compact} />;
 }
 
 ProfessionalInfo.defaultProps = {
   showRating: false,
-  showReviews: false,
   compact: false,
 };
 ProfessionalInfo.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
-  showRating: PropTypes.bool,
-  showReviews: PropTypes.bool,
   compact: PropTypes.bool,
 };
 
-export function ProfessionalInfoModal({
-  isShown,
-  close,
-  data,
-  contactProfessionalButton,
-}) {
-  if (!data) {
-    return null;
-  }
-  return (
-    <Modal
-      isShown={isShown}
-      close={close}
-      title="Professional info"
-      submitButton={contactProfessionalButton}
-    >
-      <ProfessionalInfo data={data} showRating showReviews />
-    </Modal>
-  );
-}
-
-ProfessionalInfoModal.prototype.propTypes = {
-  data: unknownObjectValidator.isRequired,
-  isShown: PropTypes.bool.isRequired,
-  close: PropTypes.func.isRequired,
-  contactProfessionalButton: buttonPropType.isRequired,
-};
-
 export function ProfessionalInfoDropdown(data) {
-  return (
-    <ProfessionalInfo
-      data={data}
-      showRating={false}
-      showReviews={false}
-      compact
-    />
-  );
+  return <ProfessionalInfo data={data} compact />;
 }

@@ -58,7 +58,6 @@ CREATE TABLE "professionals" (
     "location" character varying(512) NOT NULL,
     "location_lat" real NOT NULL,
     "location_lng" real NOT NULL,
-    "active" boolean DEFAULT FALSE NOT NULL,
     CONSTRAINT "professionals_pk" PRIMARY KEY ("id"),
     CONSTRAINT "professionals_phone_key" UNIQUE ("phone"),
     CONSTRAINT "professionals_email_key" UNIQUE ("email")
@@ -70,7 +69,6 @@ CREATE TABLE "reviews" (
 	"text" text NULL,
 	"rating" integer NOT NULL,
 	"created_at" timestamp NOT NULL DEFAULT now(),
-	"reviewer_phone" character varying(16) NOT NULL,
     "state" character varying(16) NOT NULL DEFAULT 'new',
 
     CONSTRAINT "reviews_pk" PRIMARY KEY ("id")
@@ -101,7 +99,7 @@ ALTER TABLE ONLY "users" ADD CONSTRAINT "users_role_fkey" FOREIGN KEY (role) REF
 ALTER TABLE ONLY "password_change_requests" ADD CONSTRAINT "requests_user_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 
-ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_user_fkey" FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "review_images" ADD CONSTRAINT "review_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_profession_id_fkey" FOREIGN KEY (profession_id) REFERENCES professions(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
@@ -110,3 +108,19 @@ ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_profess
 INSERT INTO "users" ("username", "full_name", "email", "hashed_password", "active", "created_at", "role") VALUES
 ('miro',	'miro furo',	'mi@fu.sk',	'$2a$10$yfOG6fThT/U2Mgg2kb/JmuPyDna1epzZjosWfXg6WNPY/4FPxGKnq',	't',	'2023-07-21 15:08:18.440608',	'guest');
 */
+CREATE TABLE payments (
+    "user_phone" character varying(16) NOT NULL,
+    "payment_type" character(3) NOT NULL,
+    "entity_id" integer NOT NULL,
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("user_phone","payment_type", "entity_id")
+);
+
+CREATE TABLE user_professional_contacts (
+    "professional_id" integer NOT NULL,
+    "user_phone" character varying(16) NOT NULL,
+    CONSTRAINT "user_professional_contacts_pkey" PRIMARY KEY ("professional_id","user_phone")
+);
+
+ALTER TABLE ONLY "user_professional_contacts" ADD CONSTRAINT "user_professional_contacts_professional_id_fkey"
+    FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+

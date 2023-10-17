@@ -1,14 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { getLocalDataValue, setLocalDataValue } from 'src/helpers';
 
 export const AuthContext = React.createContext({});
 export const storageKey = 'auth';
 
-export default function AuthProvider({
-  children,
-  getLocalDataValue,
-  setLocalDataValue,
-}) {
+export default function AuthProvider({ children }) {
   const getToken = useCallback(
     () => getLocalDataValue(storageKey, 'accessToken') || null,
     [],
@@ -36,6 +33,4 @@ export default function AuthProvider({
 
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
-  getLocalDataValue: PropTypes.func.isRequired,
-  setLocalDataValue: PropTypes.func.isRequired,
 };

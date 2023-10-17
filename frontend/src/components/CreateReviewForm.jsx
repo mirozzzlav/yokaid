@@ -25,8 +25,8 @@ import { MultiInput } from 'src/components/MultiItem';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import Icons from 'src/components/Icons';
 import { InitialDataContext } from 'src/providers';
-import LocalDataFormControl from 'src/components/LocalDataFormControl';
 import theme from 'src/style';
+import FormGroup from 'src/components/FormGroup';
 
 function useProfessionsSearch(onSearchFinish) {
   const call = useCall((response) => {
@@ -51,67 +51,18 @@ const style = {
   reviewTextArea: {
     minHeight: '200px',
   },
-  formGroup: {
-    '> div': {
-      padding: `${theme.space[4]} ${theme.space[3]}`,
-      borderRadius: theme.radii.md,
-      border: `1px solid ${theme.colors.gray[200]}`,
-      background: theme.colors.gray[50],
-    },
-    '> h4': {
-      fontWeight: theme.fontWeights.medium,
-      marginBottom: theme.space[1],
-    },
-    marginBottom: theme.space[4],
-    ':last-child': {
-      margin: 0,
-    },
-  },
 };
 
-const inputNames = [
-  'fullName',
-  'businessId',
-  'locationLat',
-  'locationLng',
-  'location',
-  'phone',
-  'email',
-  'professions',
-  'text',
-  'rating',
-  'professionalId',
-  'reviewerPhone',
-];
-
 const validationRulesNames = [
-  'createProfessionalWithReviewRequest',
+  'createReviewAndProfessionalRequest',
   'createReviewForExistingProfessionalRequest',
 ];
 
 const getSuccessMessage = (smsCode, smsPaymentPhone) =>
-  `Thank you for your review! Please the code "${smsCode}" to ${smsPaymentPhone} to publish the review.`;
+  `Thank you for your review! Please send the code "${smsCode}" to phone number ${smsPaymentPhone} to publish the review.`;
 
-function FormGroup({ groupLabel, children }) {
-  return (
-    <Box sx={style.formGroup}>
-      {groupLabel && <h4>{groupLabel}</h4>}
-      <Box>{children}</Box>
-    </Box>
-  );
-}
-
-FormGroup.defaultProps = {
-  groupLabel: '',
-};
-FormGroup.prototype.propTypes = {
-  groupLabel: PropTypes.string,
-  children: PropTypes.node.isRequired,
-};
-
-const codeControlText =
-  'Each review costs 0.5€. After submitting this form, you will receive a code. Please send the ' +
-  'SMS with that code to 2200 using the phone number you provided in this form.';
+const getFormInfoMessage = (smsPaymentPhone) =>
+  `Each review costs 0.5€. After submitting this form, you will receive a code. Please send the code to phone number ${smsPaymentPhone} via SMS.`;
 
 export function CreateProAndReviewForm({
   errorMsg,
@@ -144,7 +95,7 @@ export function CreateProAndReviewForm({
   return (
     <Box>
       <FormControl>
-        <InfoMessage message={codeControlText} />
+        <InfoMessage message={getFormInfoMessage(smsPaymentPhone)} />
       </FormControl>
       <FormGroup groupLabel="Reviewed person">
         <FormControl
@@ -286,7 +237,7 @@ export function CreateProAndReviewForm({
           <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
         </FormControl>
       </FormGroup>
-      <FormGroup groupLabel="Your review">
+      <FormGroup groupLabel="Review">
         <RatingFormControls
           inputs={inputs}
           inputsErrors={inputsErrors}
@@ -295,15 +246,22 @@ export function CreateProAndReviewForm({
         />
       </FormGroup>
       <FormGroup>
-        <LocalDataFormControl
-          value={inputs.reviewerPhone}
-          valueSetter={(v) => updateInputs('reviewerPhone', v)}
-          label="Your phone"
-          placeholder={inputFormats?.phone}
-          isRequired={isFieldRequired(validationRules?.reviewerPhone)}
-          error={inputsErrors?.reviewerPhone || null}
-          formState={state}
-        />
+        <FormControl
+          isInvalid={inputsErrors && inputsErrors[config.userIdName]}
+        >
+          <FormLabel>Your phone</FormLabel>
+          <Input
+            isRequired={isFieldRequired(
+              validationRules && validationRules[config.userIdName],
+            )}
+            value={inputs[config.userIdName]}
+            onChange={(e) => updateInputs('userPhone', e.target.value)}
+            placeholder={inputFormats?.phone}
+          />
+          <FormErrorMessage>
+            {inputsErrors && inputsErrors[config.userIdName]}
+          </FormErrorMessage>
+        </FormControl>
       </FormGroup>
 
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
@@ -391,11 +349,12 @@ export default function CreateReviewForm({
   extraData,
   validationRules,
 }) {
-  const { inputFormats, smsPaymentPhone } = useContext(InitialDataContext);
+  const { smsPaymentPhone, inputFormats } = useContext(InitialDataContext);
+
   return (
     <Box>
       <FormControl>
-        <InfoMessage message={codeControlText} />
+        <InfoMessage message={getFormInfoMessage(smsPaymentPhone)} />
       </FormControl>
       <FormGroup groupLabel="Reviewed person">
         <ProfessionalInfo data={extraData} />
@@ -409,15 +368,22 @@ export default function CreateReviewForm({
         />
       </FormGroup>
       <FormGroup>
-        <LocalDataFormControl
-          value={inputs.reviewerPhone}
-          valueSetter={(v) => updateInputs('reviewerPhone', v)}
-          label="Your phone"
-          placeholder={inputFormats?.phone}
-          isRequired={isFieldRequired(validationRules?.reviewerPhone)}
-          error={inputsErrors?.reviewerPhone || null}
-          formState={state}
-        />
+        <FormControl
+          isInvalid={inputsErrors && inputsErrors[config.userIdName]}
+        >
+          <FormLabel>Your phone</FormLabel>
+          <Input
+            isRequired={isFieldRequired(
+              validationRules && validationRules[config.userIdName],
+            )}
+            value={inputs[config.userIdName]}
+            onChange={(e) => updateInputs('userPhone', e.target.value)}
+            placeholder={inputFormats?.phone}
+          />
+          <FormErrorMessage>
+            {inputsErrors && inputsErrors[config.userIdName]}
+          </FormErrorMessage>
+        </FormControl>
       </FormGroup>
       {state.isError ? <ErrorMessage message={errorMsg} /> : null}
       {state.isSuccess ? (
@@ -451,8 +417,23 @@ CreateReviewForm.prototype.propTypes = {
 };
 
 export function formFactory(extraData, extraActions) {
+  const inputNames = [
+    'fullName',
+    'businessId',
+    'locationLat',
+    'locationLng',
+    'location',
+    'phone',
+    'email',
+    'professions',
+    'text',
+    'rating',
+    'professionalId',
+  ];
+
   let formObject = {
     inputNames,
+    localStorageInputNames: [config.userIdName],
     validationRulesNames,
     hook: (onCallFinish) => {
       const call = useCall(onCallFinish);
@@ -477,7 +458,7 @@ export function formFactory(extraData, extraActions) {
       fullName,
       email,
       phone,
-      reviewerPhone,
+      ...restInputs
     }) => ({
       professional: {
         location,
@@ -494,14 +475,15 @@ export function formFactory(extraData, extraActions) {
       review: {
         text: text || null,
         rating: parseInt(rating, 10),
-        reviewerPhone,
       },
+      [config.userIdName]: restInputs[config.userIdName],
     }),
   };
 
   if (extraData) {
     formObject = {
       inputNames,
+      localStorageInputNames: [config.userIdName],
       validationRulesNames,
       hook: (onCallFinish) => {
         const call = useCall(onCallFinish);
@@ -511,17 +493,14 @@ export function formFactory(extraData, extraActions) {
       },
       formUI: CreateReviewForm,
       extraData,
-      inputsToRequestMapper: (inputs) => {
-        const { text, rating, reviewerPhone } = inputs;
-        return {
-          professionalId: parseInt(extraData.id, 10),
-          review: {
-            text: text || null,
-            rating: parseInt(rating, 10),
-            reviewerPhone,
-          },
-        };
-      },
+      inputsToRequestMapper: ({ text, rating, ...restInputs }) => ({
+        professionalId: parseInt(extraData.id, 10),
+        review: {
+          text: text || null,
+          rating: parseInt(rating, 10),
+        },
+        [config.userIdName]: restInputs[config.userIdName],
+      }),
     };
   }
   return formObject;

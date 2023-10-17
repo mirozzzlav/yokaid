@@ -1,6 +1,5 @@
 import useCall from 'src/hooks/useCall';
 import useAuthorizedCall from 'src/hooks/useAuthorizedCall';
-import useLocalStorage from 'src/hooks/useLocalStorage';
 import {
   useFilterProfessionals,
   useSearchProfessional,
@@ -14,7 +13,6 @@ import useNavigateAction from 'src/hooks/useNavigateAction';
 
 export {
   useCall,
-  useLocalStorage,
   useFilterProfessionals,
   useSearchProfessional,
   useGetProfessional,

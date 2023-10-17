@@ -97,11 +97,11 @@ func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool) common.Query {
+func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, contact bool) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
 
-	reviewsQuery := `JOIN (
+	reviewsQuery := fmt.Sprintf(`JOIN (
 		SELECT 
 		  professional_id, 
 		  round(avg(rating)) AS rating,
@@ -123,25 +123,40 @@ func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool)
 			GROUP BY 
 			  review_images.review_id
 		  ) AS review_images_view ON reviews.id = review_images_view.review_id 
+		WHERE reviews.state='%s'
 		GROUP BY 
 		  professional_id
 	) AS reviews_view ON professionals.id = reviews_view.professional_id
 	JOIN (
 	  SELECT count(reviews.id) AS reviews_count, reviews.professional_id 
-	  FROM reviews GROUP BY reviews.professional_id
+	  FROM reviews 
+	  WHERE reviews.state='%s'
+	  GROUP BY reviews.professional_id
 	) AS reviews_count_view
-	ON professionals.id = reviews_count_view.professional_id`
+	ON professionals.id = reviews_count_view.professional_id`, common.ReviewStates.Active, common.ReviewStates.Active)
 
 	if !reviews {
-		reviewsQuery = ""
+		reviewsQuery = fmt.Sprintf(
+			`JOIN (
+			  SELECT reviews.professional_id 
+			  FROM reviews 
+			  WHERE reviews.state='%s'
+			  GROUP BY reviews.professional_id
+			) AS reviews_count_view
+			ON professionals.id = reviews_count_view.professional_id`,
+			common.ReviewStates.Active,
+		)
 		reviewsColumns = ""
+	}
+	contactColumns := ""
+	if contact {
+		contactColumns = "professionals.phone, professionals.email, "
 	}
 
 	query := fmt.Sprintf(`SELECT 
 	  professionals.id, 
-	  professionals.full_name, 
-	  professionals.phone, 
-	  professionals.email, 
+	  professionals.full_name,
+	  %s
 	  professionals.business_id, 
 	  professionals.location, 
 	  professionals.location_lat, 
@@ -160,8 +175,9 @@ func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool)
 	        professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
 	      GROUP BY
 	        professional_professions.professional_id
-	  ) AS professions_view ON professions_view.professional_id = professionals.id %s 
- 	WHERE professionals.active = true `, reviewsColumns, reviewsQuery)
+	  ) AS professions_view ON professions_view.professional_id = professionals.id %s  `,
+		contactColumns, reviewsColumns, reviewsQuery,
+	)
 
 	if filter.Query != "" {
 		return dbQuery{
@@ -184,11 +200,8 @@ func (qr queriesRepo) GetProfessionals(filter common.QueryPartial, reviews bool)
 	}
 
 }
-func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial, activeOnly bool) common.Query {
+func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) common.Query {
 	q := "SELECT count(id) FROM professionals WHERE "
-	if activeOnly {
-		q = q + "active = true AND "
-	}
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -197,43 +210,6 @@ func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial, act
 			},
 		},
 	}
-}
-
-func (qr queriesRepo) GetProfessionalsBasicInfoQuery(filter common.QueryPartial, activeOnly bool) common.Query {
-	query := `SELECT 
-				professionals.id, full_name, phone, email, business_id, location, location_lat, location_lng,
-				JSON_AGG(JSON_BUILD_OBJECT('id', professions.id, 'title', professions.title)) as professions
-			  FROM
-				professionals 
-			  JOIN 
-			    professional_professions
-			  ON professionals.id = professional_professions.professional_id
-			  JOIN
-				professions
-			  ON professional_professions.profession_id = professions.id 
-			  WHERE `
-
-	if activeOnly {
-		query = query + "active=true AND "
-	}
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  query,
-				Params: []any{},
-			},
-			{
-				Query:  filter.Query,
-				Params: filter.Params,
-			},
-			{
-				Query:  "GROUP BY professionals.id, full_name, phone, email, business_id, location, location_lat, location_lng",
-				Params: []any{},
-			},
-		},
-	}
-	return q
-
 }
 
 func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
@@ -254,8 +230,8 @@ func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalReque
 			{
 				Query: `INSERT INTO 
     						professionals (full_name, phone, email, business_id, location, 
-    						               location_lat, location_lng, active) 
-						VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    						               location_lat, location_lng) 
+						VALUES (?, ?, ?, ?, ?, ?, ?)`,
 				Params: []any{
 					req.FullName,
 					req.Phone,
@@ -264,7 +240,6 @@ func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalReque
 					req.Location,
 					req.LocationLat,
 					req.LocationLng,
-					false,
 				},
 			},
 		},
@@ -323,6 +298,49 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 		},
 	}
 	return q
+}
+
+func (qr queriesRepo) CreatePaymentQuery(userPhone string, paymentType string, entityId int) common.Query {
+	query := `INSERT INTO payments ("user_phone", "payment_type", "entity_id") VALUES (?, ?, ?)`
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: []any{userPhone, paymentType, entityId},
+			},
+		},
+	}
+	return q
+}
+
+func (qr queriesRepo) CheckPaymentQuery(userPhone string, paymentType string, entityId int) common.Query {
+	query := `SELECT 1 FROM payments WHERE user_phone = ? AND  payment_type = ? AND entity_id = ?`
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: []any{userPhone, paymentType, entityId},
+			},
+		},
+	}
+	return q
+
+}
+
+func (qr queriesRepo) CheckUserProfessionalContactQuery(professionalId int, userPhone string) common.Query {
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  "SELECT 1 FROM user_professional_contacts WHERE professional_id = ? AND user_phone = ?",
+				Params: []any{professionalId, userPhone},
+			},
+		},
+	}
+	return q
+
 }
 
 var QueriesRepo = queriesRepo{}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { useLocalStorage } from 'src/hooks';
+import { setLocalDataValue, getLocalDataValue } from 'src/helpers';
 import Routes from 'src/Routes';
 import {
   AuthProvider,
@@ -9,19 +9,13 @@ import {
   LoaderProvider,
   MapProvider,
 } from 'src/providers';
-import config from 'src/config';
 
 function App() {
-  const { setLocalDataValue, getLocalDataValue } = useLocalStorage();
-
   return (
     <BrowserRouter>
       <LoaderProvider>
         <InitialDataProvider>
-          <AuthProvider
-            setLocalDataValue={setLocalDataValue}
-            getLocalDataValue={getLocalDataValue}
-          >
+          <AuthProvider>
             <FilterProvider>
               <MapProvider>
                 <Routes />

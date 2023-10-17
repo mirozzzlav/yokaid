@@ -306,29 +306,30 @@ func (sH *StoreHelpers) GetProfessionalProfessionsForFilter() (*[]common.FilterI
 	return filterItems, nil
 }
 
-func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndProfessionalRequest) (int, error) {
+func (sH *StoreHelpers) checkProfessionalExist(phone string, email *string) bool {
 	filter := common.QueryPartial{Query: "", Params: []any{}}
 
-	if req.Professional.Email != nil {
+	if email != nil {
 		filter.Query = "phone = ? OR email = ?"
-		filter.Params = []any{req.Professional.Phone, req.Professional.Email}
+		filter.Params = []any{phone, *email}
 	} else {
 		filter.Query = "phone = ?"
-		filter.Params = []any{req.Professional.Phone}
+		filter.Params = []any{phone}
 	}
 
-	prosCountAny, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter, false))
+	prosCountAny, err := sH.QueryRunner.GetScalar(sH.QueriesRepo.GetProfessionalsCountQuery(filter))
 
 	if err != nil {
-		return 0, err
+		return false
 	}
 
-	prosCount, err := common.ConvertToInt(prosCountAny)
-	if err != nil {
-		return 0, err
-	}
+	prosCount, _ := common.ConvertToInt(prosCountAny)
+	return prosCount > 0
 
-	if prosCount > 0 {
+}
+
+func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndProfessionalRequest) (int, error) {
+	if sH.checkProfessionalExist(req.Professional.Phone, req.Professional.Email) {
 		return 0, common.ErrRecordExist
 	}
 
@@ -357,4 +358,17 @@ func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndPr
 	reviewId, _ := common.ConvertToInt(reviewIdAny)
 	return reviewId, nil
 
+}
+
+func (sH *StoreHelpers) CreatePayment(userPhone string, paymentType string, entityId int) error {
+
+	q := sH.QueriesRepo.CheckPaymentQuery(userPhone, paymentType, entityId)
+	_, err := sH.QueryRunner.GetScalar(q)
+
+	if err == common.ErrNoRows {
+		q = sH.QueriesRepo.CreatePaymentQuery(userPhone, paymentType, entityId)
+		_, err = sH.QueryRunner.Exec(q, "user_phone")
+	}
+
+	return err
 }

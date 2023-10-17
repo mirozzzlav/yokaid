@@ -3,6 +3,7 @@ import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
 import { ProfessionalInfoDropdown } from 'src/components/ProfessionalInfo';
+import { getLocalDataValue } from 'src/helpers';
 
 export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
@@ -42,9 +43,15 @@ export function useGetProfessional(onSearchFinish) {
   const call = useCall((response) => {
     onSearchFinish(response.data ? response.data[0] : null);
   });
+  const userPhone =
+    getLocalDataValue('localStorageInputs', config.userIdName) || '';
   return useCallback(
     (professionalId) =>
-      call(`${config.api.endPointsURLs.getProfessionals}/id=${professionalId}`),
+      call(
+        `${config.api.endPointsURLs.getProfessionalDetail}/${professionalId}${
+          userPhone ? `/${userPhone}` : ''
+        }`,
+      ),
     [call],
   );
 }

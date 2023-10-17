@@ -6,12 +6,14 @@ import theme from 'src/style';
 const style = {
   record: (compact) => ({
     marginBottom: theme.space[3],
-    lineHeight: '1',
+    lineHeight: 1,
     '> h4': {
       marginBottom: theme.space[1],
       fontWeight: theme.fontWeights.medium,
+      lineHeight: '1.2rem',
     },
     '> *': {
+      lineHeight: 1,
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
@@ -29,7 +31,7 @@ const style = {
   }),
 };
 
-export default function DataContent({ data, footer, compact }) {
+export default function DataContent({ data, compact }) {
   return (
     <Flex direction="column">
       {data.map(({ headline, content }) => (
@@ -38,7 +40,6 @@ export default function DataContent({ data, footer, compact }) {
           <Box>{content}</Box>
         </Box>
       ))}
-      {footer}
     </Flex>
   );
 }
@@ -49,11 +50,9 @@ DataContent.prototype.propTypes = {
       content: PropTypes.oneOfType([PropTypes.node, PropTypes.string]),
     }),
   ).isRequired,
-  footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   compact: PropTypes.bool,
 };
 
 DataContent.defaultProps = {
-  footer: null,
   compact: false,
 };

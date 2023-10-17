@@ -32,8 +32,17 @@ func create(server common.Server) gin.HandlerFunc {
 			)
 		}
 		common.CheckErrAndPanic(err)
+
+		q := server.GetQueriesRepo().CreatePaymentQuery(req.UserPhone, "rev", reviewId)
+		_, err = server.GetQueryRunner(ctx).Exec(q, "user_phone")
+		common.CheckErrAndPanic(err)
+
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, map[string]string{"smsCode": fmt.Sprintf("rev%d", reviewId)})
+
+		common.SetOKJSONResponse(
+			ctx,
+			map[string]string{"smsCode": fmt.Sprintf("rev%d", reviewId)},
+		)
 	}
 }

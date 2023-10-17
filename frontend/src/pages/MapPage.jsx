@@ -3,7 +3,12 @@ import {
   Box,
   Button,
   Flex,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Heading,
   IconButton,
+  Input,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
@@ -12,10 +17,9 @@ import theme from 'src/style';
 
 import {
   createReviewFormFactory,
-  contactProfessionalFactory,
+  GetCode,
   Map,
   SearchDropdown,
-  ProfessionalInfoModal,
 } from 'src/components';
 import { FilterContext, InitialDataContext, MapContext } from 'src/providers';
 import config from 'src/config';
@@ -32,8 +36,11 @@ import {
   getMergedStyle,
   getStringFirstCaps,
   isInt,
+  isFieldRequired,
 } from 'src/helpers';
 import PropTypes from 'prop-types';
+import Modal from 'src/components/Modal';
+import ProfessionalInfo, { Reviews } from '../components/ProfessionalInfo';
 
 function useStyle() {
   const style = {
@@ -207,11 +214,12 @@ FilterInfo.prototype.propTypes = {
 export default function MapPage() {
   const { navigateAction, action, actionParams } = useNavigateAction();
 
-  const { filters: filterInitialItems } = useContext(InitialDataContext);
+  const { filters: filterInitialItems, smsPaymentPhone } =
+    useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
   const [professionalDetail, setProfessionalDetail] = useState(null);
   const callGetProfessional = useGetProfessional(setProfessionalDetail);
-  const { moveMap, setMapAreaRequest, mapAreaRequest } = useContext(MapContext);
+  const { moveMap, setMapAreaRequest } = useContext(MapContext);
   const {
     filterItemsHookCreator,
     updateFilter,
@@ -238,7 +246,7 @@ export default function MapPage() {
     if (
       action === 'professional-detail' ||
       action === 'add-review' ||
-      action === 'contact-professional'
+      action === 'get-contact'
     ) {
       if (isInt(actionParams)) {
         return parseInt(actionParams, 10);
@@ -258,15 +266,8 @@ export default function MapPage() {
           onProfessionalFound: ({ id }) => navigateAction('add-review', id),
         }),
       },
-      'contact-professional': {
-        title: 'Contact professional',
-        submitButton: {
-          label: 'Send',
-        },
-        form: contactProfessionalFactory(professionalDetail),
-      },
     }),
-    [professionalDetail, mapAreaRequest],
+    [professionalDetail],
   );
   const style = useStyle();
   useEffect(() => {
@@ -430,15 +431,21 @@ export default function MapPage() {
           navigateAction('professional-detail', id);
         }}
       />
-      <ProfessionalInfoModal
-        data={action === 'professional-detail' ? professionalDetail : null}
+      <Modal
+        isShown={!!professionalDetail && action === 'professional-detail'}
         close={() => navigateAction(null)}
-        isShown={!!professionalDetail}
-        contactProfessionalButton={{
-          label: 'Send message',
-          onClick: () => navigateAction('contact-professional', professionalId),
-        }}
-      />
+        title="Professional info"
+      >
+        <ProfessionalInfo data={professionalDetail || null} />
+        {professionalDetail && !professionalDetail.phone && (
+          <GetCode
+            entityId={professionalDetail.id}
+            paymentType="con"
+            message={`To show the contact information for this professional, simply click on the "Get code" button. 
+            Once you do, you will receive a code that should be sent to the phone number ${smsPaymentPhone}.`}
+          />
+        )}
+      </Modal>
     </Page>
   );
 }

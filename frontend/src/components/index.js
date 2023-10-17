@@ -1,7 +1,6 @@
 import { formFactory as loginFormFactory } from 'src/components/LoginForm';
 import { formFactory as signupFormFactory } from 'src/components/SignupForm';
 import { formFactory as createReviewFormFactory } from 'src/components/CreateReviewForm';
-import { formFactory as contactProfessionalFactory } from 'src/components/ContactProfessionalForm';
 import ForgotPassword from 'src/components/ForgotPassword';
 import NewPassword from 'src/components/NewPassword';
 import Message, {
@@ -14,20 +13,18 @@ import { SearchDropdown, Dropdown } from 'src/components/Dropdown';
 import Map from 'src/components/Map';
 import DatePicker from 'src/components/DatePicker';
 import ProfessionalInfo, {
-  ProfessionalInfoModal,
   ProfessionalInfoDropdown,
 } from 'src/components/ProfessionalInfo';
 import Rating from 'src/components/Rating';
 import MultiItem, { MultiInput } from 'src/components/MultiItem';
 import DataContent from 'src/components/DataContent';
-import SMSCodeControl from 'src/components/SMSCodeControl';
-import LocalDataFormControl from 'src/components/LocalDataFormControl';
+import FormGroup from 'src/components/FormGroup';
+import GetCode from 'src/components/GetCode';
 
 export {
   loginFormFactory,
   signupFormFactory,
   createReviewFormFactory,
-  contactProfessionalFactory,
   FormModals,
   ForgotPassword,
   NewPassword,
@@ -37,15 +34,14 @@ export {
   Map,
   DatePicker,
   ProfessionalInfo,
-  ProfessionalInfoModal,
   ProfessionalInfoDropdown,
   Rating,
   MultiInput,
   MultiItem,
   DataContent,
-  SMSCodeControl,
-  LocalDataFormControl,
   ErrorMessage,
   InfoMessage,
   SuccessMessage,
+  FormGroup,
+  GetCode,
 };

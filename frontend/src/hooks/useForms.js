@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { InitialDataContext } from 'src/providers';
+import { getLocalDataValue, setLocalDataValue } from 'src/helpers';
 
 function mapValidationErrors(errors, formats) {
   const messages = {
@@ -32,20 +33,31 @@ const requestStatesConsts = {
   success: 'success',
 };
 
-const getDefaultFormState = (inputNames) => ({
-  errorMsg: '',
-  successData: null,
-  inputsErrors: null,
-  inputs: Object.fromEntries(inputNames.map((inputName) => [inputName, ''])),
-});
-
 export default function useForms(formConfigs) {
   const { validationRules, inputFormats } = useContext(InitialDataContext);
+  const getDefaultFormState = useCallback(
+    (formId) => ({
+      errorMsg: '',
+      successData: null,
+      inputsErrors: null,
+      inputs: Object.fromEntries([
+        ...formConfigs[formId].inputNames.map((inputName) => [inputName, '']),
+        ...(formConfigs[formId].localStorageInputNames
+          ? formConfigs[formId].localStorageInputNames.map((inputName) => [
+              inputName,
+              getLocalDataValue('localStorageInputs', inputName) || '',
+            ])
+          : []),
+      ]),
+    }),
+    [formConfigs],
+  );
+
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
-      Object.entries(formConfigs).map(([id, { inputNames }]) => [
-        id,
-        getDefaultFormState(inputNames),
+      Object.keys(formConfigs).map((formId) => [
+        formId,
+        getDefaultFormState(formId),
       ]),
     ),
   );
@@ -81,6 +93,19 @@ export default function useForms(formConfigs) {
     [],
   );
 
+  const saveInputs = useCallback(
+    (formId) => {
+      formConfigs[formId].localStorageInputNames.forEach((inputName) =>
+        setLocalDataValue(
+          'localStorageInputs',
+          inputName,
+          formStates[formId].inputs[inputName] || '',
+        ),
+      );
+    },
+    [formStates, formConfigs],
+  );
+
   const getFormStateAndHelpers = useCallback(
     (formId) => ({
       setErrorMsg: (errorMsg) => updateFormState(formId, { errorMsg }),
@@ -90,10 +115,7 @@ export default function useForms(formConfigs) {
       setInputsErrors: (inputsErrors) =>
         updateFormState(formId, { inputsErrors }),
       resetForm: () => {
-        updateFormState(
-          formId,
-          getDefaultFormState(formConfigs[formId].inputNames),
-        );
+        updateFormState(formId, getDefaultFormState(formId));
         setRequestState(formId, requestStatesConsts.initial);
       },
       validationRules: (() => {
@@ -122,7 +144,6 @@ export default function useForms(formConfigs) {
       updateInputs: (name, val, concat = false) => {
         let isAdded = true;
         const valStr = `${val}`;
-
         setFormStates((prevData) => {
           if (
             prevData[formId]?.inputs[name] &&
@@ -172,6 +193,8 @@ export default function useForms(formConfigs) {
             }
             return;
           }
+
+          saveInputs(formId);
           resetForm();
           if (typeof response.data === 'string') {
             setSuccessData({ msg: response.data });

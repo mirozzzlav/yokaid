@@ -73,6 +73,32 @@ function getStringFirstCaps(str) {
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
+function setLocalDataValue(storageKey, dataKey, dataValue) {
+  let data = localStorage.getItem(storageKey) || '{}';
+  data = JSON.parse(data);
+  localStorage.setItem(
+    storageKey,
+    JSON.stringify({ ...data, [dataKey]: dataValue }),
+  );
+}
+
+function getLocalDataValue(storageKey, dataKey) {
+  let data = localStorage.getItem(storageKey);
+  if (!data) {
+    return null;
+  }
+  data = JSON.parse(data);
+  return !data[dataKey] ? null : data[dataKey];
+}
+
+function getStringForCount(count, wordShapes) {
+  return `${count} ${
+    count >= wordShapes.length
+      ? wordShapes[wordShapes.length - 1]
+      : wordShapes[count]
+  }`;
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
@@ -83,4 +109,7 @@ export {
   isInt,
   getMergedStyle,
   getStringFirstCaps,
+  setLocalDataValue,
+  getLocalDataValue,
+  getStringForCount,
 };

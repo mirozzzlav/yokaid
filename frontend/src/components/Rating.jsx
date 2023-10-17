@@ -4,6 +4,8 @@ import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import theme from 'src/style';
 import config from 'src/config';
+import { get } from 'leaflet/src/dom/DomUtil';
+import { getStringForCount } from 'src/helpers';
 
 function RatingStar({ onClick, active }) {
   if (onClick) {
@@ -46,6 +48,7 @@ const style = {
     margin: '0.5rem 0 0 0',
   },
 };
+
 export default function Rating({
   rating,
   reviewsCount,
@@ -77,7 +80,9 @@ export default function Rating({
         ))}
       </Flex>
       {reviewsCount ? (
-        <Box sx={style.reviewsCount}>({reviewsCount} reviews)</Box>
+        <Box sx={style.reviewsCount}>
+          ({getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])})
+        </Box>
       ) : null}
     </Box>
   );

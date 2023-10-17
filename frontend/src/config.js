@@ -32,14 +32,14 @@ export default {
       loginUser: `${apiUrl}/users/login`,
       signupUser: `${apiUrl}/users/register`,
       getProfessionals: `${apiUrl}/professionals/get`,
+      getProfessionalDetail: `${apiUrl}/professionals/get-detail`,
       searchProfessionals: `${apiUrl}/professionals/search`,
       getInitialData: `${apiUrl}/frontend-data/get`,
       getFilterItems: `${apiUrl}/filter-items/get`,
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
-      getCode: `${apiUrl}/code/get`,
-      contactProfessional: `${apiUrl}/professionals/contact`,
+      getCode: `${apiUrl}/codes/get`,
     },
   },
   map: {
@@ -93,4 +93,5 @@ export default {
       },
     ],
   },
+  userIdName: 'userPhone',
 };

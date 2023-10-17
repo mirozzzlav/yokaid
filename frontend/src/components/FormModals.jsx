@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
-import { unknownObjectValidator } from 'src/helpers';
 import { useForms } from 'src/hooks';
 import { formModalsConfigPropType } from 'src/constants';
 
@@ -17,10 +16,6 @@ export default function FormModals({
       ),
     [modalsConfig],
   );
-  const showFormExtraData = useMemo(
-    () => formsConfig[shownModalId]?.extraData || null,
-    [formsConfig, shownModalId],
-  );
   const getFormStateAndHelpers = useForms(formsConfig);
 
   useEffect(() => {
@@ -29,7 +24,7 @@ export default function FormModals({
     }
     const { resetForm } = getFormStateAndHelpers(shownModalId);
     resetForm();
-  }, [shownModalId, showFormExtraData, formsConfig]);
+  }, [shownModalId, formsConfig]);
 
   return (
     <>
