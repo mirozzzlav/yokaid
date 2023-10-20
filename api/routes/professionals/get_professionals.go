@@ -15,7 +15,7 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 		filterQP, err := server.GetStoreHelpers(ctx).HandleFilter(filter)
 		common.CheckErrAndPanic(err)
 
-		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(filterQP, false, false)
+		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(filterQP, false, "")
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
 		common.CheckErrAndPanic(err)
@@ -37,7 +37,7 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 			common.QueryPartial{
 				Query:  "full_name ILIKE ?",
 				Params: []any{"%" + searchName + "%"},
-			}, true, false)
+			}, false, "")
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, infosModelLoader)
 		common.CheckErrAndPanic(err)
@@ -61,21 +61,20 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
 		}
 
-		userPhone, paramExist := ctx.Params.Get("userPhone")
-		requestContact := false
+		userPhone, _ := ctx.Params.Get("userPhone")
 
-		if paramExist {
-			dbQuery = server.GetQueriesRepo().CheckUserProfessionalContactQuery(professionalId, userPhone)
-			_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
-			if err != common.ErrNoRows {
-				common.CheckErrAndPanic(err)
-				requestContact = true
-			}
+		dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userPhone, "1")
+		_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
+		if err == common.ErrNoRows {
+			userPhone = ""
+		} else {
+			common.CheckErrAndPanic(err)
 		}
 
 		dbQuery = server.GetQueriesRepo().GetProfessionalsQuery(
 			common.QueryPartial{Query: "professionals.id = ?", Params: []any{professionalId}},
-			true, requestContact,
+			true,
+			userPhone,
 		)
 
 		server.GetQueryRunner(ctx).Begin()

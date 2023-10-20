@@ -45,11 +45,14 @@ type User struct {
 	Role           string
 }
 
+type contact struct {
+	Phone string `json:"phone"`
+	Email string `json:"email"`
+}
+
 type professional struct {
 	ID           int          `json:"id"`
 	FullName     string       `json:"fullName"`
-	Phone        string       `json:"phone"`
-	Email        string       `json:"email"`
 	Rating       int          `json:"rating"`
 	BusinessId   string       `json:"businessId"`
 	Location     string       `json:"location"`
@@ -58,6 +61,7 @@ type professional struct {
 	Professions  []profession `json:"professions"`
 	Reviews      []review     `json:"reviews"`
 	ReviewsCount int          `json:"reviewsCount"`
+	Contact      *contact     `json:"contact"`
 }
 
 type review struct {
@@ -82,6 +86,11 @@ type FilterItem struct {
 	FilterColumnAlias string `json:"filterColumnAlias"`
 	Value             any    `json:"value"`
 	Label             string `json:"label"`
+}
+
+type Contact struct {
+	Phone string `json:"phone"`
+	Email string `json:"email"`
 }
 
 func FilterItemLoader() (*[]FilterItem, func(rowBytes []byte)) {
@@ -139,5 +148,14 @@ func PasswordChangeRequestsModelLoader() (*[]passwordChangeRequest, func(rowByte
 		var req passwordChangeRequest
 		_ = json.Unmarshal(rowBytes, &req)
 		requests = append(requests, req)
+	}
+}
+
+func ContactsModelLoader() (*[]Contact, func(rowBytes []byte)) {
+	var contacts []Contact
+	return &contacts, func(rowBytes []byte) {
+		var req Contact
+		_ = json.Unmarshal(rowBytes, &req)
+		contacts = append(contacts, req)
 	}
 }

@@ -1,14 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
   Flex,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Heading,
   IconButton,
-  Input,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
@@ -16,18 +11,19 @@ import Page from 'src/pages/Page';
 import theme from 'src/style';
 
 import {
-  createReviewFormFactory,
-  GetCode,
+  createReviewFormConfigFactory,
+  createReviewWithProConfigFactory,
   Map,
+  ProfessionalContact,
   SearchDropdown,
 } from 'src/components';
 import { FilterContext, InitialDataContext, MapContext } from 'src/providers';
 import config from 'src/config';
 import {
   useFilterProfessionals,
-  useGetProfessional,
   useNavigateAction,
   useSearchProfessional,
+  useProfessionalDetail,
 } from 'src/hooks';
 import { AddIcon } from '@chakra-ui/icons';
 import Icons from 'src/components/Icons';
@@ -35,12 +31,10 @@ import {
   unknownObjectValidator,
   getMergedStyle,
   getStringFirstCaps,
-  isInt,
-  isFieldRequired,
 } from 'src/helpers';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
-import ProfessionalInfo, { Reviews } from '../components/ProfessionalInfo';
+import ProfessionalInfo from 'src/components/ProfessionalInfo';
 
 function useStyle() {
   const style = {
@@ -212,13 +206,10 @@ FilterInfo.prototype.propTypes = {
 };
 
 export default function MapPage() {
-  const { navigateAction, action, actionParams } = useNavigateAction();
+  const { navigateAction, action } = useNavigateAction();
 
-  const { filters: filterInitialItems, smsPaymentPhone } =
-    useContext(InitialDataContext);
+  const { filters: filterInitialItems } = useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
-  const [professionalDetail, setProfessionalDetail] = useState(null);
-  const callGetProfessional = useGetProfessional(setProfessionalDetail);
   const { moveMap, setMapAreaRequest } = useContext(MapContext);
   const {
     filterItemsHookCreator,
@@ -236,24 +227,21 @@ export default function MapPage() {
     filterInputValues,
     getFilterInputValSetter,
   } = useContext(FilterContext);
+  const [professionalDetail, setProfessionalDetail] = useProfessionalDetail();
+  const refreshInterval = useRef(null);
 
   useEffect(() => {
+    if (refreshInterval.current) {
+      return;
+    }
     getFilteredProfessionals();
+    refreshInterval.current = setInterval(
+      () => getFilteredProfessionals(),
+      config.refreshInterval,
+    );
   }, []);
 
   const [markers, setMarkers] = useState(null);
-  const professionalId = useMemo(() => {
-    if (
-      action === 'professional-detail' ||
-      action === 'add-review' ||
-      action === 'get-contact'
-    ) {
-      if (isInt(actionParams)) {
-        return parseInt(actionParams, 10);
-      }
-    }
-    return null;
-  }, [actionParams]);
 
   const modalsConfig = useMemo(
     () => ({
@@ -262,9 +250,16 @@ export default function MapPage() {
         submitButton: {
           label: 'Submit',
         },
-        form: createReviewFormFactory(professionalDetail, {
-          onProfessionalFound: ({ id }) => navigateAction('add-review', id),
-        }),
+        formConfig: createReviewFormConfigFactory(professionalDetail),
+      },
+      'add-review-with-professional': {
+        title: 'Your review',
+        submitButton: {
+          label: 'Submit',
+        },
+        formConfig: createReviewWithProConfigFactory(({ id }) =>
+          navigateAction('add-review', id),
+        ),
       },
     }),
     [professionalDetail],
@@ -283,13 +278,6 @@ export default function MapPage() {
       setMarkers(null);
     }
   }, [professionals]);
-
-  useEffect(() => {
-    setProfessionalDetail(null);
-    if (professionalId) {
-      callGetProfessional(actionParams);
-    }
-  }, [professionalId]);
 
   return (
     <Page
@@ -364,10 +352,7 @@ export default function MapPage() {
                   if (!isFilterChanged) {
                     return;
                   }
-                  if (getIsFilterEqual('location')) {
-                    // if not location search getting pros according to filters
-                    getFilteredProfessionals();
-                  } else {
+                  if (!getIsFilterEqual('location')) {
                     // if location search, moving map and then getting pros on different place
                     moveMap({
                       position: draft.location.extraData,
@@ -388,9 +373,7 @@ export default function MapPage() {
                 sx={style.filterBtn}
                 variant="ghost"
                 onClick={() => {
-                  if (getIsFilterDefault('location')) {
-                    getFilteredProfessionals();
-                  } else {
+                  if (!getIsFilterDefault('location')) {
                     moveMap(config.map.defaultArea);
                   }
                   resetFilter();
@@ -405,7 +388,7 @@ export default function MapPage() {
       footer={
         <>
           <Button
-            onClick={() => navigateAction('add-review')}
+            onClick={() => navigateAction('add-review-with-professional')}
             sx={style.addReviewBtn}
             colorScheme="blue"
             leftIcon={<AddIcon />}
@@ -417,6 +400,7 @@ export default function MapPage() {
             onClick={() => navigateAction('add-review')}
             sx={style.addReviewBtnMobile}
             colorScheme="blue"
+            aria-label="Add review"
           />
         </>
       }
@@ -425,7 +409,6 @@ export default function MapPage() {
         markers={markers}
         onZoomOrMove={(mapAreaFromMap) => {
           setMapAreaRequest(mapAreaFromMap);
-          getFilteredProfessionals();
         }}
         onMarkerClick={({ id }) => {
           navigateAction('professional-detail', id);
@@ -436,13 +419,16 @@ export default function MapPage() {
         close={() => navigateAction(null)}
         title="Professional info"
       >
-        <ProfessionalInfo data={professionalDetail || null} />
-        {professionalDetail && !professionalDetail.phone && (
-          <GetCode
-            entityId={professionalDetail.id}
-            paymentType="con"
-            message={`To show the contact information for this professional, simply click on the "Get code" button. 
-            Once you do, you will receive a code that should be sent to the phone number ${smsPaymentPhone}.`}
+        <ProfessionalInfo
+          data={professionalDetail || null}
+          showRating
+          showReviews
+        />
+        {professionalDetail && (
+          <ProfessionalContact
+            contact={professionalDetail.contact}
+            professionalId={professionalDetail.id}
+            onContactPaid={setProfessionalDetail}
           />
         )}
       </Modal>

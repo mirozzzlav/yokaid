@@ -68,7 +68,7 @@ LoginForm.prototype.propTypes = {
   updateInputs: PropTypes.func.isRequired,
 };
 
-export function formFactory() {
+export function formConfigFactory() {
   return {
     inputNames: ['usernameOrEmail', 'password'],
     hook: useLoginCall,

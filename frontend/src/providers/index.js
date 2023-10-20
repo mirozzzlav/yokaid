@@ -5,6 +5,7 @@ import InitialDataProvider, {
 } from 'src/providers/InitialDataProvider';
 import FilterProvider, { FilterContext } from 'src/providers/FilterProvider';
 import MapProvider, { MapContext } from 'src/providers/MapProvider';
+import UserIdProvider, { UserIdContext } from 'src/providers/UserIdProvider';
 
 export {
   AuthProvider,
@@ -17,4 +18,6 @@ export {
   FilterContext,
   MapProvider,
   MapContext,
+  UserIdProvider,
+  UserIdContext,
 };

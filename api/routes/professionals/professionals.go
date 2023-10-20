@@ -12,6 +12,8 @@ func GetRoutes(server common.Server) []common.Route {
 		common.NewRoute("/professionals/get/:filter", http.MethodGet, getProfessionals(server)),
 		common.NewRoute("/professionals/get-detail/:professionalId", http.MethodGet, getProfessionalDetail(server)),
 		common.NewRoute("/professionals/get-detail/:professionalId/:userPhone", http.MethodGet, getProfessionalDetail(server)),
+		common.NewRoute("/professionals/get-contact/:professionalId", http.MethodGet, getProfessionalContact(server)),
+		common.NewRoute("/professionals/get-contact/:professionalId/:userPhone", http.MethodGet, getProfessionalContact(server)),
 		common.NewRoute("/professionals/search/:searchName", http.MethodGet, searchProfessional(server)),
 		common.NewRoute("/professionals/create-with-review", http.MethodPost, create(server)),
 	}

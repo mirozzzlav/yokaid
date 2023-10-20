@@ -33,8 +33,11 @@ func create(server common.Server) gin.HandlerFunc {
 		}
 		common.CheckErrAndPanic(err)
 
-		q := server.GetQueriesRepo().CreatePaymentQuery(req.UserPhone, "rev", reviewId)
-		_, err = server.GetQueryRunner(ctx).Exec(q, "user_phone")
+		err = server.GetStoreHelpers(ctx).CreatePayment(common.GetCodeRequest{
+			UserPhone:   req.UserPhone,
+			EntityId:    reviewId,
+			PaymentType: "rev",
+		})
 		common.CheckErrAndPanic(err)
 
 		err = server.GetQueryRunner(ctx).Commit()

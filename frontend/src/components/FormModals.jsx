@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import { useForms } from 'src/hooks';
@@ -12,7 +12,10 @@ export default function FormModals({
   const formsConfig = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(modalsConfig).map(([id, { form }]) => [id, form]),
+        Object.entries(modalsConfig).map(([id, { formConfig }]) => [
+          id,
+          formConfig,
+        ]),
       ),
     [modalsConfig],
   );
@@ -24,29 +27,15 @@ export default function FormModals({
     }
     const { resetForm } = getFormStateAndHelpers(shownModalId);
     resetForm();
-  }, [shownModalId, formsConfig]);
+  }, [shownModalId]);
 
   return (
     <>
       {Object.entries(modalsConfig).map(
-        ([
-          id,
-          {
-            title,
-            form: { formUI, extraActions, extraData },
-            submitButton,
-          },
-        ]) => {
-          const {
-            errorMsg,
-            successData,
-            inputsErrors,
-            inputs,
-            updateInputs,
-            formRequestState,
-            submitForm,
-            validationRules,
-          } = getFormStateAndHelpers(id);
+        ([id, { title, formConfig, submitButton }]) => {
+          const { formUI, ...restFormConfig } = formConfig;
+          const { formRequestState, submitForm, ...formStateAndHelpers } =
+            getFormStateAndHelpers(id);
           return (
             <Modal
               key={id}
@@ -60,15 +49,9 @@ export default function FormModals({
               }}
             >
               {React.createElement(formUI, {
-                successData,
-                errorMsg,
                 state: formRequestState,
-                inputsErrors,
-                inputs,
-                updateInputs,
-                extraActions,
-                extraData,
-                validationRules,
+                ...formStateAndHelpers,
+                ...restFormConfig,
               })}
             </Modal>
           );

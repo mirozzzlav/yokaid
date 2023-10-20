@@ -39,7 +39,7 @@ export default {
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
-      getCode: `${apiUrl}/codes/get`,
+      getProfessionsContact: `${apiUrl}/professionals/get-contact`,
     },
   },
   map: {
@@ -93,5 +93,5 @@ export default {
       },
     ],
   },
-  userIdName: 'userPhone',
+  refreshInterval: 5000,
 };

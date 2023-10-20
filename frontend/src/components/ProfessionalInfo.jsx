@@ -65,7 +65,14 @@ Reviews.prototype.propTypes = {
   ).isRequired,
 };
 
-export default function ProfessionalInfo({ data, compact }) {
+// don't want to show reviews and rating when adding new review,
+// user should not be affected by others
+export default function ProfessionalInfo({
+  data,
+  compact,
+  showRating,
+  showReviews,
+}) {
   const dataMapped = useMemo(() => {
     const professions = (
       <MultiItem labels={data.professions.map(({ title }) => title)} />
@@ -92,33 +99,25 @@ export default function ProfessionalInfo({ data, compact }) {
         content: data.location,
       },
       { headline: 'Professions', content: professions },
-      {
-        headline: 'Rating',
-        content: (
-          <Rating
-            rating={data.rating}
-            reviewsCount={data.reviewsCount}
-            margin="0"
-          />
-        ),
-      },
     ];
 
-    if (data.phone) {
+    if (showRating) {
       res = [
         ...res,
         {
-          headline: 'Contact',
+          headline: 'Rating',
           content: (
-            <MultiItem
-              labels={[data.phone, ...(data.email ? [data.email] : [])]}
+            <Rating
+              rating={data.rating}
+              reviewsCount={data.reviewsCount}
+              margin="0"
             />
           ),
         },
       ];
     }
 
-    if (data.reviews) {
+    if (data.reviews && showReviews) {
       res = [
         ...res,
         {
@@ -135,12 +134,15 @@ export default function ProfessionalInfo({ data, compact }) {
 }
 
 ProfessionalInfo.defaultProps = {
-  showRating: false,
   compact: false,
+  showReviews: false,
+  showRating: false,
 };
 ProfessionalInfo.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
   compact: PropTypes.bool,
+  showReviews: PropTypes.bool,
+  showRating: PropTypes.bool,
 };
 
 export function ProfessionalInfoDropdown(data) {

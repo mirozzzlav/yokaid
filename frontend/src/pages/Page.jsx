@@ -13,8 +13,8 @@ import { ReactComponent as Logo } from 'src/assets/logo.svg';
 import {
   Dropdown,
   FormModals,
-  loginFormFactory,
-  signupFormFactory,
+  loginFormConfigFactory,
+  signupFormConfigFactory,
 } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
@@ -150,14 +150,14 @@ function Page({
         submitButton: {
           label: 'Login',
         },
-        form: loginFormFactory(),
+        formConfig: loginFormConfigFactory(),
       },
       signup: {
         title: 'Sign up',
         submitButton: {
           label: 'Sign up',
         },
-        form: signupFormFactory(),
+        formConfig: signupFormConfigFactory(),
       },
     }),
     [action, actionParams, modalsConfigFromProps],

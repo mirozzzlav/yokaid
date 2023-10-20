@@ -97,10 +97,9 @@ func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, contact bool) common.Query {
+func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userPhone string) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
-
 	reviewsQuery := fmt.Sprintf(`JOIN (
 		SELECT 
 		  professional_id, 
@@ -148,9 +147,14 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 		)
 		reviewsColumns = ""
 	}
-	contactColumns := ""
-	if contact {
-		contactColumns = "professionals.phone, professionals.email, "
+	contactObj := ""
+	contactQuery := ""
+	var params []any
+	if userPhone != "" {
+		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
+		contactQuery = `JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
+						AND user_professional_contacts.user_phone = ?`
+		params = []any{userPhone}
 	}
 
 	query := fmt.Sprintf(`SELECT 
@@ -160,7 +164,7 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 	  professionals.business_id, 
 	  professionals.location, 
 	  professionals.location_lat, 
-	  professionals.location_lng, 
+	  professionals.location_lng,
 	  professions_view.professions 
 	  %s
 	FROM 
@@ -175,8 +179,8 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 	        professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
 	      GROUP BY
 	        professional_professions.professional_id
-	  ) AS professions_view ON professions_view.professional_id = professionals.id %s  `,
-		contactColumns, reviewsColumns, reviewsQuery,
+	  ) AS professions_view ON professions_view.professional_id = professionals.id %s %s `,
+		contactObj, reviewsColumns, reviewsQuery, contactQuery,
 	)
 
 	if filter.Query != "" {
@@ -184,7 +188,7 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 			partials: []common.QueryPartial{
 				{
 					Query:  query + " AND ",
-					Params: []any{},
+					Params: params,
 				},
 				filter,
 			},
@@ -194,7 +198,7 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{},
+				Params: params,
 			},
 		},
 	}
@@ -300,28 +304,28 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 	return q
 }
 
-func (qr queriesRepo) CreatePaymentQuery(userPhone string, paymentType string, entityId int) common.Query {
+func (qr queriesRepo) CreatePaymentQuery(request common.GetCodeRequest) common.Query {
 	query := `INSERT INTO payments ("user_phone", "payment_type", "entity_id") VALUES (?, ?, ?)`
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{userPhone, paymentType, entityId},
+				Params: []any{request.UserPhone, request.PaymentType, request.EntityId},
 			},
 		},
 	}
 	return q
 }
 
-func (qr queriesRepo) CheckPaymentQuery(userPhone string, paymentType string, entityId int) common.Query {
+func (qr queriesRepo) CheckPaymentQuery(request common.GetCodeRequest) common.Query {
 	query := `SELECT 1 FROM payments WHERE user_phone = ? AND  payment_type = ? AND entity_id = ?`
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{userPhone, paymentType, entityId},
+				Params: []any{request.UserPhone, request.PaymentType, request.EntityId},
 			},
 		},
 	}
@@ -329,18 +333,24 @@ func (qr queriesRepo) CheckPaymentQuery(userPhone string, paymentType string, en
 
 }
 
-func (qr queriesRepo) CheckUserProfessionalContactQuery(professionalId int, userPhone string) common.Query {
+func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) common.Query {
+
+	columnsStr := "email, phone"
+	if len(columns) > 0 {
+		columnsStr = strings.Join(columns, ",")
+	}
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query:  "SELECT 1 FROM user_professional_contacts WHERE professional_id = ? AND user_phone = ?",
+				Query: fmt.Sprintf(`SELECT %s FROM professionals JOIN user_professional_contacts 
+    					ON professionals.id = user_professional_contacts.professional_id
+                    	WHERE professionals.id = ? AND user_professional_contacts.user_phone = ?`, columnsStr),
 				Params: []any{professionalId, userPhone},
 			},
 		},
 	}
 	return q
-
 }
 
 var QueriesRepo = queriesRepo{}

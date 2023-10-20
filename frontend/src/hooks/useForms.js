@@ -1,6 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { InitialDataContext } from 'src/providers';
-import { getLocalDataValue, setLocalDataValue } from 'src/helpers';
+import { InitialDataContext, UserIdContext } from 'src/providers';
 
 function mapValidationErrors(errors, formats) {
   const messages = {
@@ -33,34 +32,29 @@ const requestStatesConsts = {
   success: 'success',
 };
 
+const getDefaultFormState = (inputNames) => ({
+  errorMsg: '',
+  successData: null,
+  inputsErrors: null,
+  inputs: Object.fromEntries(inputNames.map((inputName) => [inputName, ''])),
+});
+
 export default function useForms(formConfigs) {
   const { validationRules, inputFormats } = useContext(InitialDataContext);
-  const getDefaultFormState = useCallback(
-    (formId) => ({
-      errorMsg: '',
-      successData: null,
-      inputsErrors: null,
-      inputs: Object.fromEntries([
-        ...formConfigs[formId].inputNames.map((inputName) => [inputName, '']),
-        ...(formConfigs[formId].localStorageInputNames
-          ? formConfigs[formId].localStorageInputNames.map((inputName) => [
-              inputName,
-              getLocalDataValue('localStorageInputs', inputName) || '',
-            ])
-          : []),
-      ]),
-    }),
+  const { userId, saveUserId, userIdName } = useContext(UserIdContext);
+
+  const getDefaultFormStates = useCallback(
+    () =>
+      Object.fromEntries(
+        Object.keys(formConfigs).map((formId) => [
+          formId,
+          getDefaultFormState(formConfigs[formId].inputNames),
+        ]),
+      ),
     [formConfigs],
   );
 
-  const [formStates, setFormStates] = useState(
-    Object.fromEntries(
-      Object.keys(formConfigs).map((formId) => [
-        formId,
-        getDefaultFormState(formId),
-      ]),
-    ),
-  );
+  const [formStates, setFormStates] = useState(getDefaultFormStates());
 
   const [requestStates, setRequestStates] = useState(
     (() =>
@@ -93,40 +87,24 @@ export default function useForms(formConfigs) {
     [],
   );
 
-  const saveInputs = useCallback(
-    (formId) => {
-      formConfigs[formId].localStorageInputNames.forEach((inputName) =>
-        setLocalDataValue(
-          'localStorageInputs',
-          inputName,
-          formStates[formId].inputs[inputName] || '',
-        ),
-      );
-    },
-    [formStates, formConfigs],
-  );
-
   const getFormStateAndHelpers = useCallback(
     (formId) => ({
       setErrorMsg: (errorMsg) => updateFormState(formId, { errorMsg }),
       setSuccessData: (data) => updateFormState(formId, { successData: data }),
-      setRequestState: (requestState) => setRequestState(formId, requestState),
-      setInputs: (inputs) => updateFormState(formId, { inputs }),
       setInputsErrors: (inputsErrors) =>
         updateFormState(formId, { inputsErrors }),
       resetForm: () => {
-        updateFormState(formId, getDefaultFormState(formId));
+        updateFormState(
+          formId,
+          getDefaultFormState(formConfigs[formId].inputNames),
+        );
         setRequestState(formId, requestStatesConsts.initial);
       },
       validationRules: (() => {
-        if (!formConfigs[formId]?.validationRulesNames || !validationRules) {
+        if (!formConfigs[formId]?.validationGroup || !validationRules) {
           return null;
         }
-        let resRules = {};
-        formConfigs[formId]?.validationRulesNames.forEach((ruleName) => {
-          resRules = { ...resRules, ...validationRules[ruleName] };
-        });
-        return resRules;
+        return validationRules[formConfigs[formId]?.validationGroup];
       })(),
 
       ...formStates[formId],
@@ -194,7 +172,7 @@ export default function useForms(formConfigs) {
             return;
           }
 
-          saveInputs(formId);
+          saveUserId();
           resetForm();
           if (typeof response.data === 'string') {
             setSuccessData({ msg: response.data });
@@ -211,16 +189,20 @@ export default function useForms(formConfigs) {
   useEffect(
     () =>
       Object.keys(formConfigs).forEach((formId) => {
-        const { inputs } = getFormStateAndHelpers(formId);
+        const { inputs: inputsRaw } = getFormStateAndHelpers(formId);
         const inputsToRequestMapper =
           formConfigs[formId]?.inputsToRequestMapper;
+
         if (requestStates[formId] === requestStatesConsts.loading) {
-          calls[formId](
-            inputsToRequestMapper ? inputsToRequestMapper(inputs) : inputs,
-          );
+          calls[formId]({
+            ...(inputsToRequestMapper
+              ? inputsToRequestMapper(inputsRaw)
+              : inputsRaw),
+            [userIdName]: userId,
+          });
         }
       }),
-    [formConfigs, requestStates],
+    [formConfigs, requestStates, userId],
   );
 
   return getFormStateAndHelpers;

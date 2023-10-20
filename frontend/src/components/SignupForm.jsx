@@ -67,12 +67,12 @@ SignupForm.prototype.propTypes = {
   validationRules: unknownObjectValidator.isRequired,
 };
 
-export function formFactory() {
+export function formConfigFactory() {
   return {
     inputNames: ['fullName', 'email'],
     hook: useSignupCall,
     formUI: SignupForm,
-    validationRulesNames: ['registerUserRequest'],
+    validationGroup: 'registerUserRequest',
     inputsToRequestMapper: (inputs) => ({
       ...inputs,
       role: 'guest',

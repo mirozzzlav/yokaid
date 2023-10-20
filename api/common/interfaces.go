@@ -44,16 +44,16 @@ type QueriesRepo interface {
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
 	GetProfessionalsCountQuery(filter QueryPartial) Query
-	GetProfessionalsQuery(filter QueryPartial, reviews bool, contact bool) Query
+	GetProfessionalsQuery(filter QueryPartial, reviews bool, userPhone string) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
 	CreateReviewQuery(professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial) Query
-	CreatePaymentQuery(userPhone string, paymentType string, entityId int) Query
-	CheckPaymentQuery(userPhone string, paymentType string, entityId int) Query
-	CheckUserProfessionalContactQuery(professionalId int, userPhone string) Query
+	CreatePaymentQuery(request GetCodeRequest) Query
+	CheckPaymentQuery(request GetCodeRequest) Query
+	GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) Query
 }
 
 type StoreHelpers interface {
@@ -69,7 +69,7 @@ type StoreHelpers interface {
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
 	CreateReviewAndProfessional(req CreateReviewAndProfessionalRequest) (int, error)
-	CreatePayment(userPhone string, paymentType string, entityId int) error
+	CreatePayment(request GetCodeRequest) error
 
 	// only for testing
 	Insert() int

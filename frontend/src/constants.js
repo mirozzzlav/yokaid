@@ -15,7 +15,7 @@ const buttonPropType = PropTypes.shape({
 const formModalsConfigPropType = PropTypes.shape({
   title: PropTypes.string,
   submitButton: buttonPropType,
-  form: unknownObjectValidator,
+  formConfig: unknownObjectValidator,
 });
 
 export { callStates, formModalsConfigPropType, buttonPropType };

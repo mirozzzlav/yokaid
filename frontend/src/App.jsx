@@ -8,6 +8,7 @@ import {
   InitialDataProvider,
   LoaderProvider,
   MapProvider,
+  UserIdProvider,
 } from 'src/providers';
 
 function App() {
@@ -18,7 +19,9 @@ function App() {
           <AuthProvider>
             <FilterProvider>
               <MapProvider>
-                <Routes />
+                <UserIdProvider>
+                  <Routes />
+                </UserIdProvider>
               </MapProvider>
             </FilterProvider>
           </AuthProvider>

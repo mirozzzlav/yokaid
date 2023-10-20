@@ -46,13 +46,13 @@ type CreateReviewAndProfessionalRequest struct {
 	Professional CreateProfessionalRequest `json:"professional"`
 	Review       CreateReviewRequest       `json:"review"`
 	Professions  []int                     `json:"professions" validate:"required"`
-	UserPhone    string                    `json:"userPhone" validate:"required"`
+	UserPhone    string                    `json:"userPhone" validate:"required,phone"`
 }
 
 type CreateReviewForExistingProfessionalRequest struct {
 	ProfessionalId int                 `json:"professionalId" validate:"required"`
 	Review         CreateReviewRequest `json:"review"`
-	UserPhone      string              `json:"userPhone" validate:"required"`
+	UserPhone      string              `json:"userPhone" validate:"required,phone"`
 }
 
 // add here empty request instances that has validation rules
@@ -64,4 +64,10 @@ var requests = []any{
 	PasswordChangeRequest{},
 	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
+}
+
+type GetCodeRequest struct {
+	PaymentType string `json:"paymentType" validate:"required"`
+	UserPhone   string `json:"userPhone" validate:"required,phone"`
+	EntityId    int    `json:"entityId" validate:"required,numeric"`
 }

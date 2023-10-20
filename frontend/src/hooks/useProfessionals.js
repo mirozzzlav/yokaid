@@ -39,23 +39,6 @@ export function useFilterProfessionals() {
   );
 }
 
-export function useGetProfessional(onSearchFinish) {
-  const call = useCall((response) => {
-    onSearchFinish(response.data ? response.data[0] : null);
-  });
-  const userPhone =
-    getLocalDataValue('localStorageInputs', config.userIdName) || '';
-  return useCallback(
-    (professionalId) =>
-      call(
-        `${config.api.endPointsURLs.getProfessionalDetail}/${professionalId}${
-          userPhone ? `/${userPhone}` : ''
-        }`,
-      ),
-    [call],
-  );
-}
-
 export function useSearchProfessional(onSearchFinish) {
   const call = useCall((response) => {
     onSearchFinish(
