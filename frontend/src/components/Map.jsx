@@ -130,6 +130,7 @@ export default function Map({
 
     markers.forEach(({ locationLat, locationLng, id: markerId }) => {
       const icon = L.icon({
+        className: 'marker-fade',
         iconUrl: person,
         iconSize: [40, 40],
         iconAnchor: [20, 20], // point of the icon which will correspond to marker's location

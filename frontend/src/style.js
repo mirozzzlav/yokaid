@@ -91,6 +91,18 @@ const theme = extendTheme({
           ...positionStyle,
         };
       },
+      '.marker-fade': {
+        opacity: 0,
+        animation: 'markerFadeIn 0.5s ease-in-out forwards',
+      },
+      '@keyframes markerFadeIn': {
+        from: {
+          opacity: 0,
+        },
+        to: {
+          opacity: 1,
+        },
+      },
     },
   },
 });
