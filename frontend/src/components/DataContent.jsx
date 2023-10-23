@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import theme from 'src/style';

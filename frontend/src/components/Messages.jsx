@@ -99,6 +99,10 @@ function InfoMessage({ message, margin }) {
     />
   );
 }
+InfoMessage.defaultProps = {
+  margin: '0',
+};
+
 InfoMessage.propTypes = {
   margin: PropTypes.string,
   message: PropTypes.string.isRequired,

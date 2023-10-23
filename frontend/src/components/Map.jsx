@@ -68,7 +68,8 @@ export default function Map({
 
   const initClusterGroup = useCallback(() => {
     clusterGroupRef.current = window.L.markerClusterGroup({
-      // for some reason L.markerClusterGroup raised warning and window.L.markerClusterGroup fixed it
+      // for some reason L.markerClusterGroup raised warning and
+      // window.L.markerClusterGroup fixed it
       iconCreateFunction: (cluster) =>
         L.divIcon({
           className: css(mapClusterStyle),

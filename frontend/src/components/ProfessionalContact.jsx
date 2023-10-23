@@ -123,7 +123,7 @@ ProfessionalContact.defaultProps = {
   contact: null,
 };
 ProfessionalContact.prototype.propTypes = {
-  professionalId: PropTypes.number,
+  professionalId: PropTypes.number.isRequired,
   contact: PropTypes.oneOfType([
     PropTypes.shape({ phone: PropTypes.string, email: PropTypes.string }),
     PropTypes.oneOf([null]),

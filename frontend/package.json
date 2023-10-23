@@ -80,14 +80,10 @@
       "object-curly-newline": "off",
       "react/jsx-props-no-spreading": "off",
       "indent": "off",
-      "react/jsx-wrap-multilines": [
-        "error",
-        {
-          "arrow": true,
-          "return": true,
-          "declaration": true
-        }
-      ]
+      "react/jsx-wrap-multilines": "off",
+      "react/jsx-curly-newline": "off",
+      "function-paren-newline": "off",
+      "no-confusing-arrow": "off"
     }
   }
 }

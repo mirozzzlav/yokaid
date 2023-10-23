@@ -4,7 +4,6 @@ import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import theme from 'src/style';
 import config from 'src/config';
-import { get } from 'leaflet/src/dom/DomUtil';
 import { getStringForCount } from 'src/helpers';
 
 function RatingStar({ onClick, active }) {
@@ -14,6 +13,7 @@ function RatingStar({ onClick, active }) {
         variant="link"
         onClick={onClick}
         sx={{ minWidth: 0 }}
+        aria-label="Rating"
         icon={
           <StarIcon
             sx={{
@@ -81,7 +81,7 @@ export default function Rating({
       </Flex>
       {reviewsCount ? (
         <Box sx={style.reviewsCount}>
-          ({getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])})
+          {getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])}
         </Box>
       ) : null}
     </Box>
