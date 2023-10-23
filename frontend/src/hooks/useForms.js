@@ -33,8 +33,10 @@ const requestStatesConsts = {
 };
 
 const getDefaultFormState = (inputNames) => ({
-  errorMsg: '',
-  successData: null,
+  formResult: {
+    msg: '',
+    data: null,
+  },
   inputsErrors: null,
   inputs: Object.fromEntries(inputNames.map((inputName) => [inputName, ''])),
 });
@@ -89,15 +91,16 @@ export default function useForms(formConfigs) {
 
   const getFormStateAndHelpers = useCallback(
     (formId) => ({
-      setErrorMsg: (errorMsg) => updateFormState(formId, { errorMsg }),
-      setSuccessData: (data) => updateFormState(formId, { successData: data }),
+      setformResult: (formResult) => updateFormState(formId, { formResult }),
       setInputsErrors: (inputsErrors) =>
         updateFormState(formId, { inputsErrors }),
       resetForm: () => {
-        updateFormState(
-          formId,
-          getDefaultFormState(formConfigs[formId].inputNames),
-        );
+        updateFormState(formId, {
+          inputsErrors: null,
+          inputs: Object.fromEntries(
+            formConfigs[formId].inputNames.map((inputName) => [inputName, '']),
+          ),
+        });
         setRequestState(formId, requestStatesConsts.initial);
       },
       validationRules: (() => {
@@ -154,27 +157,21 @@ export default function useForms(formConfigs) {
 
   const calls = Object.fromEntries(
     Object.entries(formConfigs).map(([formId, formConfig]) => {
-      const { resetForm, setInputsErrors, setErrorMsg, setSuccessData } =
+      const { resetForm, setInputsErrors, setformResult } =
         getFormStateAndHelpers(formId);
       return [
         formId,
         formConfig.hook((response, success) => {
-          setInputsErrors(null);
-          setSuccessData(null);
+          setformResult(response);
           if (!success) {
             setRequestState(formId, requestStatesConsts.error);
-            setErrorMsg(response.msg || 'Form request failed');
             if (response.data) {
               setInputsErrors(mapValidationErrors(response.data, inputFormats));
             }
             return;
           }
-
           saveUserId();
           resetForm();
-          if (response.data) {
-            setSuccessData(response.data);
-          }
           setRequestState(formId, requestStatesConsts.success);
         }),
       ];

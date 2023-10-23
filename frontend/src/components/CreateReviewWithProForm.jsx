@@ -50,8 +50,7 @@ const getFormInfoMessage = (smsPaymentPhone) =>
   `Each review costs 0.5€. After submitting this form, you will receive a code. Please send the code to phone number ${smsPaymentPhone} via SMS.`;
 
 export function CreateReviewWithPro({
-  errorMsg,
-  successData,
+  formResult,
   state,
   inputsErrors,
   inputs,
@@ -250,10 +249,10 @@ export function CreateReviewWithPro({
         </FormControl>
       </FormGroup>
 
-      {state.isError ? <ErrorMessage message={errorMsg} /> : null}
+      {state.isError ? <ErrorMessage message={formResult.msg} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={getSuccessMessage(successData.smsCode, smsPaymentPhone)}
+          message={getSuccessMessage(formResult.data.smsCode, smsPaymentPhone)}
         />
       ) : null}
     </Box>
@@ -261,12 +260,11 @@ export function CreateReviewWithPro({
 }
 
 CreateReviewWithPro.defaultProps = {
-  successData: null,
+  formResult: null,
 };
 
 CreateReviewWithPro.prototype.propTypes = {
-  errorMsg: PropTypes.string.isRequired,
-  successData: PropTypes.oneOfType([
+  formResult: PropTypes.oneOfType([
     unknownObjectValidator,
     PropTypes.oneOf([null]),
   ]),
