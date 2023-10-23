@@ -29,28 +29,20 @@ func RandomString(length int) string {
 	return RandomStringWithCharset(length, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_#$.!@")
 }
 
-func SetOKJSONResponse(ctx *gin.Context, data any) {
-	ctx.JSON(
-		http.StatusOK,
-		gin.H{
-			"error": nil,
-			"data":  data,
-		},
-	)
+func SetJSONResponse(ctx *gin.Context, response HttpResponse) {
+	ctx.AbortWithStatusJSON(response.Code, map[string]any{
+		"msg":  response.Msg,
+		"data": response.Data,
+	})
 }
 
-func SetErrorJSONResponse(ctx *gin.Context, httpCode int, errMsg string, data ...any) {
-	var _data any = nil
-	if data != nil {
-		_data = data[0]
+func SetOKJSONResponse(ctx *gin.Context, msg string, data ...any) {
+	var respData any = nil
+
+	if len(data) > 0 {
+		respData = data[0]
 	}
-	ctx.AbortWithStatusJSON(httpCode, gin.H{
-		"error": map[string]any{
-			"msg":       errMsg,
-			"extraData": _data,
-		},
-		"data": nil,
-	})
+	SetJSONResponse(ctx, HttpResponse{Msg: msg, Code: http.StatusOK, Data: respData})
 }
 
 func GetValidationErrors(errors any) []map[string]any {
@@ -71,55 +63,38 @@ func GetValidationErrors(errors any) []map[string]any {
 	return res
 }
 
-func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
-
-	var _responseMeta ResponseMeta
-
-	if responseMeta == nil {
-		_responseMeta = ResponseMeta{
-			ExtraData: nil,
-		}
-		if err == ErrNoRows {
-			_responseMeta.Code = http.StatusBadRequest
-			_responseMeta.Msg = "no results found for the given request"
-		}
-	} else {
-		_responseMeta = responseMeta[0]
-	}
-
-	if _responseMeta.Code == 0 { // if not filled in
-		_responseMeta.Code = http.StatusInternalServerError
-	}
-
-	if _responseMeta.Msg != "" {
-		return HttpError{
-			Error:        err,
-			ResponseMeta: _responseMeta,
+func GetHttpResponseFromError(err error) *HttpResponse {
+	validationErrors := GetValidationErrors(err)
+	if validationErrors != nil || err == ErrBadInputs {
+		return &HttpResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "Your request is invalid, please review the information you've provided.",
+			Data: validationErrors,
 		}
 	}
 
-	if _responseMeta.Code == http.StatusInternalServerError {
-		_responseMeta.Msg = "hoops, internal server error give it an other try"
+	if err == ErrNoRows {
+		return &HttpResponse{Code: http.StatusBadRequest, Msg: "No results found for the given request."}
 	}
 
-	if _responseMeta.Code == http.StatusBadRequest {
-		_responseMeta.Msg = "your request is invalid, please review the information you've provided"
+	if err == ErrRecordExist {
+		return &HttpResponse{Code: http.StatusBadRequest, Msg: "Given record already exist."}
 	}
 
-	if _responseMeta.Code == http.StatusNotFound {
-		_responseMeta.Msg = "page not found"
-	}
-
-	return HttpError{
-		Error:        err,
-		ResponseMeta: _responseMeta,
-	}
+	return nil
 }
 
-func CheckErrAndPanic(err error, respMeta ...ResponseMeta) {
-	if err != nil {
-		panic(NewHttpError(err, respMeta...))
+func CheckErrAndPanic(err error) {
+	if err == nil {
+		return
 	}
+
+	httpResponse := GetHttpResponseFromError(err)
+	if httpResponse != nil {
+		panic(*httpResponse)
+	}
+
+	panic(err)
 }
 
 func StripTags(text string) string {
@@ -186,18 +161,6 @@ func ToPascalCase(snakeOrCamel string) string {
 	}
 	camel := ToCamelCase(snakeOrCamel)
 	return strings.ToUpper(camel[0:1]) + camel[1:]
-}
-
-func PublicRolesValidator(fl validator.FieldLevel) bool {
-	fieldValue := fl.Field().String()
-
-	for _, allowedValue := range publicRoles {
-		if fieldValue == allowedValue {
-			return true
-		}
-	}
-
-	return false
 }
 
 func StringValidator(fl validator.FieldLevel) bool {

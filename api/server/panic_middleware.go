@@ -16,17 +16,20 @@ func panicMiddleware(s *server) gin.HandlerFunc {
 				return
 			}
 
-			if httpError, castingOk := r.(common.HttpError); castingOk {
-				if httpError.Error != nil && httpError.ResponseMeta.Code == http.StatusInternalServerError {
-					s.logError(ctx, httpError.Error)
-				}
-				common.SetErrorJSONResponse(
-					ctx, httpError.ResponseMeta.Code,
-					httpError.ResponseMeta.Msg,
-					httpError.ResponseMeta.ExtraData,
+			if httpResponse, castingOk := r.(common.HttpResponse); castingOk {
+				common.SetJSONResponse(
+					ctx,
+					httpResponse,
 				)
 			} else {
 				s.logError(ctx, errors.New(fmt.Sprintf("%s", r)))
+				common.SetJSONResponse(
+					ctx,
+					common.HttpResponse{
+						Code: http.StatusInternalServerError,
+						Msg:  "Hoops, internal server error give it an other try.",
+					},
+				)
 			}
 			s.GetQueryRunner(ctx).Rollback()
 

@@ -23,7 +23,7 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		server.GetQueryRunner(ctx).Commit()
-		common.SetOKJSONResponse(ctx, frontEndDataResponse{
+		common.SetOKJSONResponse(ctx, "", frontEndDataResponse{
 			Filters: map[string]*[]common.FilterItem{
 				"profession": professions,
 			},

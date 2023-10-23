@@ -1,31 +1,5 @@
 package common
 
-// this file is consisted of all requests coming from the browser/app to REST API
-type RegisterUserRequest struct {
-	FullName any `json:"fullName" validate:"required,multiWords"`
-	Email    any `json:"email" validate:"required,email"`
-	Role     any `json:"role" validate:"required,publicRoles"`
-}
-
-type UpdateUserRequest struct {
-	Username any `json:"username" validate:"required,string,min=3"`
-	FullName any `json:"fullName" validate:"required,string,min=3"`
-	Email    any `json:"email" validate:"required,email"`
-}
-
-type LoginUserRequest struct {
-	UsernameOrEmail any `json:"usernameOrEmail" validate:"required,string,min=3"`
-	Password        any `json:"password" validate:"required,string"`
-}
-
-type CreatePasswordChangeRequest struct {
-	Email any `json:"email" validate:"required,email"`
-}
-
-type PasswordChangeRequest struct {
-	Password any `json:"password" validate:"required,password"`
-}
-
 type CreateReviewRequest struct {
 	Text   *string `json:"text" validate:"omitempty,string"`
 	Rating int     `json:"rating" validate:"required,numeric,min=1,max=5"`
@@ -57,11 +31,6 @@ type CreateReviewForExistingProfessionalRequest struct {
 
 // add here empty request instances that has validation rules
 var requests = []any{
-	RegisterUserRequest{},
-	UpdateUserRequest{},
-	LoginUserRequest{},
-	CreatePasswordChangeRequest{},
-	PasswordChangeRequest{},
 	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
 }

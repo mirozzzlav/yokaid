@@ -11,8 +11,9 @@ export default function InitialDataProvider({ children }) {
       config.filter.getNames().map((fName) => [fName, null]),
     ),
   });
-  const onDataArrived = useCallback((response) => {
-    if (response.error) {
+  const onDataArrived = useCallback((response, success) => {
+    console.log(response);
+    if (!success) {
       return;
     }
 

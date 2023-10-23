@@ -15,7 +15,7 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 		}
 		columnAliasesStr, paramExist := ctx.Params.Get("columnAliases")
 		if !paramExist || columnAliasesStr == "" {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
+			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 
 		}
 		columnAliases := strings.Split(columnAliasesStr, ";")
@@ -26,7 +26,7 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 		}
 		server.GetQueryRunner(ctx).Commit()
 
-		common.SetOKJSONResponse(ctx, filterItems)
+		common.SetOKJSONResponse(ctx, "", filterItems)
 	}
 }
 func GetRoutes(server common.Server) []common.Route {

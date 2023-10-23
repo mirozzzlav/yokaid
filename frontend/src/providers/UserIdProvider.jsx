@@ -22,16 +22,16 @@ export default function UserIdProvider({ children }) {
       loadUserId,
       inputFormat: inputFormats?.phone || '',
       validationRules: 'required,phone',
-      getErrorMsg: (error) => {
+      getErrorMsg: ({ data: validationErrors, msg }) => {
         if (
-          error.extraData &&
-          Object.values(error.extraData).find(
+          validationErrors &&
+          Object.values(validationErrors).find(
             ({ field }) => field === 'userPhone',
           )
         ) {
           return `Ensure the phone match the format: ${inputFormats?.phone}`;
         }
-        return error.msg || 'Unknown error happened.';
+        return msg || 'Unknown error happened.';
       },
     }),
     [userId, inputFormats],

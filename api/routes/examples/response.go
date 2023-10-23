@@ -8,7 +8,7 @@ import (
 func jsonResponse(server common.Server) func(ctx *gin.Context) {
 
 	return func(ctx *gin.Context) {
-		common.SetOKJSONResponse(ctx, "JSON response")
+		common.SetOKJSONResponse(ctx, "JSON response.")
 	}
 
 }

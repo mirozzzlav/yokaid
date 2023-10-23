@@ -23,6 +23,6 @@ func getProfessions(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, professions)
+		common.SetOKJSONResponse(ctx, "", professions)
 	}
 }

@@ -50,8 +50,6 @@ type StoreHelpers interface {
 	GetUserFromPasswordChangeRequest(token string) (int, error)
 	CreatePasswordChangeRequest(userId int) (string, error)
 	GetUsersCount(emailOrUsername string) (int, error)
-	RegisterUser(req RegisterUserRequest) (string, error)
-	GetUser(usernameOrEmail string) (*User, error)
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
 	CreateReviewAndProfessional(req CreateReviewAndProfessionalRequest) (int, error)

@@ -30,9 +30,9 @@ type config struct {
 	SMSPaymentPhone     string
 }
 
-var publicRoles = []string{"guest"}
 var ErrNoRows = errors.New("no rows in result set")
 var ErrRecordExist = errors.New("given record already exist")
+var ErrBadInputs = errors.New("bad inputs provided")
 
 type reviewStates struct {
 	New    string

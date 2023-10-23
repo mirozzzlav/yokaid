@@ -1,9 +1,9 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { callStates } from 'src/constants';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 
 const initialResponse = {
-  error: null,
+  msg: '',
   data: null,
 };
 
@@ -34,6 +34,7 @@ export default function useCall(onCallFinish = null) {
             if (typeof r.data === 'undefined') {
               // no data field - it is coming from some external API response
               return {
+                ...initialResponse,
                 data: r,
               };
             }
@@ -45,11 +46,7 @@ export default function useCall(onCallFinish = null) {
         })
         .catch(() => {
           // Handle any errors
-          setState(callStates.error);
-          setResponse((prevResponse) => ({
-            ...prevResponse,
-            error: 'Huups! Something went wrong.',
-          }));
+          setState(callStates.finished);
         });
     },
     [],
@@ -61,7 +58,7 @@ export default function useCall(onCallFinish = null) {
       return;
     }
     if (state === callStates.finished) {
-      onCallFinish(response, httpResponseCode);
+      onCallFinish(response, httpResponseCode >= 200 && httpResponseCode < 300);
     }
   }, [state, response, httpResponseCode]);
 

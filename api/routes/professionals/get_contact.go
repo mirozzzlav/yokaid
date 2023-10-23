@@ -3,7 +3,6 @@ package professionals
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"some-app/api/common"
 )
 
@@ -18,9 +17,7 @@ func getProfessionalContact(server common.Server) gin.HandlerFunc {
 			PaymentType: "con",
 			UserPhone:   userPhone,
 		})
-
-		validationErrors := common.GetValidationErrors(err)
-		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
+		common.CheckErrAndPanic(err)
 
 		q := server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userPhone)
 		contacts, contactsModelLoader := common.ContactsModelLoader()
@@ -41,7 +38,7 @@ func getProfessionalContact(server common.Server) gin.HandlerFunc {
 			err = server.GetQueryRunner(ctx).Commit()
 			common.CheckErrAndPanic(err)
 
-			common.SetOKJSONResponse(ctx, map[string]any{
+			common.SetOKJSONResponse(ctx, "", map[string]any{
 				"contact": nil,
 				"code":    fmt.Sprintf("con%d", professionalId),
 			})
@@ -52,6 +49,7 @@ func getProfessionalContact(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(
 			ctx,
+			"",
 			map[string]any{
 				"contact": (*contacts)[0],
 				"code":    "",

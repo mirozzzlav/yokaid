@@ -58,9 +58,9 @@ export default function ProfessionalContact({
   const [code, setCode] = useState('');
   const { smsPaymentPhone } = useContext(InitialDataContext);
 
-  const call = useCall((response) => {
-    if (response.error) {
-      setPhoneError(getErrorMsg(response.error));
+  const call = useCall((response, success) => {
+    if (!success) {
+      setPhoneError(getErrorMsg(response));
     } else {
       if (response.data.contact) {
         onContactPaid((prevState) => ({

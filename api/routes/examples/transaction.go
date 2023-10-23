@@ -40,35 +40,12 @@ func transaction(server common.Server) func(ctx *gin.Context) {
 		fmt.Println(users1)
 		fmt.Println(users2)
 
-		common.SetOKJSONResponse(ctx, users2)
+		common.SetOKJSONResponse(ctx, "", users2)
 
 	}
 }
 
 func secondTransaction(server common.Server) func(ctx *gin.Context) {
-	return func(ctx *gin.Context) {
-		username, _ := ctx.Params.Get("username")
-
-		server.GetQueryRunner(ctx).Begin()
-		q := server.GetQueriesRepo().QueryUserTest(
-			common.QueryPartial{
-				Query:  " WHERE username= ?",
-				Params: []any{username},
-			},
-		)
-
-		users, usersLoader := common.UsersModelLoader()
-		err := server.GetQueryRunner(ctx).GetRows(q, usersLoader)
-		common.CheckErrAndPanic(err)
-
-		err = server.GetQueryRunner(ctx).Commit()
-		common.CheckErrAndPanic(err)
-
-		common.SetOKJSONResponse(ctx, users)
-	}
-}
-
-func thirdTransaction(server common.Server) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
 		server.GetQueryRunner(ctx).Begin()

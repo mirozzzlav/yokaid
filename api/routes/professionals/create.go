@@ -16,19 +16,15 @@ func create(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		err = server.GetValidate().Struct(req)
-		validationErrors := common.GetValidationErrors(err)
-		common.CheckErrAndPanic(err, common.ResponseMeta{Code: http.StatusBadRequest, ExtraData: validationErrors})
+		common.CheckErrAndPanic(err)
 
 		reviewId, err := server.GetStoreHelpers(ctx).CreateReviewAndProfessional(req)
 		if err == common.ErrRecordExist {
 			panic(
-				common.NewHttpError(
-					err,
-					common.ResponseMeta{
-						Code: http.StatusBadRequest,
-						Msg:  "Person with the given phone or email already exist.",
-					},
-				),
+				common.HttpResponse{
+					Code: http.StatusBadRequest,
+					Msg:  "Person with the given phone or email already exist.",
+				},
 			)
 		}
 		common.CheckErrAndPanic(err)
@@ -45,6 +41,7 @@ func create(server common.Server) gin.HandlerFunc {
 
 		common.SetOKJSONResponse(
 			ctx,
+			"",
 			map[string]string{"smsCode": fmt.Sprintf("rev%d", reviewId)},
 		)
 	}

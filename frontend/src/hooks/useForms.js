@@ -158,28 +158,23 @@ export default function useForms(formConfigs) {
         getFormStateAndHelpers(formId);
       return [
         formId,
-        formConfig.hook((response) => {
+        formConfig.hook((response, success) => {
           setInputsErrors(null);
           setSuccessData(null);
-          if (response.error) {
+          if (!success) {
             setRequestState(formId, requestStatesConsts.error);
-            setErrorMsg(response.error.msg || 'Form request failed');
-            if (response.error.extraData) {
-              setInputsErrors(
-                mapValidationErrors(response.error.extraData, inputFormats),
-              );
+            setErrorMsg(response.msg || 'Form request failed');
+            if (response.data) {
+              setInputsErrors(mapValidationErrors(response.data, inputFormats));
             }
             return;
           }
 
           saveUserId();
           resetForm();
-          if (typeof response.data === 'string') {
-            setSuccessData({ msg: response.data });
-          } else {
+          if (response.data) {
             setSuccessData(response.data);
           }
-
           setRequestState(formId, requestStatesConsts.success);
         }),
       ];

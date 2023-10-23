@@ -16,22 +16,6 @@ function unknownObjectValidator(props, propName, componentName) {
   return null;
 }
 
-function getTokenFromResponse(response, httpErrorCode) {
-  if (response.error || httpErrorCode === '401') {
-    return null;
-  }
-
-  if (response?.data.access_token) {
-    return response?.data.access_token;
-  }
-
-  if (response.refresh_token) {
-    return response.refresh_token;
-  }
-
-  return null;
-}
-
 function toLocalDate(dateStr) {
   return new Date(dateStr).toLocaleString('sk-SK', {
     year: 'numeric',
@@ -109,7 +93,6 @@ function getStringForCount(count, wordShapes) {
 export {
   unknownObjectValidator,
   toSnakeCase,
-  getTokenFromResponse,
   toLocalDate,
   toUTCDate,
   isFieldRequired,

@@ -9,8 +9,8 @@ export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
   const { getFilterUrl } = useContext(FilterContext);
   const [callId, setCallId] = useState(null);
-  const call = useCall((response) => {
-    setProfessionals(!response.error ? response.data : null);
+  const call = useCall((response, success) => {
+    setProfessionals(success ? response.data : null);
   });
 
   const { mapAreaRequest } = useContext(MapContext);

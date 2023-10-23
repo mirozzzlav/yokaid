@@ -29,11 +29,7 @@ func NewServer(
 	notifier common.Notifier,
 ) (common.Server, error) {
 	validate := validator.New()
-	err := validate.RegisterValidation("publicRoles", common.PublicRolesValidator)
-	if err != nil {
-		return nil, err
-	}
-	err = validate.RegisterValidation("password", common.PasswordValidator)
+	err := validate.RegisterValidation("password", common.PasswordValidator)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +108,7 @@ func (s *server) initRouter() {
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusNotFound}))
+			panic(common.HttpResponse{Code: http.StatusNotFound, Msg: "Cannot find given route."})
 		},
 	)
 

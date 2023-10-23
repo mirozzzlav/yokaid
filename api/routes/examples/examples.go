@@ -11,10 +11,8 @@ func GetRoutes(server common.Server) []common.Route {
 		common.NewRoute("/example/response", http.MethodGet, jsonResponse(server)),
 		common.NewRoute("/example/email", http.MethodGet, submitEmail(server)),
 		common.NewRoute("/example/panic", http.MethodGet, panicError(server)),
-		common.NewRoute("/example/query/:username", http.MethodGet, query(server)),
 		common.NewRoute("/example/transaction/:username", http.MethodGet, transaction(server)),
 		common.NewRoute("/example/second-transaction/:username", http.MethodGet, secondTransaction(server)),
-		common.NewRoute("/example/third-transaction/", http.MethodGet, thirdTransaction(server)),
 		common.NewRoute("/example/validate/:id", http.MethodPut, validate(server)),
 	}
 }

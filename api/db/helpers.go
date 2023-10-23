@@ -127,56 +127,6 @@ func (sH *StoreHelpers) GetUsersCount(emailOrUsername string) (int, error) {
 	return usersCount, nil
 }
 
-func (sH *StoreHelpers) RegisterUser(req common.RegisterUserRequest) (string, error) {
-	username, err := sH.GenerateUserName(req.FullName.(string))
-	if err != nil {
-		return "", err
-	}
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "insert into users (username, full_name, email, role) VALUES (?, ?, ?, ?)",
-				Params: []any{username, req.FullName, req.Email, req.Role},
-			},
-		},
-	}
-	tmpUserId, err := sH.QueryRunner.Exec(q, "id")
-	if err != nil {
-		return "", err
-	}
-
-	userId, err := common.ConvertToInt(tmpUserId)
-	if err != nil {
-		return "", err
-	}
-	return sH.CreatePasswordChangeRequest(userId)
-
-}
-
-func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
-
-	usersRef, UsersModelLoader := common.UsersModelLoader()
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "select * from users where (username = ? or email = ?)",
-				Params: []any{usernameOrEmail, usernameOrEmail},
-			},
-		}}
-
-	err := sH.QueryRunner.GetRows(q, UsersModelLoader)
-	if err != nil {
-		return nil, err
-	}
-	if len(*usersRef) == 0 {
-		return nil, common.ErrNoRows
-	}
-	user := (*usersRef)[0]
-
-	return &user, nil
-}
-
 func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
 	type filterMapItem struct {
 		Q       string

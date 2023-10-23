@@ -10,18 +10,13 @@ type Route struct {
 	Handler gin.HandlerFunc
 }
 
-type HttpError struct {
-	Error        error
-	ResponseMeta ResponseMeta
+type HttpResponse struct {
+	Code int
+	Msg  string
+	Data any
 }
 
 type QueryPartial struct {
 	Query  string
 	Params []any
-}
-
-type ResponseMeta struct {
-	Code      int
-	Msg       string
-	ExtraData any
 }

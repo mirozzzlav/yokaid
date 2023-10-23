@@ -2,7 +2,6 @@ package professionals
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"some-app/api/common"
 )
 
@@ -21,7 +20,7 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, pros)
+		common.SetOKJSONResponse(ctx, "", pros)
 	}
 }
 
@@ -43,7 +42,7 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, infos)
+		common.SetOKJSONResponse(ctx, "", infos)
 	}
 }
 
@@ -54,11 +53,11 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 
 		professionalIdStr, paramExist := ctx.Params.Get("professionalId")
 		if !paramExist {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
+			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 		}
 		professionalId, err := common.ConvertToInt(professionalIdStr)
 		if err != nil {
-			panic(common.NewHttpError(nil, common.ResponseMeta{Code: http.StatusBadRequest}))
+			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 		}
 
 		userPhone, _ := ctx.Params.Get("userPhone")
@@ -82,7 +81,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, pros)
+		common.SetOKJSONResponse(ctx, "", pros)
 
 	}
 }
