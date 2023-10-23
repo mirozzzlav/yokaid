@@ -61,10 +61,17 @@ function isFieldRequired(rule) {
 function isInt(str) {
   return !Number.isNaN(parseInt(str, 10));
 }
-function getMergedStyle(style, responsiveStyle) {
+function getMergedStyle(style, style2) {
+  if (!style2) {
+    return style;
+  }
   const res = { ...style };
-  Object.keys(responsiveStyle).forEach((k) => {
-    res[k] = { ...style[k], ...responsiveStyle[k] };
+  Object.keys(style2).forEach((k) => {
+    if (typeof style2[k] === 'string') {
+      res[k] = style2[k];
+    } else {
+      res[k] = { ...style[k], ...style2[k] };
+    }
   });
   return res;
 }

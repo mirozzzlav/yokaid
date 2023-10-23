@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { SmallCloseIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton } from '@chakra-ui/react';
 import theme from 'src/style';
-import { unknownObjectValidator } from 'src/helpers';
 
 const style = {
   wrapper: {
@@ -14,7 +13,7 @@ const style = {
     border: `1px solid ${theme.colors.orange[200]}`,
     background: `${theme.colors.orange[50]}`,
     borderRadius: theme.radii.md,
-    padding: '3px 5px',
+    padding: `${theme.space[1]} ${theme.space[2]}`,
   },
   iconBtn: {
     display: 'block',

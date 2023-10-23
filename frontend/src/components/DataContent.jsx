@@ -2,33 +2,31 @@ import { Box, Flex, Text } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import theme from 'src/style';
+import { getMergedStyle } from 'src/helpers';
 
 const style = {
-  record: (compact) => ({
-    marginBottom: theme.space[3],
-    lineHeight: 1,
-    '> h4': {
-      marginBottom: theme.space[1],
-      fontWeight: theme.fontWeights.medium,
-      lineHeight: '1.2rem',
-    },
-    '> *': {
-      lineHeight: 1,
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-      width: '100%',
-    },
-    ...(compact && {
-      marginBottom: theme.space[1],
-      fontSize: '0.9rem',
-      lineHeight: '1.1rem',
-      '> h4': {
-        marginBottom: 0,
-        fontWeight: theme.fontWeights.bold,
+  record: (compact) =>
+    getMergedStyle(
+      {
+        marginBottom: theme.space[5],
+        lineHeight: '1.1rem',
+        '> *': {
+          width: '100%',
+        },
+        '> h4': {
+          fontWeight: theme.fontWeights.medium,
+          marginBottom: theme.space[1],
+        },
       },
-    }),
-  }),
+      compact && {
+        marginBottom: theme.space[2],
+        '> *': {
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+        },
+      },
+    ),
 };
 
 export default function DataContent({ data, compact }) {

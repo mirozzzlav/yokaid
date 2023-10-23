@@ -1,14 +1,12 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Box, Flex } from '@chakra-ui/react';
-import Modal from 'src/components/Modal';
 import { unknownObjectValidator } from 'src/helpers';
 import theme from 'src/style';
 import Rating from 'src/components/Rating';
 import config from 'src/config';
 import DataContent from 'src/components/DataContent';
-import MultiItem, { MultiInput } from 'src/components/MultiItem';
-import { buttonPropType } from 'src/constants';
+import MultiItem from 'src/components/MultiItem';
 
 const style = {
   review: {
