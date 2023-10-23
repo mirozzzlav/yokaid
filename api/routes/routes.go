@@ -8,14 +8,12 @@ import (
 	"some-app/api/routes/professionals"
 	"some-app/api/routes/professions"
 	"some-app/api/routes/reviews"
-	"some-app/api/routes/users"
 )
 
 var routes []common.Route // private variable, not to use directly
 
 func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, examples.GetRoutes(server)...)
-	routes = append(routes, users.GetRoutes(server)...)
 	routes = append(routes, professionals.GetRoutes(server)...)
 	routes = append(routes, frontendData.GetRoutes(server)...)
 	routes = append(routes, filterItems.GetRoutes(server)...)

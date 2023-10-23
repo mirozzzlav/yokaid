@@ -24,7 +24,6 @@ type config struct {
 	Url                 string
 	AssetsFolder        string
 	AssetsRelativeUrl   string
-	Policy              AuthPolicyConfig
 	Logs                logsConfig
 	PublicRoles         []string
 	InputFormats        map[string]string
@@ -83,22 +82,7 @@ var Config, _ = func(mode string) (config, error) {
 		Url:                 os.Getenv("API_URL"),
 		AssetsFolder:        "./assets",
 		AssetsRelativeUrl:   "/assets",
-		Policy: AuthPolicyConfig{
-			Model: `
-				[request_definition]
-				r = user, role, act, resource
-				
-				[policy_definition]
-				p = user, role, act, resource
-				
-				[policy_effect]
-				e = some(where (p.eft == allow))
-				
-				[matchers]
-				m = r.role == 'admin' || ((r.role == p.role || r.user == p.user) && r.act == p.act && keyMatch(r.resource,p.resource))
-			`,
-		},
-		Logs: getLogsConfig(),
+		Logs:                getLogsConfig(),
 		InputFormats: map[string]string{
 			"phone": "+421 9xx xxx xxx",
 		},

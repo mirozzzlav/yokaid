@@ -2,22 +2,18 @@ package server
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"regexp"
-	"some-app/api/auth"
 	"some-app/api/common"
 	"some-app/api/routes"
 )
 
 type server struct {
-	tokenMaker              common.Maker
 	router                  *gin.Engine
 	logError                func(ctx *gin.Context, err error)
 	routes                  []common.Route
-	authUser                *common.AuthUser
 	queriesRepo             common.QueriesRepo
 	validate                *validator.Validate
 	notifier                common.Notifier
@@ -32,14 +28,8 @@ func NewServer(
 	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers,
 	notifier common.Notifier,
 ) (common.Server, error) {
-
-	tokenMaker, err := auth.NewPasetoMaker(common.Config.TokenSymmetricKey)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create token maker: %w", err)
-	}
-
 	validate := validator.New()
-	err = validate.RegisterValidation("publicRoles", common.PublicRolesValidator)
+	err := validate.RegisterValidation("publicRoles", common.PublicRolesValidator)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +59,6 @@ func NewServer(
 	}
 
 	server := &server{
-		tokenMaker:              tokenMaker,
 		queriesRepo:             repo,
 		validate:                validate,
 		notifier:                notifier,
@@ -106,9 +95,7 @@ func (s *server) initRouter() {
 	}
 
 	router.Use(
-		//jsonbBufferWriterMiddleware(s), // this has to be first, as it turns on buffering on response for token appending
 		panicMiddleware(s),
-		//auth.Middleware(s),
 		func(ctx *gin.Context) {
 			// init repo + store helper
 			qRunner := s.queryRunnerInitializer(ctx, s.db)
@@ -142,18 +129,6 @@ func (s *server) GetQueriesRepo() common.QueriesRepo {
 	return s.queriesRepo
 }
 
-func (s *server) GetTokenMaker() common.Maker {
-	return s.tokenMaker
-}
-
-func (s *server) SetAuthUser(u common.AuthUser) {
-	s.authUser = &u
-}
-
-func (s *server) GetAuthUser() *common.AuthUser {
-	return s.authUser
-}
-
 func (s *server) findInRoutes(matchFunc func(route common.Route) bool) bool {
 	for _, route := range s.routes {
 
@@ -162,10 +137,6 @@ func (s *server) findInRoutes(matchFunc func(route common.Route) bool) bool {
 		}
 	}
 	return false
-}
-
-func (s *server) IsPrivateRoute(path string) bool {
-	return s.findInRoutes(func(route common.Route) bool { return route.Path == path && route.IsPrivate })
 }
 
 func (s *server) GetValidate() *validator.Validate {

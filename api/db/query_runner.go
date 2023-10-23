@@ -33,26 +33,6 @@ func createDataElement(colNames []string, colValues []any) map[string]any {
 	return resultElem
 }
 
-func createDataElementAsArray(colValues []any) []any {
-	resultElem := make([]any, len(colValues))
-
-	for i := range colValues {
-		value := colValues[i]
-		valueBytes, err := common.GetJSONBytes(value)
-		if err == nil {
-			resultElem[i] = valueBytes
-		} else {
-			valueBytes, isByteArray := value.([]byte)
-			if isByteArray {
-				resultElem[i] = string(valueBytes)
-			} else {
-				resultElem[i] = value
-			}
-		}
-	}
-	return resultElem
-}
-
 func NewQueryRunner(ctx *gin.Context, store any) common.QueryRunner {
 
 	qrAny, qrExist := ctx.Get("queryRunner")
@@ -109,7 +89,7 @@ func (qr *queryRunner) Commit() error {
 	return nil
 }
 
-func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArrayOfArrays bool) error {
+func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte)) error {
 
 	qString, qParams := q.GetQuery()
 
@@ -135,20 +115,12 @@ func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte), asArray
 			return err
 		}
 
-		if asArrayOfArrays {
-			elemBytes, err := json.Marshal(createDataElementAsArray(values))
-			if err != nil {
-				return err
-			}
-			fn(elemBytes)
-		} else {
-			elemBytes, err := json.Marshal(createDataElement(columns, values))
+		elemBytes, err := json.Marshal(createDataElement(columns, values))
 
-			if err != nil {
-				return err
-			}
-			fn(elemBytes)
+		if err != nil {
+			return err
 		}
+		fn(elemBytes)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -174,11 +146,7 @@ func (qr *queryRunner) GetScalar(q common.Query) (any, error) {
 }
 
 func (qr *queryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
-	return qr.getRows(q, fn, false)
-}
-
-func (qr *queryRunner) GetRowsAsArrayOfArrays(q common.Query, fn func(rowBytes []byte)) error {
-	return qr.getRows(q, fn, true)
+	return qr.getRows(q, fn)
 }
 
 func (qr *queryRunner) Exec(q common.Query, idColumnNameParam ...string) (any, error) {

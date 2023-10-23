@@ -3,21 +3,10 @@ package common
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"time"
 )
 
-type Maker interface {
-	CreateToken(user AuthUser) (string, error)
-	VerifyToken(token string, tokenDuration time.Duration) (*AuthPayload, error)
-	ParseToken(token string) (*AuthPayload, error)
-}
-
 type Server interface {
-	GetTokenMaker() Maker
 	GetQueriesRepo() QueriesRepo
-	SetAuthUser(u AuthUser)
-	GetAuthUser() *AuthUser
-	IsPrivateRoute(path string) bool
 	GetValidate() *validator.Validate
 	GetNotifier() Notifier
 	Start() error
@@ -28,7 +17,6 @@ type Server interface {
 type QueryRunner interface {
 	GetScalar(q Query) (any, error)
 	GetRows(q Query, fn func(rowBytes []byte)) error
-	GetRowsAsArrayOfArrays(q Query, fn func(rowBytes []byte)) error
 	Begin() error
 	Commit() error
 	Exec(q Query, idColumnNameParam ...string) (any, error)
@@ -59,13 +47,11 @@ type QueriesRepo interface {
 type StoreHelpers interface {
 	GenerateUserName(fullName string) (string, error)
 	HandleFilter(filter string) (QueryPartial, error)
-	ChangeUserPassword(userId int, pass string) error
 	GetUserFromPasswordChangeRequest(token string) (int, error)
 	CreatePasswordChangeRequest(userId int) (string, error)
 	GetUsersCount(emailOrUsername string) (int, error)
 	RegisterUser(req RegisterUserRequest) (string, error)
 	GetUser(usernameOrEmail string) (*User, error)
-	GetUserAndVerifyPassword(usernameOrEmail string, password string) (*User, error)
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
 	CreateReviewAndProfessional(req CreateReviewAndProfessionalRequest) (int, error)

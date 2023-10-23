@@ -23,14 +23,9 @@ const filterElements = [
 ];
 
 export default {
-  auth: {
-    tokenType: 'bearer',
-  },
   api: {
     url: apiUrl, // Proxy api url instead of real one
     endPointsURLs: {
-      loginUser: `${apiUrl}/users/login`,
-      signupUser: `${apiUrl}/users/register`,
       getProfessionals: `${apiUrl}/professionals/get`,
       getProfessionalDetail: `${apiUrl}/professionals/get-detail`,
       searchProfessionals: `${apiUrl}/professionals/search`,
@@ -67,31 +62,5 @@ export default {
     },
   },
   maxRating: 5,
-  userMenuItems: {
-    unauthorized: [
-      {
-        action: 'login',
-        label: 'Login',
-        value: 'login',
-      },
-      {
-        action: 'signup',
-        label: 'Sign up',
-        value: 'signup',
-      },
-    ],
-    authorized: [
-      {
-        action: 'account',
-        label: 'Account',
-        value: 'account',
-      },
-      {
-        link: 'logout',
-        label: 'Log out',
-        value: 'logOut',
-      },
-    ],
-  },
   refreshInterval: 5000,
 };

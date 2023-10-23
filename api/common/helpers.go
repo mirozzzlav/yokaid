@@ -102,10 +102,6 @@ func NewHttpError(err error, responseMeta ...ResponseMeta) HttpError {
 		_responseMeta.Msg = "hoops, internal server error give it an other try"
 	}
 
-	if _responseMeta.Code == http.StatusUnauthorized {
-		_responseMeta.Msg = "user is not authorized for the given request"
-	}
-
 	if _responseMeta.Code == http.StatusBadRequest {
 		_responseMeta.Msg = "your request is invalid, please review the information you've provided"
 	}
@@ -350,18 +346,12 @@ func GetRequestsValidationRules() (map[string]map[string]string, error) {
 	return requestsValidationRules, nil
 }
 
-func NewRoute(path string, method string, handler gin.HandlerFunc, flags ...bool) Route {
-	isPrivate := false
-
-	if len(flags) > 0 {
-		isPrivate = flags[0]
-	}
+func NewRoute(path string, method string, handler gin.HandlerFunc) Route {
 
 	return Route{
-		Path:      path,
-		Method:    method,
-		Handler:   handler,
-		IsPrivate: isPrivate,
+		Path:    path,
+		Method:  method,
+		Handler: handler,
 	}
 }
 

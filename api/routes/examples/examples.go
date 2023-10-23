@@ -16,6 +16,5 @@ func GetRoutes(server common.Server) []common.Route {
 		common.NewRoute("/example/second-transaction/:username", http.MethodGet, secondTransaction(server)),
 		common.NewRoute("/example/third-transaction/", http.MethodGet, thirdTransaction(server)),
 		common.NewRoute("/example/validate/:id", http.MethodPut, validate(server)),
-		common.NewRoute("/example/password/:password", http.MethodGet, password(server)),
 	}
 }

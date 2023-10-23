@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"some-app/api/auth"
 	"some-app/api/common"
 	"strings"
 )
@@ -60,43 +59,6 @@ func (sH *StoreHelpers) GenerateUserName(fullName string) (string, error) {
 
 func (_ *StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) {
 	return handleFilter(filter)
-}
-
-func (sH *StoreHelpers) ChangeUserPassword(userId int, pass string) error {
-
-	hashedPass, err := auth.HashPassword(pass)
-	if err != nil {
-		return err
-	}
-
-	q := sH.QueriesRepo.UpdateUsersQuery(
-		common.QueryPartial{
-			Query:  "active = true, hashed_password = ?",
-			Params: []any{hashedPass},
-		},
-		common.QueryPartial{
-			Query:  "id = ?",
-			Params: []any{userId},
-		},
-	)
-
-	_, err = sH.QueryRunner.Exec(q)
-	if err != nil {
-		return err
-	}
-
-	q = sH.QueriesRepo.DeletePasswordChangeRequestsQuery(
-		common.QueryPartial{
-			Query:  "user_id = ?",
-			Params: []any{userId},
-		},
-	)
-
-	_, err = sH.QueryRunner.Exec(q, "user_id")
-	if err == common.ErrNoRows {
-		return nil
-	}
-	return err
 }
 
 func (sH *StoreHelpers) GetUserFromPasswordChangeRequest(token string) (int, error) {
@@ -213,24 +175,6 @@ func (sH *StoreHelpers) GetUser(usernameOrEmail string) (*common.User, error) {
 	user := (*usersRef)[0]
 
 	return &user, nil
-}
-
-func (sH *StoreHelpers) GetUserAndVerifyPassword(usernameOrEmail string, password string) (*common.User, error) {
-	user, err := sH.GetUser(usernameOrEmail)
-	if err != nil {
-		return nil, err
-	}
-
-	if user.Active == false {
-		return nil, common.ErrNoRows
-	}
-
-	err = auth.CheckPassword(password, user.HashedPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
 }
 
 func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]common.FilterItem, error) {

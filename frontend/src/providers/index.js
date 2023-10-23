@@ -1,4 +1,3 @@
-import AuthProvider, { AuthContext } from 'src/providers/AuthProvider';
 import LoaderProvider, { LoaderContext } from 'src/providers/LoaderProvider';
 import InitialDataProvider, {
   InitialDataContext,
@@ -8,8 +7,6 @@ import MapProvider, { MapContext } from 'src/providers/MapProvider';
 import UserIdProvider, { UserIdContext } from 'src/providers/UserIdProvider';
 
 export {
-  AuthProvider,
-  AuthContext,
   LoaderProvider,
   LoaderContext,
   InitialDataProvider,

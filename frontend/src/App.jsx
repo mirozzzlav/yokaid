@@ -1,9 +1,7 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { setLocalDataValue, getLocalDataValue } from 'src/helpers';
 import Routes from 'src/Routes';
 import {
-  AuthProvider,
   FilterProvider,
   InitialDataProvider,
   LoaderProvider,
@@ -16,15 +14,13 @@ function App() {
     <BrowserRouter>
       <LoaderProvider>
         <InitialDataProvider>
-          <AuthProvider>
-            <FilterProvider>
-              <MapProvider>
-                <UserIdProvider>
-                  <Routes />
-                </UserIdProvider>
-              </MapProvider>
-            </FilterProvider>
-          </AuthProvider>
+          <FilterProvider>
+            <MapProvider>
+              <UserIdProvider>
+                <Routes />
+              </UserIdProvider>
+            </MapProvider>
+          </FilterProvider>
         </InitialDataProvider>
       </LoaderProvider>
     </BrowserRouter>

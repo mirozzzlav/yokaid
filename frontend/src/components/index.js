@@ -1,9 +1,5 @@
-import { formConfigFactory as loginFormConfigFactory } from 'src/components/LoginForm';
-import { formConfigFactory as signupFormConfigFactory } from 'src/components/SignupForm';
 import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
 import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
-import ForgotPassword from 'src/components/ForgotPassword';
-import NewPassword from 'src/components/NewPassword';
 import Message, {
   ErrorMessage,
   SuccessMessage,
@@ -24,13 +20,9 @@ import ProfessionalContact from 'src/components/ProfessionalContact';
 import RatingFormControls from 'src/components/RatingFormControls';
 
 export {
-  loginFormConfigFactory,
-  signupFormConfigFactory,
   createReviewFormConfigFactory,
   createReviewWithProConfigFactory,
   FormModals,
-  ForgotPassword,
-  NewPassword,
   Message,
   SearchDropdown,
   Dropdown,

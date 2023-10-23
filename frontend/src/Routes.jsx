@@ -15,14 +15,6 @@ const routes = [
   },
 ];
 
-export function isPublicRoute(routeToCheck) {
-  const routeStripped = routeToCheck.replace(/^\//, '');
-
-  return !!routes
-    .filter((route) => route.public)
-    .find((route) => routeStripped.includes(route));
-}
-
 export default function Routes() {
   return (
     <RoutesReactDom>

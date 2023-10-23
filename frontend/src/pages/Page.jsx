@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Avatar,
   Box,
   Flex,
   Icon,
@@ -10,16 +9,9 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import {
-  Dropdown,
-  FormModals,
-  loginFormConfigFactory,
-  signupFormConfigFactory,
-} from 'src/components';
+import { FormModals } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
-import { AuthContext } from 'src/providers';
-import config from 'src/config';
 import { useNavigateAction } from 'src/hooks';
 import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
@@ -127,49 +119,17 @@ function Page({
   modalsConfig: modalsConfigFromProps,
 }) {
   const { isLoading } = useContext(LoaderContext);
-  const { isAuthorized } = useContext(AuthContext);
-  const { logOut } = useContext(AuthContext);
   const style = useStyle();
   const { navigateAction, action, actionParams } = useNavigateAction();
-  const userMenuItems = useMemo(
-    () =>
-      (isAuthorized
-        ? config.userMenuItems.authorized
-        : config.userMenuItems.unauthorized
-      ).map((item) => ({
-        ...item,
-        onClick: () => navigateAction(item.action),
-      })),
-    [isAuthorized],
-  );
   const modalsConfig = useMemo(
     () => ({
       ...modalsConfigFromProps,
-      login: {
-        title: 'Login',
-        submitButton: {
-          label: 'Login',
-        },
-        formConfig: loginFormConfigFactory(),
-      },
-      signup: {
-        title: 'Sign up',
-        submitButton: {
-          label: 'Sign up',
-        },
-        formConfig: signupFormConfigFactory(),
-      },
+      // ... some page related modals here if required
     }),
     [action, actionParams, modalsConfigFromProps],
   );
 
   const filterRef = useRef();
-
-  useEffect(() => {
-    if (action === 'logout') {
-      logOut();
-    }
-  }, [action]);
 
   return (
     <Box sx={style.container(mode)}>
@@ -183,29 +143,7 @@ function Page({
             icon={<Icon as={Logo} sx={style.logo} />}
           />
           <Box sx={style.topContent}>{topContent}</Box>
-          <Box sx={style.topRight}>
-            <Dropdown
-              items={userMenuItems}
-              width="110px"
-              buttonMeta={{
-                content: <Avatar size="sm" />,
-                variant: 'ghost',
-                style: {
-                  padding: 0,
-                  borderRadius: '50%',
-                  ...(isAuthorized
-                    ? {
-                        background: theme.colors.green['100'],
-                        ':hover': { background: theme.colors.green['200'] },
-                      }
-                    : {
-                        background: theme.colors.gray['50'],
-                        ':hover': { background: theme.colors.gray['200'] },
-                      }),
-                },
-              }}
-            />
-          </Box>
+          <Box sx={style.topRight} />
         </Flex>
       </Box>
       {filterContent && (
