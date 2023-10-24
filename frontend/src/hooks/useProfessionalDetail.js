@@ -3,7 +3,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import config from 'src/config';
 import useNavigateAction from 'src/hooks/useNavigateAction';
 import { isInt } from 'src/helpers';
-import { UserIdContext } from 'src/providers';
+import { IntervalContext, UserIdContext } from 'src/providers';
 
 export function useGetProfessional(onSearchFinish) {
   const call = useCall((response) => {
@@ -27,14 +27,11 @@ export default function useProfessionalDetail() {
   const [professionalDetail, setProfessionalDetail] = useState(null);
   const callGetProfessional = useGetProfessional(setProfessionalDetail);
   const { action, actionParams } = useNavigateAction();
-  const refreshInterval = useRef(null);
+  const { addSubscriber, removeSubscriber } = useContext(IntervalContext);
 
   useEffect(() => {
-    if (refreshInterval.current) {
-      clearInterval(refreshInterval.current);
-      refreshInterval.current = null;
-    }
     if (!action) {
+      return removeSubscriber('callGetProfessional');
       setProfessionalDetail(null);
       return;
     }
@@ -44,10 +41,9 @@ export default function useProfessionalDetail() {
         : null;
 
       if (professionalId) {
-        callGetProfessional(professionalId);
-        refreshInterval.current = setInterval(() => {
-          callGetProfessional(professionalId);
-        }, config.refreshInterval);
+        addSubscriber('callGetProfessional', () =>
+          callGetProfessional(professionalId),
+        );
       }
     }
   }, [action, actionParams]);

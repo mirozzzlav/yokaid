@@ -4,6 +4,7 @@ import Routes from 'src/Routes';
 import {
   FilterProvider,
   InitialDataProvider,
+  IntervalProvider,
   LoaderProvider,
   MapProvider,
   UserIdProvider,
@@ -12,17 +13,19 @@ import {
 function App() {
   return (
     <BrowserRouter>
-      <LoaderProvider>
-        <InitialDataProvider>
-          <FilterProvider>
-            <MapProvider>
-              <UserIdProvider>
-                <Routes />
-              </UserIdProvider>
-            </MapProvider>
-          </FilterProvider>
-        </InitialDataProvider>
-      </LoaderProvider>
+      <IntervalProvider>
+        <LoaderProvider>
+          <InitialDataProvider>
+            <FilterProvider>
+              <MapProvider>
+                <UserIdProvider>
+                  <Routes />
+                </UserIdProvider>
+              </MapProvider>
+            </FilterProvider>
+          </InitialDataProvider>
+        </LoaderProvider>
+      </IntervalProvider>
     </BrowserRouter>
   );
 }

@@ -12,7 +12,6 @@ export default function InitialDataProvider({ children }) {
     ),
   });
   const onDataArrived = useCallback((response, success) => {
-    console.log(response);
     if (!success) {
       return;
     }

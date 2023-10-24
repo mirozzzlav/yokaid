@@ -17,7 +17,12 @@ import {
   ProfessionalContact,
   SearchDropdown,
 } from 'src/components';
-import { FilterContext, InitialDataContext, MapContext } from 'src/providers';
+import {
+  FilterContext,
+  InitialDataContext,
+  IntervalContext,
+  MapContext,
+} from 'src/providers';
 import config from 'src/config';
 import {
   useFilterProfessionals,
@@ -228,17 +233,10 @@ export default function MapPage() {
     getFilterInputValSetter,
   } = useContext(FilterContext);
   const [professionalDetail, setProfessionalDetail] = useProfessionalDetail();
-  const refreshInterval = useRef(null);
+  const { addSubscriber, setNextInterval } = useContext(IntervalContext);
 
   useEffect(() => {
-    if (refreshInterval.current) {
-      return;
-    }
-    getFilteredProfessionals();
-    refreshInterval.current = setInterval(
-      () => getFilteredProfessionals(),
-      config.refreshInterval,
-    );
+    addSubscriber('getFilteredProfessionals', getFilteredProfessionals);
   }, []);
 
   const [markers, setMarkers] = useState(null);
@@ -352,14 +350,16 @@ export default function MapPage() {
                   if (!isFilterChanged) {
                     return;
                   }
+                  saveFilter();
                   if (!getIsFilterEqual('location')) {
                     // if location search, moving map and then getting pros on different place
                     moveMap({
                       position: draft.location.extraData,
                       bounds: draft.location.value,
                     });
+                  } else {
+                    setNextInterval(); // calling professionals by setting next interval
                   }
-                  saveFilter();
                 }}
                 sx={style.filterBtn}
                 isDisabled={!isFilterChanged}
@@ -373,10 +373,12 @@ export default function MapPage() {
                 sx={style.filterBtn}
                 variant="ghost"
                 onClick={() => {
+                  resetFilter();
                   if (!getIsFilterDefault('location')) {
                     moveMap(config.map.defaultArea);
+                  } else {
+                    setNextInterval(); // calling professionals by setting next interval
                   }
-                  resetFilter();
                 }}
               >
                 Reset filter
@@ -409,6 +411,7 @@ export default function MapPage() {
         markers={markers}
         onZoomOrMove={(mapAreaFromMap) => {
           setMapAreaRequest(mapAreaFromMap);
+          setNextInterval(); // calling professionals by setting next interval
         }}
         onMarkerClick={({ id }) => {
           navigateAction('professional-detail', id);

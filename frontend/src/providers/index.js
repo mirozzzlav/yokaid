@@ -5,6 +5,9 @@ import InitialDataProvider, {
 import FilterProvider, { FilterContext } from 'src/providers/FilterProvider';
 import MapProvider, { MapContext } from 'src/providers/MapProvider';
 import UserIdProvider, { UserIdContext } from 'src/providers/UserIdProvider';
+import IntervalProvider, {
+  IntervalContext,
+} from 'src/providers/IntervalProvider';
 
 export {
   LoaderProvider,
@@ -17,4 +20,6 @@ export {
   MapContext,
   UserIdProvider,
   UserIdContext,
+  IntervalProvider,
+  IntervalContext,
 };
