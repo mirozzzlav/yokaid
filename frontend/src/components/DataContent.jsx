@@ -9,6 +9,9 @@ const style = {
     getMergedStyle(
       {
         marginBottom: theme.space[5],
+        ':last-child': {
+          marginBottom: 0,
+        },
         lineHeight: '1.1rem',
         '> *': {
           width: '100%',

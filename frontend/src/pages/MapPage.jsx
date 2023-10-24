@@ -426,14 +426,8 @@ export default function MapPage() {
           data={professionalDetail || null}
           showRating
           showReviews
+          showContact
         />
-        {professionalDetail && (
-          <ProfessionalContact
-            contact={professionalDetail.contact}
-            professionalId={professionalDetail.id}
-            onContactPaid={setProfessionalDetail}
-          />
-        )}
       </Modal>
     </Page>
   );

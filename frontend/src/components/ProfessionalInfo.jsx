@@ -7,6 +7,7 @@ import Rating from 'src/components/Rating';
 import config from 'src/config';
 import DataContent from 'src/components/DataContent';
 import MultiItem from 'src/components/MultiItem';
+import { ProfessionalContact } from 'src/components/index';
 
 const style = {
   review: {
@@ -70,6 +71,7 @@ export default function ProfessionalInfo({
   compact,
   showRating,
   showReviews,
+  showContact,
 }) {
   const dataMapped = useMemo(() => {
     const professions = (
@@ -124,6 +126,21 @@ export default function ProfessionalInfo({
         },
       ];
     }
+    if (data.contact && showContact) {
+      res = [
+        ...res,
+        {
+          headline: 'Professional contact',
+          content: (
+            <ProfessionalContact
+              contact={data.contact}
+              professionalId={data.id}
+              onContactPaid={() => {}}
+            />
+          ),
+        },
+      ];
+    }
 
     return res;
   }, [data]);
@@ -135,12 +152,14 @@ ProfessionalInfo.defaultProps = {
   compact: false,
   showReviews: false,
   showRating: false,
+  showContact: false,
 };
 ProfessionalInfo.prototype.propTypes = {
   data: unknownObjectValidator.isRequired,
   compact: PropTypes.bool,
   showReviews: PropTypes.bool,
   showRating: PropTypes.bool,
+  showContact: PropTypes.bool,
 };
 
 export function ProfessionalInfoDropdown(data) {

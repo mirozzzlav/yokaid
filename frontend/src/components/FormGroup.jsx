@@ -12,8 +12,8 @@ const style = {
       background: theme.colors.gray[50],
     },
     h4: {
-      fontWeight: theme.fontWeights.bold,
-      marginBottom: theme.space[3],
+      fontWeight: theme.fontWeights.medium,
+      padding: `0 0 ${theme.space[1]} 0`,
     },
     marginBottom: theme.space[4],
     ':last-child': {
@@ -25,10 +25,8 @@ const style = {
 export default function FormGroup({ groupLabel, children }) {
   return (
     <Box sx={style.formGroup}>
-      <Box>
-        {groupLabel && <h4>{groupLabel}</h4>}
-        {children}
-      </Box>
+      {groupLabel && <h4>{groupLabel}</h4>}
+      <Box>{children}</Box>
     </Box>
   );
 }

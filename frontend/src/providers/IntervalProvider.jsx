@@ -24,10 +24,16 @@ export default function IntervalProvider({ children }) {
   );
 
   useEffect(() => {
-    if (intervalRef.current) {
-      return;
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(
+        setNextInterval,
+        config.refreshInterval,
+      );
     }
-    setInterval(setNextInterval, config.refreshInterval);
+    return () => {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
   }, []);
 
   useEffect(() => {

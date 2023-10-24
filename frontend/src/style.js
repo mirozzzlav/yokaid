@@ -11,18 +11,28 @@ const originalTheme = extendTheme();
 const Modal = {
   baseStyle: {
     header: {
-      background: originalTheme.colors.gray[50],
-      borderBottom: `1px solid ${originalTheme.colors.gray[200]}`,
+      background: originalTheme.colors.gray[100],
+      borderBottom: `1px solid ${originalTheme.colors.gray[300]}`,
       fontWeight: originalTheme.fontWeights.medium,
+      fontSize: '1.4rem',
       borderTopLeftRadius: originalTheme.radii.md,
       borderTopRightRadius: originalTheme.radii.md,
-      marginBottom: originalTheme.space[4],
-    },
-    closeButton: {
-      top: '15px',
+      letterSpacing: '0.1rem',
     },
     body: {
-      paddingTop: 0,
+      padding: `0 ${originalTheme.space[4]}`,
+      margin: `${originalTheme.space[4]} 0`,
+    },
+    footer: {
+      borderBottomLeftRadius: originalTheme.radii.md,
+      borderBottomRightRadius: originalTheme.radii.md,
+      padding: `${originalTheme.space[1]} ${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]}`,
+      '> button': {
+        marginRight: originalTheme.space[2],
+        ':last-child': {
+          marginRight: 0,
+        },
+      },
     },
   },
 };
@@ -33,7 +43,7 @@ const FormControl = {
       'input, textarea': {
         background: '#fff',
       },
-      marginBottom: originalTheme.space[2],
+      marginBottom: originalTheme.space[4],
       ':last-child': {
         margin: 0,
       },

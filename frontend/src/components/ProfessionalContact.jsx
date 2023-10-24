@@ -13,35 +13,6 @@ import { InitialDataContext, UserIdContext } from 'src/providers';
 import DataContent from 'src/components/DataContent';
 import MultiItem from 'src/components/MultiItem';
 
-function ProfessionalContactInfo({ contact }) {
-  return (
-    <FormGroup>
-      <FormControl>
-        <DataContent
-          data={[
-            {
-              headline: 'Professional Contact',
-              content: (
-                <MultiItem
-                  labels={[
-                    contact.phone,
-                    ...(contact.email ? [contact.email] : []),
-                  ]}
-                />
-              ),
-            },
-          ]}
-        />
-      </FormControl>
-    </FormGroup>
-  );
-}
-
-ProfessionalContactInfo.prototype.propTypes = {
-  contact: PropTypes.shape({ phone: PropTypes.string, email: PropTypes.string })
-    .isRequired,
-};
-
 export default function ProfessionalContact({
   professionalId,
   contact,
@@ -76,7 +47,15 @@ export default function ProfessionalContact({
   });
 
   if (contact) {
-    return <ProfessionalContactInfo contact={contact} />;
+    return (
+      <FormGroup>
+        <FormControl>
+          <MultiItem
+            labels={[contact.phone, ...(contact.email ? [contact.email] : [])]}
+          />
+        </FormControl>
+      </FormGroup>
+    );
   }
 
   return (

@@ -55,7 +55,6 @@ export default function Modal({
       <ModalOverlay />
       <ModalContent sx={style.modalContent}>
         <ModalHeader>{title}</ModalHeader>
-        <ModalCloseButton />
         <ModalBody sx={style.modalBody} ref={bodyRef}>
           {children}
         </ModalBody>
