@@ -63,4 +63,5 @@ export default {
   },
   maxRating: 5,
   refreshInterval: 5000,
+  maxReviewImages: 8,
 };

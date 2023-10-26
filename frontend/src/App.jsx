@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Routes from 'src/Routes';
 import {
   FilterProvider,
+  GalleryProvider,
   InitialDataProvider,
   IntervalProvider,
   LoaderProvider,
@@ -19,7 +20,9 @@ function App() {
             <FilterProvider>
               <MapProvider>
                 <UserIdProvider>
-                  <Routes />
+                  <GalleryProvider>
+                    <Routes />
+                  </GalleryProvider>
                 </UserIdProvider>
               </MapProvider>
             </FilterProvider>

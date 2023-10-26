@@ -31,7 +31,7 @@ export default function useProfessionalDetail() {
 
   useEffect(() => {
     if (!action) {
-      return removeSubscriber('callGetProfessional');
+      removeSubscriber('callGetProfessional');
       setProfessionalDetail(null);
       return;
     }

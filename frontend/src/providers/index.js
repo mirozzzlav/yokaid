@@ -8,6 +8,7 @@ import UserIdProvider, { UserIdContext } from 'src/providers/UserIdProvider';
 import IntervalProvider, {
   IntervalContext,
 } from 'src/providers/IntervalProvider';
+import GalleryProvider, { GalleryContext } from 'src/providers/GalleryProvider';
 
 export {
   LoaderProvider,
@@ -22,4 +23,6 @@ export {
   UserIdContext,
   IntervalProvider,
   IntervalContext,
+  GalleryProvider,
+  GalleryContext,
 };

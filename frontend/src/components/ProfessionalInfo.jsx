@@ -1,32 +1,70 @@
-import React, { useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Button, Image } from '@chakra-ui/react';
 import { unknownObjectValidator } from 'src/helpers';
 import theme from 'src/style';
 import Rating from 'src/components/Rating';
 import config from 'src/config';
 import DataContent from 'src/components/DataContent';
 import MultiItem from 'src/components/MultiItem';
-import { ProfessionalContact } from 'src/components/index';
+import ProfessionalContact from 'src/components/ProfessionalContact';
+import { GalleryContext } from 'src/providers';
 
 const style = {
   review: {
-    padding: '15px 20px',
+    padding: `${theme.space[4]} ${theme.space[4]} ${theme.space[6]} ${theme.space[4]}`,
+    marginBottom: theme.space[2],
     background: theme.colors.gray[50],
     borderRadius: theme.radii.md,
-    marginBottom: '5px',
     fontWeight: theme.fontWeights.light,
     border: `1px solid ${theme.colors.blackAlpha[50]}`,
   },
+  reviewContent: (isShown, contentTooBig) => ({
+    maxHeight: !isShown ? '200px' : '10000px',
+    overflowY: 'hidden',
+    position: 'relative',
+    ':after': {
+      display: !isShown && contentTooBig ? 'block' : 'none',
+      content: '" "',
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      height: '20px',
+      background: `linear-gradient(transparent 0%, ${theme.colors.gray[50]} 100%)`,
+    },
+  }),
   reviewText: {
-    marginBottom: '20px',
+    margin: `${theme.space[4]} 0 0 0`,
   },
   infoDropdown: {
     fontSize: '0.9rem',
   },
+  galleryWrapper: {
+    margin: `${theme.space[6]} 0 0 0`,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridGap: theme.space[4],
+  },
+  img: {
+    cursor: 'pointer',
+    height: '60px',
+    maxWidth: '60px',
+    width: '100%',
+    flexGrow: 0,
+    objectFit: 'cover',
+  },
+  showMoreBtn: {
+    margin: `${theme.space[4]} 0 0 0`,
+    fontWeight: theme.fontWeights.bold,
+    fontSize: '0.8rem',
+    color: theme.colors.orange[500],
+    ':focus': {
+      boxShadow: 'none',
+    },
+  },
 };
 
-export function getProfessionalLabel({ businessId, fullName }) {
+function getProfessionalLabel({ businessId, fullName }) {
   return `${fullName}${businessId ? ` - ${businessId}` : ''}`;
 }
 
@@ -41,27 +79,77 @@ function getSmile(rating) {
   return ':-|';
 }
 
-export function Reviews({ reviews }) {
+export function Review({ review: { id, text, rating, images } }) {
+  const reviewRef = useRef();
+  const [contentTooBig, setContentTooBig] = useState(false);
+  const [reviewFullyShown, setReviewFullyShown] = useState(false);
+  const imagesLimited = useMemo(
+    () => (images ? images.slice(0, config.maxReviewImages) : null),
+    [images],
+  );
+
+  const { showImage, initGallery } = useContext(GalleryContext);
+
+  useEffect(() => {
+    setContentTooBig(
+      reviewRef.current.scrollHeight > reviewRef.current.offsetHeight,
+    );
+  }, []);
+
+  const imagesSignature = useMemo(
+    () => (imagesLimited ? imagesLimited.join('') : ''),
+    [imagesLimited],
+  );
+
+  useEffect(() => {
+    if (imagesLimited) {
+      initGallery(imagesLimited);
+    }
+  }, [imagesSignature]);
+
   return (
-    <Flex direction="column">
-      {reviews.map(({ text, id, rating }) => (
-        <Box key={id} sx={style.review}>
-          <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
-          <Rating rating={rating} size="0.8rem" position="right" margin="0" />
+    <Box key={id} sx={style.review}>
+      <Box
+        sx={style.reviewContent(reviewFullyShown, contentTooBig)}
+        ref={reviewRef}
+      >
+        <Rating rating={rating} size="0.8rem" position="left" margin="0" />
+        <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
+        <Box sx={style.galleryWrapper}>
+          {imagesLimited &&
+            imagesLimited.map((src, index) => {
+              const k = `${src}-${index}`;
+              return (
+                <Image
+                  key={k}
+                  src={src}
+                  sx={style.img}
+                  onClick={() => showImage(index)}
+                />
+              );
+            })}
         </Box>
-      ))}
-    </Flex>
+      </Box>
+      {contentTooBig && (
+        <Button
+          variant="link"
+          sx={style.showMoreBtn}
+          onClick={() => setReviewFullyShown((prev) => !prev)}
+        >
+          {!reviewFullyShown ? 'Show more' : 'Show less'}
+        </Button>
+      )}
+    </Box>
   );
 }
 
-Reviews.prototype.propTypes = {
-  reviews: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      text: PropTypes.string,
-      rating: PropTypes.number,
-    }),
-  ).isRequired,
+Review.prototype.propTypes = {
+  review: PropTypes.shape({
+    id: PropTypes.number,
+    text: PropTypes.string,
+    rating: PropTypes.number,
+    images: PropTypes.arrayOf(PropTypes.string),
+  }).isRequired,
 };
 
 // don't want to show reviews and rating when adding new review,
@@ -122,7 +210,13 @@ export default function ProfessionalInfo({
         ...res,
         {
           headline: 'Reviews',
-          content: <Reviews reviews={data.reviews} />,
+          content: (
+            <>
+              {data.reviews.map((review) => (
+                <Review review={review} key={review.id} />
+              ))}
+            </>
+          ),
         },
       ];
     }
