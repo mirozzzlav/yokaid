@@ -2,6 +2,7 @@ import { resolve } from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
+import fs from 'fs/promises';
 
 // https://vitejs.dev/config/
 export default (mode) => {
@@ -33,5 +34,6 @@ export default (mode) => {
         src: resolve('src/'),
       },
     },
+    esbuild: { loader: 'jsx', include: /src\/.*\.jsx?$/, exclude: [] },
   });
 };

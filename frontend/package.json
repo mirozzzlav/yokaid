@@ -83,7 +83,16 @@
       "react/jsx-wrap-multilines": "off",
       "react/jsx-curly-newline": "off",
       "function-paren-newline": "off",
-      "no-confusing-arrow": "off"
+      "no-confusing-arrow": "off",
+      "react/jsx-filename-extension": [
+        "error",
+        {
+          "extensions": [
+            ".js",
+            ".jsx"
+          ]
+        }
+      ]
     }
   }
 }
