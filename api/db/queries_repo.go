@@ -305,32 +305,19 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 }
 
 func (qr queriesRepo) CreatePaymentQuery(request common.GetCodeRequest) common.Query {
-	query := `INSERT INTO payments ("user_phone", "payment_type", "entity_id") VALUES (?, ?, ?)`
+
+	query := `INSERT INTO payments ("request_id", "user_phone", "payment_type", "entity_id") 
+				VALUES((SELECT COALESCE(MAX(request_id) + 1, 1) FROM payments WHERE user_phone = ?), ?, ?, ?)`
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{request.UserPhone, request.PaymentType, request.EntityId},
+				Params: []any{request.UserPhone, request.UserPhone, request.PaymentType, request.EntityId},
 			},
 		},
 	}
 	return q
-}
-
-func (qr queriesRepo) CheckPaymentQuery(request common.GetCodeRequest) common.Query {
-	query := `SELECT 1 FROM payments WHERE user_phone = ? AND  payment_type = ? AND entity_id = ?`
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  query,
-				Params: []any{request.UserPhone, request.PaymentType, request.EntityId},
-			},
-		},
-	}
-	return q
-
 }
 
 func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) common.Query {

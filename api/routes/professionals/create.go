@@ -29,11 +29,12 @@ func create(server common.Server) gin.HandlerFunc {
 		}
 		common.CheckErrAndPanic(err)
 
-		err = server.GetStoreHelpers(ctx).CreatePayment(common.GetCodeRequest{
+		q := server.GetQueriesRepo().CreatePaymentQuery(common.GetCodeRequest{
 			UserPhone:   req.UserPhone,
 			EntityId:    reviewId,
 			PaymentType: "rev",
 		})
+		requestId, err := server.GetQueryRunner(ctx).Exec(q, "request_id")
 		common.CheckErrAndPanic(err)
 
 		err = server.GetQueryRunner(ctx).Commit()
@@ -42,7 +43,7 @@ func create(server common.Server) gin.HandlerFunc {
 		common.SetOKJSONResponse(
 			ctx,
 			"",
-			map[string]string{"smsCode": fmt.Sprintf("rev%d", reviewId)},
+			map[string]string{"smsCode": fmt.Sprintf("rev%d", requestId)},
 		)
 	}
 }

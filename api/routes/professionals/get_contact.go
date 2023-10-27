@@ -29,18 +29,20 @@ func getProfessionalContact(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		if len(*contacts) == 0 {
-			err = server.GetStoreHelpers(ctx).CreatePayment(common.GetCodeRequest{
+			q = server.GetQueriesRepo().CreatePaymentQuery(common.GetCodeRequest{
 				UserPhone:   userPhone,
 				PaymentType: "con",
 				EntityId:    professionalId,
 			})
+			requestId, err := server.GetQueryRunner(ctx).Exec(q, "request_id")
 			common.CheckErrAndPanic(err)
+
 			err = server.GetQueryRunner(ctx).Commit()
 			common.CheckErrAndPanic(err)
 
 			common.SetOKJSONResponse(ctx, "", map[string]any{
 				"contact": nil,
-				"code":    fmt.Sprintf("con%d", professionalId),
+				"code":    fmt.Sprintf("con%d", requestId),
 			})
 			return
 		}

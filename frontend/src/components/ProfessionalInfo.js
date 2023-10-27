@@ -217,7 +217,7 @@ export default function ProfessionalInfo({
         },
       ];
     }
-    if (data.contact && showContact) {
+    if (showContact) {
       res = [
         ...res,
         {

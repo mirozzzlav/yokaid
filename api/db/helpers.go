@@ -253,15 +253,3 @@ func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndPr
 	return reviewId, nil
 
 }
-
-func (sH *StoreHelpers) CreatePayment(request common.GetCodeRequest) error {
-
-	q := sH.QueriesRepo.CheckPaymentQuery(request)
-	_, err := sH.QueryRunner.GetScalar(q)
-
-	if err == common.ErrNoRows { // payment doesn't exist, create it
-		q = sH.QueriesRepo.CreatePaymentQuery(request)
-		_, err = sH.QueryRunner.Exec(q, "user_phone")
-	}
-	return err
-}

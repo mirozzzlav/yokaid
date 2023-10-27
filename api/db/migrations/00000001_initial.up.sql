@@ -55,11 +55,14 @@ ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_profess
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 CREATE TABLE payments (
+    "request_id" integer NOT NULL,
     "user_phone" character varying(16) NOT NULL,
     "payment_type" character(3) NOT NULL,
     "entity_id" integer NOT NULL,
-    CONSTRAINT "payments_pkey" PRIMARY KEY ("user_phone","payment_type", "entity_id")
+    "created_at" timestamp NOT NULL DEFAULT now(),
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("user_phone", "request_id")
 );
+CREATE INDEX idx_payments_entity_id ON payments ("entity_id");
 
 CREATE TABLE user_professional_contacts (
     "professional_id" integer NOT NULL,

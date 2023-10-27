@@ -40,7 +40,6 @@ type QueriesRepo interface {
 	CreateReviewQuery(professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial) Query
 	CreatePaymentQuery(request GetCodeRequest) Query
-	CheckPaymentQuery(request GetCodeRequest) Query
 	GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) Query
 }
 
@@ -53,7 +52,6 @@ type StoreHelpers interface {
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
 	CreateReviewAndProfessional(req CreateReviewAndProfessionalRequest) (int, error)
-	CreatePayment(request GetCodeRequest) error
 
 	// only for testing
 	Insert() int
