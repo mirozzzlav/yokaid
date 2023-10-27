@@ -49,7 +49,7 @@ function useStyle() {
       lineHeight: 1,
     },
     logo: {
-      width: '6rem',
+      width: '8rem',
       height: '2rem',
     },
     topContent: {
