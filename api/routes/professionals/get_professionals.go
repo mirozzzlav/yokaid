@@ -81,7 +81,11 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, "", pros)
+		var professional any = nil
+		if pros != nil && len(*pros) > 0 {
+			professional = (*pros)[0]
+		}
+		common.SetOKJSONResponse(ctx, "", professional)
 
 	}
 }

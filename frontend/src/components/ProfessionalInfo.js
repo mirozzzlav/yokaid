@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Box, Button, Image } from '@chakra-ui/react';
-import { unknownObjectValidator } from 'src/helpers';
+import { getHexSHA256, unknownObjectValidator } from 'src/helpers';
 import theme from 'src/style';
 import Rating from 'src/components/Rating';
 import config from 'src/config';
@@ -20,7 +20,7 @@ const style = {
     border: `1px solid ${theme.colors.blackAlpha[50]}`,
   },
   reviewContent: (isShown, contentTooBig) => ({
-    maxHeight: !isShown ? '200px' : '10000px',
+    maxHeight: !isShown ? '250px' : '10000px',
     overflowY: 'hidden',
     position: 'relative',
     ':after': {
@@ -83,29 +83,25 @@ export function Review({ review: { id, text, rating, images } }) {
   const reviewRef = useRef();
   const [contentTooBig, setContentTooBig] = useState(false);
   const [reviewFullyShown, setReviewFullyShown] = useState(false);
-  const imagesLimited = useMemo(
-    () => (images ? images.slice(0, config.maxReviewImages) : null),
-    [images],
-  );
 
   const { showImage, initGallery } = useContext(GalleryContext);
 
   useEffect(() => {
     setContentTooBig(
-      reviewRef.current.scrollHeight > reviewRef.current.offsetHeight,
+      reviewRef.current.scrollHeight - 10 > reviewRef.current.offsetHeight,
     );
   }, []);
 
-  const imagesSignature = useMemo(
-    () => (imagesLimited ? imagesLimited.join('') : ''),
-    [imagesLimited],
+  const imagesHash = useMemo(
+    () => (images ? getHexSHA256(images.join('')) : ''),
+    [images],
   );
 
   useEffect(() => {
-    if (imagesLimited) {
-      initGallery(imagesLimited);
+    if (images) {
+      initGallery(images);
     }
-  }, [imagesSignature]);
+  }, [imagesHash]);
 
   return (
     <Box key={id} sx={style.review}>
@@ -115,9 +111,9 @@ export function Review({ review: { id, text, rating, images } }) {
       >
         <Rating rating={rating} size="0.8rem" position="left" margin="0" />
         <Box sx={style.reviewText}>{text || getSmile(rating)}</Box>
-        <Box sx={style.galleryWrapper}>
-          {imagesLimited &&
-            imagesLimited.map((src, index) => {
+        {images && (
+          <Box sx={style.galleryWrapper}>
+            {images.map((src, index) => {
               const k = `${src}-${index}`;
               return (
                 <Image
@@ -128,7 +124,8 @@ export function Review({ review: { id, text, rating, images } }) {
                 />
               );
             })}
-        </Box>
+          </Box>
+        )}
       </Box>
       {contentTooBig && (
         <Button

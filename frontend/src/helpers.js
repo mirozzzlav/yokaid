@@ -1,4 +1,5 @@
-import config from 'src/config';
+import Sha256 from 'crypto-js/sha256';
+import encHex from 'crypto-js/enc-hex';
 
 function toSnakeCase(camelCase) {
   return camelCase.replace(/([a-z0-9]+)([A-Z])/g, '$1_$2').toLowerCase();
@@ -90,6 +91,10 @@ function getStringForCount(count, wordShapes) {
   }`;
 }
 
+function getHexSHA256(inputString) {
+  return Sha256(inputString).toString(encHex);
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
@@ -102,4 +107,5 @@ export {
   setLocalDataValue,
   getLocalDataValue,
   getStringForCount,
+  getHexSHA256,
 };

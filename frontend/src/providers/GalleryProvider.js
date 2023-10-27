@@ -1,5 +1,5 @@
 import theme from 'src/style';
-import { Box, Button, IconButton, Image } from '@chakra-ui/react';
+import { Box, IconButton, Image } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 import React, {
   useCallback,
@@ -9,12 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ArrowLeftIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CloseIcon,
-} from '@chakra-ui/icons';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
 
 const galleryStyle = {
   galleryWrapper: {
@@ -96,14 +91,14 @@ function Gallery() {
 
   return (
     <Box sx={galleryStyle.galleryWrapper}>
-      {images?.length > 1 && (
+      {images?.length > 1 && selectedImage > 0 && (
         <IconButton
           sx={galleryStyle.arrow('left')}
           onClick={prevImage}
           icon={<ChevronLeftIcon />}
         />
       )}
-      {images?.length > 1 && (
+      {images?.length > 1 && selectedImage < images.length - 1 && (
         <IconButton
           sx={galleryStyle.arrow('right')}
           onClick={nextImage}
@@ -144,10 +139,26 @@ export default function GalleryProvider({ children }) {
   );
 
   useEffect(() => {
+    if (!isShown) {
+      return () => {};
+    }
     const resetGala = () => setSelectedImage(0);
+    const keyListener = (e) => {
+      if (e.key === 'ArrowLeft') {
+        showImage(selectedImage - 1);
+      }
+      if (e.key === 'ArrowRight') {
+        showImage(selectedImage + 1);
+      }
+    };
     window.addEventListener('resize', resetGala);
-    return () => window.removeEventListener('resize', resetGala);
-  }, []);
+    window.addEventListener('keydown', keyListener);
+
+    return () => {
+      window.removeEventListener('resize', resetGala);
+      window.removeEventListener('keydown', keyListener);
+    };
+  }, [isShown, selectedImage]);
 
   const contextVal = useMemo(
     () => ({

@@ -7,7 +7,19 @@ import { IntervalContext, UserIdContext } from 'src/providers';
 
 export function useGetProfessional(onSearchFinish) {
   const call = useCall((response) => {
-    onSearchFinish(response.data ? response.data[0] : null);
+    if (!response.data) {
+      onSearchFinish(null);
+      return;
+    }
+    onSearchFinish({
+      ...response.data,
+      reviews: response.data.reviews.map((review) => ({
+        ...review,
+        images: review.images
+          ? review.images.slice(0, config.maxReviewImages)
+          : null,
+      })),
+    });
   });
   const { loadUserId } = useContext(UserIdContext);
   return useCallback(
