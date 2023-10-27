@@ -29,9 +29,9 @@ const style = {
   },
 };
 
-export default function MultiItem({ labels }) {
+export default function MultiItem({ labels, margin }) {
   return (
-    <Flex sx={{ ...style.wrapper }}>
+    <Flex sx={{ ...style.wrapper, margin }}>
       {labels.map((v, i) => (
         <Flex key={v} sx={style.element}>
           <Box sx={style.label}>{labels[i]}</Box>
@@ -41,8 +41,13 @@ export default function MultiItem({ labels }) {
   );
 }
 
+MultiItem.defaultProps = {
+  margin: '0',
+};
+
 MultiItem.prototype.propTypes = {
   labels: PropTypes.string.isRequired,
+  margin: PropTypes.string,
 };
 
 export function MultiInput({ labels, values, onItemRemove, padding }) {

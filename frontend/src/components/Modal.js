@@ -8,7 +8,6 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  ModalCloseButton,
 } from '@chakra-ui/react';
 import theme from 'src/style';
 import { buttonPropType } from 'src/constants';

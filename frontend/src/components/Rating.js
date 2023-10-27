@@ -81,7 +81,7 @@ export default function Rating({
       </Flex>
       {reviewsCount ? (
         <Box sx={style.reviewsCount}>
-          {getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])}
+          ({getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])})
         </Box>
       ) : null}
     </Box>

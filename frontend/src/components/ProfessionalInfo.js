@@ -159,9 +159,6 @@ export default function ProfessionalInfo({
   showContact,
 }) {
   const dataMapped = useMemo(() => {
-    const professions = (
-      <MultiItem labels={data.professions.map(({ title }) => title)} />
-    );
     if (compact) {
       return [
         {
@@ -169,7 +166,9 @@ export default function ProfessionalInfo({
           content: data.location,
         },
         {
-          content: professions,
+          content: (
+            <MultiItem labels={data.professions.map(({ title }) => title)} />
+          ),
         },
       ];
     }
@@ -183,7 +182,15 @@ export default function ProfessionalInfo({
         headline: 'Location',
         content: data.location,
       },
-      { headline: 'Professions', content: professions },
+      {
+        headline: 'Professions',
+        content: (
+          <MultiItem
+            labels={data.professions.map(({ title }) => title)}
+            margin={`${theme.space[1]} 0`}
+          />
+        ),
+      },
     ];
 
     if (showRating) {
@@ -202,21 +209,6 @@ export default function ProfessionalInfo({
       ];
     }
 
-    if (data.reviews && showReviews) {
-      res = [
-        ...res,
-        {
-          headline: 'Reviews',
-          content: (
-            <>
-              {data.reviews.map((review) => (
-                <Review review={review} key={review.id} />
-              ))}
-            </>
-          ),
-        },
-      ];
-    }
     if (showContact) {
       res = [
         ...res,
@@ -228,6 +220,22 @@ export default function ProfessionalInfo({
               professionalId={data.id}
               onContactPaid={() => {}}
             />
+          ),
+        },
+      ];
+    }
+
+    if (data.reviews && showReviews) {
+      res = [
+        ...res,
+        {
+          headline: 'Reviews',
+          content: (
+            <>
+              {data.reviews.map((review) => (
+                <Review review={review} key={review.id} />
+              ))}
+            </>
           ),
         },
       ];

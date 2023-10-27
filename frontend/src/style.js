@@ -13,20 +13,23 @@ const Modal = {
     header: {
       background: originalTheme.colors.gray[100],
       borderBottom: `1px solid ${originalTheme.colors.gray[300]}`,
-      fontWeight: originalTheme.fontWeights.medium,
-      fontSize: '1.4rem',
+      fontWeight: originalTheme.fontWeights.light,
+      fontSize: '1.6rem',
       borderTopLeftRadius: originalTheme.radii.md,
       borderTopRightRadius: originalTheme.radii.md,
       letterSpacing: '0.1rem',
+      padding: `${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]}`,
     },
     body: {
       padding: `0 ${originalTheme.space[4]}`,
       margin: `${originalTheme.space[4]} 0`,
     },
     footer: {
+      background: originalTheme.colors.gray[50],
+      borderTop: `1px solid ${originalTheme.colors.gray[200]}`,
       borderBottomLeftRadius: originalTheme.radii.md,
       borderBottomRightRadius: originalTheme.radii.md,
-      padding: `${originalTheme.space[1]} ${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]}`,
+      padding: `${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]}`,
       '> button': {
         marginRight: originalTheme.space[2],
         ':last-child': {
@@ -53,7 +56,7 @@ const FormControl = {
 
 const FormLabel = {
   baseStyle: {
-    marginBottom: 0,
+    marginBottom: originalTheme.space[1],
     fontWeight: originalTheme.fontWeights.normal,
   },
 };

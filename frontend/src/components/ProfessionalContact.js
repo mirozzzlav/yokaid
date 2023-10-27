@@ -10,8 +10,8 @@ import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import PropTypes from 'prop-types';
 import { InitialDataContext, UserIdContext } from 'src/providers';
-import DataContent from 'src/components/DataContent';
 import MultiItem from 'src/components/MultiItem';
+import theme from 'src/style';
 
 export default function ProfessionalContact({
   professionalId,
@@ -48,13 +48,10 @@ export default function ProfessionalContact({
 
   if (contact) {
     return (
-      <FormGroup>
-        <FormControl>
-          <MultiItem
-            labels={[contact.phone, ...(contact.email ? [contact.email] : [])]}
-          />
-        </FormControl>
-      </FormGroup>
+      <MultiItem
+        margin={`${theme.space[1]} 0`}
+        labels={[contact.phone, ...(contact.email ? [contact.email] : [])]}
+      />
     );
   }
 
