@@ -18,7 +18,7 @@ const galleryStyle = {
     position: 'fixed',
     top: 0,
     left: 0,
-    background: theme.colors.whiteAlpha[900],
+    background: theme.colors.blackAlpha[300],
     zIndex: 9999,
   },
   close: {
@@ -27,14 +27,19 @@ const galleryStyle = {
     top: theme.space[1],
     width: '3rem',
     height: '3rem',
-    background: 'none',
+    background: theme.colors.whiteAlpha[800],
+    color: theme.colors.orange[300],
     fontSize: '1.4rem',
+    ':hover': {
+      background: theme.colors.whiteAlpha[900],
+    },
   },
   arrow: (direction) => ({
     ...(direction === 'left'
       ? { left: 0, justifyContent: 'flex-start' }
       : { right: 0, justifyContent: 'flex-end' }),
     fontSize: '3rem',
+    color: theme.colors.orange[300],
     background: 'none',
     height: '100%',
     width: '50%',
