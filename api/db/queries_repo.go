@@ -304,7 +304,7 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 	return q
 }
 
-func (qr queriesRepo) CreatePaymentQuery(request common.GetCodeRequest) common.Query {
+func (qr queriesRepo) CreatePaymentQuery(request common.PaymentRequest) common.Query {
 
 	query := `INSERT INTO payments ("request_id", "user_phone", "payment_type", "entity_id") 
 				VALUES((SELECT COALESCE(MAX(request_id) + 1, 1) FROM payments WHERE user_phone = ?), ?, ?, ?)`

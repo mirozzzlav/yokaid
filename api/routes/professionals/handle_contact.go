@@ -6,20 +6,14 @@ import (
 	"some-app/api/common"
 )
 
-func getProfessionalContact(server common.Server) gin.HandlerFunc {
+func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		professionalIdStr, _ := ctx.Params.Get("professionalId")
-		professionalId, _ := common.ConvertToInt(professionalIdStr)
-		userPhone, _ := ctx.Params.Get("userPhone")
-
-		err := server.GetValidate().Struct(common.GetCodeRequest{
-			EntityId:    professionalId,
-			PaymentType: "con",
-			UserPhone:   userPhone,
-		})
+		var req common.PaymentRequest
+		_ = ctx.BindJSON(&req)
+		err := server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
-		q := server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userPhone)
+		q := server.GetQueriesRepo().GetProfessionalContactQuery(req.EntityId, req.UserPhone)
 		contacts, contactsModelLoader := common.ContactsModelLoader()
 
 		err = server.GetQueryRunner(ctx).Begin()
@@ -29,11 +23,7 @@ func getProfessionalContact(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		if len(*contacts) == 0 {
-			q = server.GetQueriesRepo().CreatePaymentQuery(common.GetCodeRequest{
-				UserPhone:   userPhone,
-				PaymentType: "con",
-				EntityId:    professionalId,
-			})
+			q = server.GetQueriesRepo().CreatePaymentQuery(req)
 			requestId, err := server.GetQueryRunner(ctx).Exec(q, "request_id")
 			common.CheckErrAndPanic(err)
 

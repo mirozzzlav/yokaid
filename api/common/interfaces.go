@@ -39,7 +39,7 @@ type QueriesRepo interface {
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
 	CreateReviewQuery(professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial) Query
-	CreatePaymentQuery(request GetCodeRequest) Query
+	CreatePaymentQuery(request PaymentRequest) Query
 	GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) Query
 }
 

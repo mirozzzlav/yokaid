@@ -1,26 +1,13 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { InitialDataContext, UserIdContext } from 'src/providers';
+import config from 'src/config';
+import { getValidationError } from 'src/helpers';
 
 function mapValidationErrors(errors, formats) {
-  const messages = {
-    min: (field) => `${field} is too short or haven't reach min limit`,
-    max: (field) => `${field} is too long or above the limit`,
-    required: (field) => `${field} is empty`,
-    email: () => 'fix the email',
-    multiWords: (field) =>
-      formats[field]
-        ? `ensure the ${field} match the format: ${formats[field]}`
-        : `${field} has to have at least 2 words`,
-    requiredWithout: (field, withoutField) =>
-      `${field} or ${withoutField} have to be filled in`,
-    phone: () => `ensure the phone match the format: ${formats?.phone}`,
-  };
-
   return Object.fromEntries(
-    errors.map(({ field, validator, param }) => [
-      field,
-      (messages[validator] && messages[validator](field, param)) ||
-        'Unknown error',
+    errors.map((error) => [
+      error.field,
+      getValidationError({ ...error, format: formats[error.validator] }),
     ]),
   );
 }
@@ -43,7 +30,7 @@ const getDefaultFormState = () => ({
 
 export default function useForms(formConfigs) {
   const { validationRules, inputFormats } = useContext(InitialDataContext);
-  const { userId, saveUserId, userIdName } = useContext(UserIdContext);
+  const { userId, saveUserId } = useContext(UserIdContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.keys(formConfigs).map((formId) => [formId, getDefaultFormState()]),
@@ -190,7 +177,7 @@ export default function useForms(formConfigs) {
             ...(inputsToRequestMapper
               ? inputsToRequestMapper(inputsRaw)
               : inputsRaw),
-            [userIdName]: userId,
+            [config.userIdMeta.name]: userId,
           });
         }
       }),

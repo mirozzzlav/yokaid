@@ -34,7 +34,7 @@ export default {
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
-      getProfessionsContact: `${apiUrl}/professionals/get-contact`,
+      handleProfessionalContact: `${apiUrl}/professionals/handle-contact`,
     },
   },
   map: {
@@ -64,4 +64,10 @@ export default {
   maxRating: 5,
   refreshInterval: 5000,
   maxReviewImages: 8,
+  userIdMeta: {
+    name: 'userPhone',
+    label: 'Your Phone',
+    inputFormat: '+421 9xx xxx xxx',
+    validationRules: 'required,phone',
+  },
 };

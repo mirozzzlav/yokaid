@@ -21,7 +21,7 @@ func create(server common.Server) gin.HandlerFunc {
 
 		reviewId, _ := common.ConvertToInt(reviewIdAny)
 
-		q = server.GetQueriesRepo().CreatePaymentQuery(common.GetCodeRequest{
+		q = server.GetQueriesRepo().CreatePaymentQuery(common.PaymentRequest{
 			UserPhone:   req.UserPhone,
 			PaymentType: "rev",
 			EntityId:    reviewId,

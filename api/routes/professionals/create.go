@@ -29,7 +29,7 @@ func create(server common.Server) gin.HandlerFunc {
 		}
 		common.CheckErrAndPanic(err)
 
-		q := server.GetQueriesRepo().CreatePaymentQuery(common.GetCodeRequest{
+		q := server.GetQueriesRepo().CreatePaymentQuery(common.PaymentRequest{
 			UserPhone:   req.UserPhone,
 			EntityId:    reviewId,
 			PaymentType: "rev",

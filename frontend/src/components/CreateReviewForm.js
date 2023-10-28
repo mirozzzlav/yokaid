@@ -16,7 +16,11 @@ import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
-import { InitialDataContext, UserIdContext } from 'src/providers';
+import {
+  InitialDataContext,
+  UserIdContext,
+  UserIdFormControl,
+} from 'src/providers';
 import FormGroup from 'src/components/FormGroup';
 import RatingFormControls from 'src/components/RatingFormControls';
 
@@ -36,13 +40,6 @@ export function CreateReviewForm({
   validationRules,
 }) {
   const { smsPaymentPhone } = useContext(InitialDataContext);
-  const {
-    userIdName,
-    userId,
-    setUserId,
-    validationRules: userIdValidationRules,
-    inputFormat: userIdInputFormat,
-  } = useContext(UserIdContext);
 
   if (!professional) {
     return null;
@@ -65,18 +62,7 @@ export function CreateReviewForm({
         />
       </FormGroup>
       <FormGroup>
-        <FormControl isInvalid={inputsErrors && inputsErrors[userIdName]}>
-          <FormLabel>Your phone</FormLabel>
-          <Input
-            isRequired={isFieldRequired(userIdValidationRules)}
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder={userIdInputFormat}
-          />
-          <FormErrorMessage>
-            {inputsErrors && inputsErrors[userIdName]}
-          </FormErrorMessage>
-        </FormControl>
+        <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
       </FormGroup>
       {state.isError ? <ErrorMessage message={formResult.msg} /> : null}
       {state.isSuccess ? (

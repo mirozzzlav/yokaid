@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { InitialDataContext, UserIdContext } from 'src/providers';
+import { InitialDataContext, UserIdFormControl } from 'src/providers';
 import {
   Box,
   FormControl,
@@ -61,13 +61,6 @@ export function CreateReviewWithPro({
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
   const [searchedProfession, setSearchedProfession] = useState('');
-  const {
-    userIdName,
-    setUserId,
-    userId,
-    validationRules: userIdValidationRules,
-    inputFormat: userIdInputFormat,
-  } = useContext(UserIdContext);
   const { filters, inputFormats, smsPaymentPhone } =
     useContext(InitialDataContext);
   const initialProfessions = useMemo(
@@ -237,18 +230,7 @@ export function CreateReviewWithPro({
         />
       </FormGroup>
       <FormGroup>
-        <FormControl isInvalid={inputsErrors && inputsErrors[userIdName]}>
-          <FormLabel>Your phone</FormLabel>
-          <Input
-            isRequired={isFieldRequired(userIdValidationRules)}
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder={userIdInputFormat}
-          />
-          <FormErrorMessage>
-            {inputsErrors && inputsErrors[userIdName]}
-          </FormErrorMessage>
-        </FormControl>
+        <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
       </FormGroup>
 
       {state.isError ? <ErrorMessage message={formResult.msg} /> : null}

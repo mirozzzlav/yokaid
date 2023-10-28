@@ -4,7 +4,10 @@ import InitialDataProvider, {
 } from 'src/providers/InitialDataProvider';
 import FilterProvider, { FilterContext } from 'src/providers/FilterProvider';
 import MapProvider, { MapContext } from 'src/providers/MapProvider';
-import UserIdProvider, { UserIdContext } from 'src/providers/UserIdProvider';
+import UserIdProvider, {
+  UserIdContext,
+  UserIdFormControl,
+} from 'src/providers/UserIdProvider';
 import IntervalProvider, {
   IntervalContext,
 } from 'src/providers/IntervalProvider';
@@ -21,6 +24,7 @@ export {
   MapContext,
   UserIdProvider,
   UserIdContext,
+  UserIdFormControl,
   IntervalProvider,
   IntervalContext,
   GalleryProvider,

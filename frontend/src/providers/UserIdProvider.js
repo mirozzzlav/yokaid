@@ -1,9 +1,54 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
-import { getLocalDataValue, setLocalDataValue } from 'src/helpers';
-import { InitialDataContext } from 'src/providers/InitialDataProvider';
+import {
+  getLocalDataValue,
+  getValidationError,
+  isFieldRequired,
+  setLocalDataValue,
+} from 'src/helpers';
+import {
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Input,
+} from '@chakra-ui/react';
+import config from 'src/config';
 
 export const UserIdContext = React.createContext({});
+
+export function UserIdFormControl({ error }) {
+  const { label, inputFormat, validationRules } = config.userIdMeta;
+  const { userId, setUserId, loadUserId } = useContext(UserIdContext);
+
+  useEffect(() => {
+    setUserId(loadUserId());
+  }, []);
+
+  return (
+    <FormControl isInvalid={!!error}>
+      <FormLabel>{label}</FormLabel>
+      <Input
+        isRequired={isFieldRequired(validationRules)}
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
+        placeholder={inputFormat}
+      />
+      <FormErrorMessage>{error}</FormErrorMessage>
+    </FormControl>
+  );
+}
+UserIdFormControl.defaultProps = {
+  error: '',
+};
+UserIdFormControl.prototype.propTypes = {
+  error: PropTypes.string,
+};
 
 export default function UserIdProvider({ children }) {
   const loadUserId = useCallback(
@@ -11,30 +56,26 @@ export default function UserIdProvider({ children }) {
     [],
   );
   const [userId, setUserId] = useState(loadUserId());
-  const { inputFormats } = useContext(InitialDataContext);
+  const { name: userIdName, inputFormat } = config.userIdMeta;
 
   const contextVal = useMemo(
     () => ({
-      userIdName: 'userPhone',
       userId,
       setUserId,
       saveUserId: () => setLocalDataValue('localInputs', 'userId', userId),
       loadUserId,
-      inputFormat: inputFormats?.phone || '',
-      validationRules: 'required,phone',
-      getErrorMsg: ({ data: validationErrors, msg }) => {
-        if (
+      getUserIdError: (validationErrors) => {
+        const validationError =
           validationErrors &&
           Object.values(validationErrors).find(
-            ({ field }) => field === 'userPhone',
-          )
-        ) {
-          return `Ensure the phone match the format: ${inputFormats?.phone}`;
-        }
-        return msg || 'Unknown error happened.';
+            ({ field }) => field === userIdName,
+          );
+        return validationError
+          ? getValidationError({ ...validationError, format: inputFormat })
+          : '';
       },
     }),
-    [userId, inputFormats],
+    [userId],
   );
 
   return (

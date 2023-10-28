@@ -1,4 +1,4 @@
-import { Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
+import { Button, FormControl } from '@chakra-ui/react';
 import {
   ErrorMessage,
   InfoMessage,
@@ -9,41 +9,49 @@ import React, { useContext, useState } from 'react';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import PropTypes from 'prop-types';
-import { InitialDataContext, UserIdContext } from 'src/providers';
+import {
+  InitialDataContext,
+  UserIdContext,
+  UserIdFormControl,
+} from 'src/providers';
 import MultiItem from 'src/components/MultiItem';
 import theme from 'src/style';
+import { getStringFirstCaps } from 'src/helpers';
 
 export default function ProfessionalContact({
   professionalId,
   contact,
   onContactPaid,
 }) {
-  const {
-    userId,
-    setUserId,
-    saveUserId,
-    getErrorMsg,
-    inputFormat: userIdInputFormat,
-  } = useContext(UserIdContext);
-  const [phoneError, setPhoneError] = useState(null);
+  const { userId, saveUserId, getUserIdError } = useContext(UserIdContext);
+
   const [code, setCode] = useState('');
   const { smsPaymentPhone } = useContext(InitialDataContext);
+  const [error, setError] = useState('');
 
   const call = useCall((response, success) => {
     if (!success) {
-      setPhoneError(getErrorMsg(response));
-    } else {
-      if (response.data.contact) {
-        onContactPaid((prevState) => ({
-          ...prevState,
-          contact: response.data.contact,
-        }));
-      }
-      setPhoneError('');
-      saveUserId();
+      setError(
+        `${getStringFirstCaps(
+          getUserIdError(response.data) || response.msg || 'Unknown error',
+        )}.`,
+      );
+      setCode('');
+      return;
     }
 
-    setCode(response.data?.code || '');
+    if (response.data.contact) {
+      onContactPaid((prevState) => ({
+        ...prevState,
+        contact: response.data.contact,
+      }));
+    }
+
+    setError('');
+    saveUserId();
+    if (response.data.code) {
+      setCode(response.data.code);
+    }
   });
 
   if (contact) {
@@ -65,25 +73,18 @@ export default function ProfessionalContact({
         />
       </FormControl>
       <FormControl>
-        {phoneError ? <ErrorMessage message={phoneError} /> : null}
-        {code ? <SuccessMessage message={`Your SMS code is ${code}`} /> : null}
+        {error ? <ErrorMessage message={error} /> : null}
+        {code ? <SuccessMessage message={`Your SMS code is ${code}.`} /> : null}
       </FormControl>
-      <FormControl isRequired>
-        <FormLabel>Your phone</FormLabel>
-        <Input
-          placeholder={userIdInputFormat}
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-        />
-      </FormControl>
+      <UserIdFormControl />
       <FormControl>
         <Button
           onClick={() =>
-            call(
-              `${
-                config.api.endPointsURLs.getProfessionsContact
-              }/${professionalId}${userId ? `/${userId}` : ''}`,
-            )
+            call(config.api.endPointsURLs.handleProfessionalContact, 'post', {
+              userPhone: userId,
+              paymentType: 'con',
+              entityId: professionalId,
+            })
           }
           variant="solid"
           colorScheme="blue"

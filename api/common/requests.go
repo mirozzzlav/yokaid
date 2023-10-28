@@ -29,14 +29,15 @@ type CreateReviewForExistingProfessionalRequest struct {
 	UserPhone      string              `json:"userPhone" validate:"required,phone"`
 }
 
+type PaymentRequest struct {
+	PaymentType string `json:"paymentType" validate:"required"`
+	UserPhone   string `json:"userPhone" validate:"required,phone"`
+	EntityId    int    `json:"entityId" validate:"required,numeric"`
+}
+
 // add here empty request instances that has validation rules
 var requests = []any{
 	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
-}
-
-type GetCodeRequest struct {
-	PaymentType string `json:"paymentType" validate:"required"`
-	UserPhone   string `json:"userPhone" validate:"required,phone"`
-	EntityId    int    `json:"entityId" validate:"required,numeric"`
+	PaymentRequest{},
 }
