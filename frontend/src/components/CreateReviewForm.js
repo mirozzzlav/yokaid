@@ -30,8 +30,8 @@ export function CreateReviewForm({
   formResult,
   state,
   inputsErrors,
-  inputs,
-  updateInputs,
+  getInput,
+  updateInput,
   professional,
   validationRules,
 }) {
@@ -58,9 +58,9 @@ export function CreateReviewForm({
       </FormGroup>
       <FormGroup groupLabel="Review">
         <RatingFormControls
-          inputs={inputs}
+          getInput={getInput}
           inputsErrors={inputsErrors}
-          updateInputs={updateInputs}
+          updateInput={updateInput}
           validationRules={validationRules}
         />
       </FormGroup>
@@ -99,8 +99,8 @@ CreateReviewForm.prototype.propTypes = {
   ]),
   state: PropTypes.string.isRequired,
   inputsErrors: unknownObjectValidator.isRequired,
-  inputs: unknownObjectValidator.isRequired,
-  updateInputs: PropTypes.func.isRequired,
+  getInput: PropTypes.func.isRequired,
+  updateInput: PropTypes.func.isRequired,
   professional: PropTypes.oneOfType([
     unknownObjectValidator,
     PropTypes.oneOf([null]),
@@ -110,7 +110,6 @@ CreateReviewForm.prototype.propTypes = {
 
 export function formConfigFactory(professional) {
   return {
-    inputNames: ['professionalId', 'text', 'rating'],
     validationGroup: 'createReviewForExistingProfessionalRequest',
     hook: (onCallFinish) => {
       const call = useCall(onCallFinish);
@@ -120,11 +119,11 @@ export function formConfigFactory(professional) {
     },
     formUI: CreateReviewForm,
     professional,
-    inputsToRequestMapper: ({ text, rating }) => ({
+    inputsToRequestMapper: (inputs) => ({
       professionalId: parseInt(professional.id, 10),
       review: {
-        text: text || null,
-        rating: parseInt(rating, 10),
+        text: inputs?.text || null,
+        rating: inputs?.rating ? parseInt(inputs.rating, 10) : '',
       },
     }),
   };

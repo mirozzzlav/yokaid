@@ -32,31 +32,23 @@ const requestStatesConsts = {
   success: 'success',
 };
 
-const getDefaultFormState = (inputNames) => ({
+const getDefaultFormState = () => ({
   formResult: {
     msg: '',
     data: null,
   },
   inputsErrors: null,
-  inputs: Object.fromEntries(inputNames.map((inputName) => [inputName, ''])),
+  inputs: null,
 });
 
 export default function useForms(formConfigs) {
   const { validationRules, inputFormats } = useContext(InitialDataContext);
   const { userId, saveUserId, userIdName } = useContext(UserIdContext);
-
-  const getDefaultFormStates = useCallback(
-    () =>
-      Object.fromEntries(
-        Object.keys(formConfigs).map((formId) => [
-          formId,
-          getDefaultFormState(formConfigs[formId].inputNames),
-        ]),
-      ),
-    [formConfigs],
+  const [formStates, setFormStates] = useState(
+    Object.fromEntries(
+      Object.keys(formConfigs).map((formId) => [formId, getDefaultFormState()]),
+    ),
   );
-
-  const [formStates, setFormStates] = useState(getDefaultFormStates());
 
   const [requestStates, setRequestStates] = useState(
     (() =>
@@ -97,9 +89,7 @@ export default function useForms(formConfigs) {
       resetForm: () => {
         updateFormState(formId, {
           inputsErrors: null,
-          inputs: Object.fromEntries(
-            formConfigs[formId].inputNames.map((inputName) => [inputName, '']),
-          ),
+          inputs: null,
         });
         setRequestState(formId, requestStatesConsts.initial);
       },
@@ -121,16 +111,26 @@ export default function useForms(formConfigs) {
           requestStates[formId] === requestStatesConsts.error ||
           requestStates[formId] === requestStatesConsts.success,
       },
-
-      updateInputs: (name, val, concat = false) => {
+      getInput: (name, split = false) => {
+        if (!formStates[formId].inputs?.[name]) {
+          return '';
+        }
+        if (split) {
+          return formStates[formId].inputs[name].split(',');
+        }
+        return formStates[formId].inputs[name];
+      },
+      updateInput: (name, val, concat = false) => {
         let isAdded = true;
         const valStr = `${val}`;
         setFormStates((prevData) => {
           if (
-            prevData[formId]?.inputs[name] &&
+            prevData[formId].inputs?.[name] &&
             prevData[formId].inputs[name].includes(valStr) &&
             concat
           ) {
+            // on concat mode "val1,val2,val3" we dont want to value includes some
+            // value that is already in for example val1
             isAdded = false;
             return prevData;
           }
@@ -141,7 +141,7 @@ export default function useForms(formConfigs) {
               inputs: {
                 ...prevData[formId].inputs,
                 [name]:
-                  prevData[formId].inputs[name] && concat
+                  prevData[formId].inputs?.[name] && concat
                     ? `${prevData[formId].inputs[name]},${valStr}`
                     : valStr,
               },

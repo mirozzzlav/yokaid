@@ -54,7 +54,8 @@ export function CreateReviewWithPro({
   state,
   inputsErrors,
   inputs,
-  updateInputs,
+  getInput,
+  updateInput,
   onProfessionalFound,
   validationRules,
 }) {
@@ -96,13 +97,13 @@ export function CreateReviewWithPro({
           <FormLabel>Full name</FormLabel>
           <SearchDropdown
             searchHook={useSearchProfessional}
-            inputVal={inputs.fullName}
-            inputValSetter={(v) => updateInputs('fullName', v)}
+            inputVal={getInput('fullName')}
+            inputValSetter={(v) => updateInput('fullName', v)}
             onValueSet={({ value }) =>
               onProfessionalFound && onProfessionalFound(value)
             }
             onValueEmpty={() => {
-              updateInputs('fullName', '');
+              updateInput('fullName', '');
             }}
             position="left"
             dropdownWidth="100%"
@@ -121,18 +122,18 @@ export function CreateReviewWithPro({
         >
           <FormLabel>Location</FormLabel>
           <SearchDropdown
-            inputVal={inputs.location}
-            inputValSetter={(v) => updateInputs('location', v)}
+            inputVal={getInput('location')}
+            inputValSetter={(v) => updateInput('location', v)}
             searchHook={usePlacesSearch}
             onValueSet={({ value: [lat, lng], label }) => {
-              updateInputs('locationLat', parseFloat(lat));
-              updateInputs('locationLng', parseFloat(lng));
-              updateInputs('location', label);
+              updateInput('locationLat', parseFloat(lat));
+              updateInput('locationLng', parseFloat(lng));
+              updateInput('location', label);
             }}
             onValueEmpty={() => {
-              updateInputs('locationLat', '');
-              updateInputs('locationLng', '');
-              updateInputs('location', '');
+              updateInput('locationLat', '');
+              updateInput('locationLng', '');
+              updateInput('location', '');
             }}
             position="left"
             dropdownWidth="100%"
@@ -152,9 +153,9 @@ export function CreateReviewWithPro({
           <InputGroup>
             <Input
               type="text"
-              value={inputs.businessId}
+              value={getInput('businessId')}
               onChange={(e) => {
-                updateInputs('businessId', e.target.value);
+                updateInput('businessId', e.target.value);
               }}
             />
           </InputGroup>
@@ -167,9 +168,9 @@ export function CreateReviewWithPro({
           <FormLabel>Phone</FormLabel>
           <Input
             type="text"
-            value={inputs.phone}
+            value={getInput('phone')}
             onChange={(e) => {
-              updateInputs('phone', e.target.value);
+              updateInput('phone', e.target.value);
             }}
             placeholder={inputFormats?.phone}
           />
@@ -182,9 +183,9 @@ export function CreateReviewWithPro({
           <FormLabel>Email</FormLabel>
           <Input
             type="text"
-            value={inputs.email}
+            value={getInput('email')}
             onChange={(e) => {
-              updateInputs('email', e.target.value);
+              updateInput('email', e.target.value);
             }}
           />
           <FormErrorMessage>{inputsErrors?.email}</FormErrorMessage>
@@ -200,7 +201,7 @@ export function CreateReviewWithPro({
             initialItems={initialProfessions}
             searchHook={useProfessionsSearch}
             onValueSet={({ value }) => {
-              if (updateInputs('professions', value.id, true)) {
+              if (updateInput('professions', value.id, true)) {
                 setProfessionTitles((prevTitles) =>
                   prevTitles ? [...prevTitles, value.title] : [value.title],
                 );
@@ -213,10 +214,10 @@ export function CreateReviewWithPro({
             icon={<Icons.WorkerIcon />}
           />
           <MultiInput
-            values={inputs.professions ? inputs.professions.split(',') : null}
+            values={getInput('professions', true)}
             labels={professionTitles}
             onItemRemove={(professions, titles) => {
-              updateInputs(
+              updateInput(
                 'professions',
                 professions ? professions.join(',') : '',
               );
@@ -230,8 +231,9 @@ export function CreateReviewWithPro({
         <RatingFormControls
           inputs={inputs}
           inputsErrors={inputsErrors}
-          updateInputs={updateInputs}
+          updateInput={updateInput}
           validationRules={validationRules}
+          getInput={getInput}
         />
       </FormGroup>
       <FormGroup>
@@ -271,25 +273,14 @@ CreateReviewWithPro.prototype.propTypes = {
   state: PropTypes.string.isRequired,
   inputsErrors: unknownObjectValidator.isRequired,
   inputs: unknownObjectValidator.isRequired,
-  updateInputs: PropTypes.func.isRequired,
+  getInput: PropTypes.func.isRequired,
+  updateInput: PropTypes.func.isRequired,
   onProfessionalFound: PropTypes.func.isRequired,
   validationRules: unknownObjectValidator.isRequired,
 };
 
 export function formConfigFactory(onProfessionalFound) {
   return {
-    inputNames: [
-      'fullName',
-      'businessId',
-      'locationLat',
-      'locationLng',
-      'location',
-      'phone',
-      'email',
-      'professions',
-      'text',
-      'rating',
-    ],
     validationGroup: 'createReviewAndProfessionalRequest',
     hook: (onCallFinish) => {
       const call = useCall(onCallFinish);
@@ -303,33 +294,22 @@ export function formConfigFactory(onProfessionalFound) {
     },
     formUI: CreateReviewWithPro,
     onProfessionalFound,
-    inputsToRequestMapper: ({
-      text,
-      rating,
-      professions,
-      locationLng,
-      locationLat,
-      location,
-      businessId,
-      fullName,
-      email,
-      phone,
-    }) => ({
+    inputsToRequestMapper: (inputs) => ({
       professional: {
-        location,
-        businessId: businessId || null,
-        fullName,
-        email: email || null,
-        phone: phone || null,
-        locationLat: parseFloat(locationLat),
-        locationLng: parseFloat(locationLng),
+        location: inputs?.location || '',
+        businessId: inputs?.businessId || null,
+        fullName: inputs?.fullName || '',
+        email: inputs?.email || null,
+        phone: inputs?.phone || null,
+        locationLat: inputs?.locationLat ? parseFloat(inputs.locationLat) : '',
+        locationLng: inputs?.locationLng ? parseFloat(inputs.locationLng) : '',
       },
-      professions: professions
-        ? professions.split(',').map((s) => parseInt(s, 10))
+      professions: inputs?.professions
+        ? inputs.professions.split(',').map((s) => parseInt(s, 10))
         : null,
       review: {
-        text: text || null,
-        rating: parseInt(rating, 10),
+        text: inputs?.text || null,
+        rating: inputs?.rating ? parseInt(inputs.rating, 10) : '',
       },
     }),
   };

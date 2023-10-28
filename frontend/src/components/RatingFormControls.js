@@ -16,9 +16,9 @@ const style = {
 };
 
 export default function RatingFormControls({
-  inputs,
   inputsErrors,
-  updateInputs,
+  getInput,
+  updateInput,
   validationRules,
 }) {
   return (
@@ -28,10 +28,10 @@ export default function RatingFormControls({
         isRequired={isFieldRequired(validationRules?.text)}
       >
         <Textarea
-          value={inputs.text}
+          value={getInput('text')}
           sx={style.reviewTextArea}
           onChange={(e) => {
-            updateInputs('text', e.target.value);
+            updateInput('text', e.target.value);
           }}
         />
         <FormErrorMessage>{inputsErrors?.text}</FormErrorMessage>
@@ -42,8 +42,8 @@ export default function RatingFormControls({
       >
         <FormLabel>Rating</FormLabel>
         <Rating
-          rating={inputs.rating}
-          onStarClick={(r) => updateInputs('rating', r)}
+          rating={getInput('rating')}
+          onStarClick={(r) => updateInput('rating', r)}
           margin="0"
         />
         <FormErrorMessage>{inputsErrors?.rating}</FormErrorMessage>
@@ -53,7 +53,7 @@ export default function RatingFormControls({
 }
 RatingFormControls.prototype.propTypes = {
   inputsErrors: unknownObjectValidator.isRequired,
-  inputs: unknownObjectValidator.isRequired,
-  updateInputs: PropTypes.func.isRequired,
+  getInput: PropTypes.func.isRequired,
+  updateInput: PropTypes.func.isRequired,
   validationRules: unknownObjectValidator.isRequired,
 };
