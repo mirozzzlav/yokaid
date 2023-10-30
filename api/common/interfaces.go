@@ -32,15 +32,16 @@ type QueriesRepo interface {
 	UpdateUsersQuery(data QueryPartial, filter QueryPartial) Query
 	ListPoliciesQuery() Query
 	GetProfessionalsCountQuery(filter QueryPartial) Query
-	GetProfessionalsQuery(filter QueryPartial, reviews bool, userPhone string) Query
+	GetProfessionalsQuery(filter QueryPartial, reviews bool, userId string) Query
 	QueryUserTest(filter QueryPartial) Query
 	DeletePasswordChangeRequestsQuery(filter QueryPartial) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
-	CreateReviewQuery(professionalId int, req CreateReviewRequest) Query
+	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial) Query
-	CreatePaymentQuery(request PaymentRequest) Query
-	GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) Query
+	CreatePaymentQuery(id string, userId string, productId string) Query
+	GetProfessionalContactQuery(professionalId int, userId string, columns ...string) Query
+	CreateProfessionalContactQuery(paymentId string, req CreateUserProfessionalContactRequest) Query
 }
 
 type StoreHelpers interface {
@@ -51,7 +52,7 @@ type StoreHelpers interface {
 	GetUsersCount(emailOrUsername string) (int, error)
 	GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]FilterItem, error)
 	GetProfessionalProfessionsForFilter() (*[]FilterItem, error)
-	CreateReviewAndProfessional(req CreateReviewAndProfessionalRequest) (int, error)
+	CreateReviewAndProfessional(paymentId string, req CreateReviewAndProfessionalRequest) (int, error)
 
 	// only for testing
 	Insert() int

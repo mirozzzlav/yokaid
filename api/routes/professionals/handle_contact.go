@@ -1,19 +1,18 @@
 package professionals
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"some-app/api/common"
 )
 
 func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var req common.PaymentRequest
+		var req common.CreateUserProfessionalContactRequest
 		_ = ctx.BindJSON(&req)
 		err := server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
-		q := server.GetQueriesRepo().GetProfessionalContactQuery(req.EntityId, req.UserPhone)
+		q := server.GetQueriesRepo().GetProfessionalContactQuery(req.ProfessionalId, req.UserId)
 		contacts, contactsModelLoader := common.ContactsModelLoader()
 
 		err = server.GetQueryRunner(ctx).Begin()
@@ -23,8 +22,13 @@ func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		if len(*contacts) == 0 {
-			q = server.GetQueriesRepo().CreatePaymentQuery(req)
-			requestId, err := server.GetQueryRunner(ctx).Exec(q, "request_id")
+			q = server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "con")
+			paymentIdAny, err := server.GetQueryRunner(ctx).Exec(q)
+			common.CheckErrAndPanic(err)
+
+			paymentId, _ := paymentIdAny.(string)
+			q = server.GetQueriesRepo().CreateProfessionalContactQuery(paymentId, req)
+			_, err = server.GetQueryRunner(ctx).Exec(q)
 			common.CheckErrAndPanic(err)
 
 			err = server.GetQueryRunner(ctx).Commit()
@@ -32,7 +36,7 @@ func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 
 			common.SetOKJSONResponse(ctx, "", map[string]any{
 				"contact": nil,
-				"code":    fmt.Sprintf("con%d", requestId),
+				"code":    paymentId,
 			})
 			return
 		}

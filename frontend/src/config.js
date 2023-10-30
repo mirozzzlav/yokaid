@@ -65,7 +65,7 @@ export default {
   refreshInterval: 5000,
   maxReviewImages: 8,
   userIdMeta: {
-    name: 'userPhone',
+    name: 'userId',
     label: 'Your Phone',
     inputFormat: '+421 9xx xxx xxx',
     validationRules: 'required,phone',

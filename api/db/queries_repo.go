@@ -97,7 +97,7 @@ func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
 	}
 }
 
-func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userPhone string) common.Query {
+func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userId string) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
 	reviewsQuery := fmt.Sprintf(`JOIN (
@@ -106,12 +106,14 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 		  round(avg(rating)) AS rating,
 		  JSON_AGG(
 			JSON_BUILD_OBJECT(
-			  'id', id, 'text', text, 'rating', rating, 
+			  'id', reviews.id, 'text', text, 'rating', rating, 
 			  'images', images
 			)
 		  ) AS reviews 
 		FROM 
-		  reviews 
+		  reviews
+		  JOIN payments ON reviews.id = payments.id
+			
 		  LEFT JOIN (
 			SELECT 
 			  review_id, 
@@ -122,39 +124,40 @@ func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 			GROUP BY 
 			  review_images.review_id
 		  ) AS review_images_view ON reviews.id = review_images_view.review_id 
-		WHERE reviews.state='%s'
+		WHERE payments.state='%s'
 		GROUP BY 
 		  professional_id
 	) AS reviews_view ON professionals.id = reviews_view.professional_id
 	JOIN (
 	  SELECT count(reviews.id) AS reviews_count, reviews.professional_id 
-	  FROM reviews 
-	  WHERE reviews.state='%s'
+	  FROM reviews JOIN payments ON reviews.id = payments.id
+	  WHERE payments.state='%s'
 	  GROUP BY reviews.professional_id
 	) AS reviews_count_view
-	ON professionals.id = reviews_count_view.professional_id`, common.ReviewStates.Active, common.ReviewStates.Active)
+	ON professionals.id = reviews_count_view.professional_id`, common.PaymentStates.Paid, common.PaymentStates.Paid)
 
 	if !reviews {
 		reviewsQuery = fmt.Sprintf(
 			`JOIN (
 			  SELECT reviews.professional_id 
-			  FROM reviews 
-			  WHERE reviews.state='%s'
+			  FROM reviews JOIN payments ON reviews.id = payments.id
+			  WHERE payments.state='%s'
 			  GROUP BY reviews.professional_id
 			) AS reviews_count_view
 			ON professionals.id = reviews_count_view.professional_id`,
-			common.ReviewStates.Active,
+			common.PaymentStates.Paid,
 		)
 		reviewsColumns = ""
 	}
 	contactObj := ""
 	contactQuery := ""
 	var params []any
-	if userPhone != "" {
+	if userId != "" {
 		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
-		contactQuery = `JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
-						AND user_professional_contacts.user_phone = ?`
-		params = []any{userPhone}
+		contactQuery = fmt.Sprintf(`JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
+						JOIN payments ON user_professional_contacts.id = payments.id 
+						AND payments.user_id = ? AND payments.product_id='con' AND payments.state='%s'`, common.PaymentStates.Paid)
+		params = []any{userId}
 	}
 
 	query := fmt.Sprintf(`SELECT 
@@ -270,12 +273,13 @@ func (qr queriesRepo) CreateProfessionalProfessionsQuery(professionalId int, pro
 	}
 }
 
-func (qr queriesRepo) CreateReviewQuery(professionalId int, req common.CreateReviewRequest) common.Query {
+func (qr queriesRepo) CreateReviewQuery(paymentId string, professionalId int, req common.CreateReviewRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: `INSERT INTO reviews (professional_id, text, rating) VALUES (?, ?, ?)`,
+				Query: `INSERT INTO reviews (id, professional_id, text, rating) VALUES (?, ?, ?, ?)`,
 				Params: []any{
+					paymentId,
 					professionalId,
 					req.Text,
 					req.Rating,
@@ -304,23 +308,22 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 	return q
 }
 
-func (qr queriesRepo) CreatePaymentQuery(request common.PaymentRequest) common.Query {
+func (qr queriesRepo) CreatePaymentQuery(id string, userId string, productId string) common.Query {
 
-	query := `INSERT INTO payments ("request_id", "user_phone", "payment_type", "entity_id") 
-				VALUES((SELECT COALESCE(MAX(request_id) + 1, 1) FROM payments WHERE user_phone = ?), ?, ?, ?)`
+	query := `INSERT INTO payments ("id", "user_id", "product_id") VALUES(?, ?, ?)`
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{request.UserPhone, request.UserPhone, request.PaymentType, request.EntityId},
+				Params: []any{id, userId, productId},
 			},
 		},
 	}
 	return q
 }
 
-func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userPhone string, columns ...string) common.Query {
+func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userId string, columns ...string) common.Query {
 
 	columnsStr := "email, phone"
 	if len(columns) > 0 {
@@ -332,12 +335,28 @@ func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userPhone 
 			{
 				Query: fmt.Sprintf(`SELECT %s FROM professionals JOIN user_professional_contacts 
     					ON professionals.id = user_professional_contacts.professional_id
-                    	WHERE professionals.id = ? AND user_professional_contacts.user_phone = ?`, columnsStr),
-				Params: []any{professionalId, userPhone},
+    					JOIN payments ON user_professional_contacts.id = payments.id 
+    					WHERE professionals.id = ? AND payments.user_id = ? 
+    					AND payments.product_id='con' AND payments.state='%s'`, columnsStr, common.PaymentStates.Paid),
+				Params: []any{professionalId, userId},
 			},
 		},
 	}
 	return q
+}
+
+func (qr queriesRepo) CreateProfessionalContactQuery(paymentId string, req common.CreateUserProfessionalContactRequest) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: `INSERT INTO user_professional_contacts (id, professional_id) VALUES (?, ?)`,
+				Params: []any{
+					paymentId,
+					req.ProfessionalId,
+				},
+			},
+		},
+	}
 }
 
 var QueriesRepo = queriesRepo{}

@@ -222,7 +222,7 @@ func (sH *StoreHelpers) checkProfessionalExist(phone string, email *string) bool
 
 }
 
-func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndProfessionalRequest) (int, error) {
+func (sH *StoreHelpers) CreateReviewAndProfessional(paymentId string, req common.CreateReviewAndProfessionalRequest) (int, error) {
 	if sH.checkProfessionalExist(req.Professional.Phone, req.Professional.Email) {
 		return 0, common.ErrRecordExist
 	}
@@ -242,7 +242,7 @@ func (sH *StoreHelpers) CreateReviewAndProfessional(req common.CreateReviewAndPr
 		return 0, err
 	}
 
-	q = sH.QueriesRepo.CreateReviewQuery(professionalId, req.Review)
+	q = sH.QueriesRepo.CreateReviewQuery(paymentId, professionalId, req.Review)
 
 	reviewIdAny, err := sH.QueryRunner.Exec(q)
 	if err != nil {

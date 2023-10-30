@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -327,4 +328,18 @@ func GetJSONBytes(data any) (json.RawMessage, error) {
 		return []byte{}, err
 	}
 	return resJson, nil
+}
+
+func GenerateUniqueID() string {
+	// Get the current timestamp in nanoseconds
+	timestamp := time.Now().UnixNano()
+
+	// Generate a random number to add uniqueness
+	rand.Seed(time.Now().UnixNano())
+	randomNum := rand.Intn(1000)
+
+	// Combine the timestamp and random number to create a unique ID
+	uniqueID := fmt.Sprintf("%d-%d", timestamp, randomNum)
+
+	return uniqueID
 }

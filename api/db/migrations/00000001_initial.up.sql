@@ -1,5 +1,14 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TABLE payments (
+    "id" character varying(32) NOT NULL,
+    "user_id" character varying(16) NOT NULL,
+    "product_id" character(3) NOT NULL,
+    "created_at" timestamp NOT NULL DEFAULT now(),
+    "state" character varying(16) NOT NULL DEFAULT 'new',
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
+);
+
 CREATE TABLE "images" (
    "id" serial NOT NULL,
    "path" character varying(512) NOT NULL,
@@ -21,18 +30,16 @@ CREATE TABLE "professionals" (
 );
 
 CREATE TABLE "reviews" (
-    "id" serial NOT NULL,
+    "id" character varying(32) NOT NULL,
     "professional_id" integer NOT NULL,
 	"text" text NULL,
 	"rating" integer NOT NULL,
 	"created_at" timestamp NOT NULL DEFAULT now(),
-    "state" character varying(16) NOT NULL DEFAULT 'new',
-
     CONSTRAINT "reviews_pk" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
 CREATE TABLE "review_images" (
-    "review_id" integer NOT NULL,
+    "review_id" character varying(32) NOT NULL,
     "image_id" integer NOT NULL
 ) WITH (oids = false);
 
@@ -50,26 +57,20 @@ CREATE TABLE "professional_professions" (
 );
 
 ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_id_fkey" FOREIGN KEY ("id") REFERENCES payments(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "review_images" ADD CONSTRAINT "review_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_profession_id_fkey" FOREIGN KEY (profession_id) REFERENCES professions(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
-CREATE TABLE payments (
-    "request_id" integer NOT NULL,
-    "user_phone" character varying(16) NOT NULL,
-    "payment_type" character(3) NOT NULL,
-    "entity_id" integer NOT NULL,
-    "created_at" timestamp NOT NULL DEFAULT now(),
-    CONSTRAINT "payments_pkey" PRIMARY KEY ("user_phone", "request_id")
-);
-CREATE INDEX idx_payments_entity_id ON payments ("entity_id");
-
 CREATE TABLE user_professional_contacts (
+    "id" character varying(32) NOT NULL,
     "professional_id" integer NOT NULL,
-    "user_phone" character varying(16) NOT NULL,
-    CONSTRAINT "user_professional_contacts_pkey" PRIMARY KEY ("professional_id","user_phone")
+    CONSTRAINT "user_professional_contacts_pkey" PRIMARY KEY ("id")
 );
 
 ALTER TABLE ONLY "user_professional_contacts" ADD CONSTRAINT "user_professional_contacts_professional_id_fkey"
     FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+
+ALTER TABLE ONLY "user_professional_contacts" ADD CONSTRAINT "user_professional_contacts_id_fkey"
+    FOREIGN KEY ("id") REFERENCES payments(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 

@@ -81,9 +81,8 @@ export default function ProfessionalContact({
         <Button
           onClick={() =>
             call(config.api.endPointsURLs.handleProfessionalContact, 'post', {
-              userPhone: userId,
-              paymentType: 'con',
-              entityId: professionalId,
+              userId,
+              professionalId,
             })
           }
           variant="solid"

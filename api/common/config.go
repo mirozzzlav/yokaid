@@ -34,14 +34,14 @@ var ErrNoRows = errors.New("no rows in result set")
 var ErrRecordExist = errors.New("given record already exist")
 var ErrBadInputs = errors.New("bad inputs provided")
 
-type reviewStates struct {
-	New    string
-	Active string
+type paymentStates struct {
+	New  string
+	Paid string
 }
 
-var ReviewStates = reviewStates{
-	New:    "new",
-	Active: "active",
+var PaymentStates = paymentStates{
+	New:  "new",
+	Paid: "paid",
 }
 
 func getLogsConfig() logsConfig {

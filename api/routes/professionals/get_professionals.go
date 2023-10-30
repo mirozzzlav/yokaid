@@ -60,12 +60,12 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 		}
 
-		userPhone, _ := ctx.Params.Get("userPhone")
+		userId, _ := ctx.Params.Get("userId")
 
-		dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userPhone, "1")
+		dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userId, "1")
 		_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
 		if err == common.ErrNoRows {
-			userPhone = ""
+			userId = ""
 		} else {
 			common.CheckErrAndPanic(err)
 		}
@@ -73,7 +73,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		dbQuery = server.GetQueriesRepo().GetProfessionalsQuery(
 			common.QueryPartial{Query: "professionals.id = ?", Params: []any{professionalId}},
 			true,
-			userPhone,
+			userId,
 		)
 
 		server.GetQueryRunner(ctx).Begin()
