@@ -30,7 +30,7 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 			ValidationRules: validationRules,
 			InputFormats: map[string]string{
 				"phone":    common.Config.InputFormats["phone"],
-				"fullName": "First name + Last name",
+				"fullName": "fullname placeholder",
 			},
 			SMSPaymentPhone: common.Config.SMSPaymentPhone,
 		})

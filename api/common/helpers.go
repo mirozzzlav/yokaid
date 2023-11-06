@@ -69,17 +69,17 @@ func GetHttpResponseFromError(err error) *HttpResponse {
 	if validationErrors != nil || err == ErrBadInputs {
 		return &HttpResponse{
 			Code: http.StatusBadRequest,
-			Msg:  "Your request is invalid, please review the information you've provided.",
+			Msg:  "response invalid inputs",
 			Data: validationErrors,
 		}
 	}
 
 	if err == ErrNoRows {
-		return &HttpResponse{Code: http.StatusBadRequest, Msg: "No results found for the given request."}
+		return &HttpResponse{Code: http.StatusBadRequest, Msg: "response no results"}
 	}
 
 	if err == ErrRecordExist {
-		return &HttpResponse{Code: http.StatusBadRequest, Msg: "Given record already exist."}
+		return &HttpResponse{Code: http.StatusBadRequest, Msg: "response record exist"}
 	}
 
 	return nil

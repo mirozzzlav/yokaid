@@ -7,27 +7,20 @@ import (
 	"net/http"
 	"regexp"
 	"some-app/api/common"
+	dbPkg "some-app/api/db"
+	"some-app/api/mail"
 	"some-app/api/routes"
 )
 
 type server struct {
-	router                  *gin.Engine
-	logError                func(ctx *gin.Context, err error)
-	routes                  []common.Route
-	queriesRepo             common.QueriesRepo
-	validate                *validator.Validate
-	notifier                common.Notifier
-	queryRunnerInitializer  func(ctx *gin.Context, store any) common.QueryRunner
-	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers
-	db                      *sql.DB
+	router   *gin.Engine
+	logError func(ctx *gin.Context, err error)
+	validate *validator.Validate
+	notifier common.Notifier
+	db       *sql.DB
 }
 
-func NewServer(
-	repo common.QueriesRepo,
-	queryRunnerInitializer func(ctx *gin.Context, store any) common.QueryRunner,
-	storeHelpersInitializer func(runner common.QueryRunner, repo common.QueriesRepo) common.StoreHelpers,
-	notifier common.Notifier,
-) (common.Server, error) {
+func NewServer() (common.Server, error) {
 	validate := validator.New()
 	err := validate.RegisterValidation("password", common.PasswordValidator)
 	if err != nil {
@@ -55,12 +48,8 @@ func NewServer(
 	}
 
 	server := &server{
-		queriesRepo:             repo,
-		validate:                validate,
-		notifier:                notifier,
-		queryRunnerInitializer:  queryRunnerInitializer,
-		storeHelpersInitializer: storeHelpersInitializer,
-		db:                      db,
+		validate: validate,
+		db:       db,
 	}
 	server.initRouter()
 	err = server.initRequestLogger()
@@ -71,11 +60,11 @@ func NewServer(
 	return server, nil
 }
 func (s *server) GetQueryRunner(ctx *gin.Context) common.QueryRunner {
-	return s.queryRunnerInitializer(ctx, s.db)
+	return dbPkg.NewQueryRunner(ctx, s.db)
 }
 
 func (s *server) GetStoreHelpers(ctx *gin.Context) common.StoreHelpers {
-	return s.storeHelpersInitializer(s.GetQueryRunner(ctx), s.queriesRepo)
+	return dbPkg.NewStoreHelpers(s.GetQueryRunner(ctx), s.GetQueriesRepo())
 }
 
 func (s *server) initRouter() {
@@ -94,14 +83,13 @@ func (s *server) initRouter() {
 		panicMiddleware(s),
 		func(ctx *gin.Context) {
 			// init repo + store helper
-			qRunner := s.queryRunnerInitializer(ctx, s.db)
-			s.storeHelpersInitializer(qRunner, s.queriesRepo)
+			qRunner := dbPkg.NewQueryRunner(ctx, s.db)
+			dbPkg.NewStoreHelpers(qRunner, dbPkg.QueriesRepo{})
 			ctx.Next()
 		},
 	)
 	router.Static(common.Config.AssetsRelativeUrl, common.Config.AssetsFolder)
-	s.routes = routes.GetRoutes(s)
-	for _, route := range s.routes {
+	for _, route := range routes.GetRoutes(s) {
 		router.Handle(route.Method, route.Path, route.Handler)
 	}
 
@@ -122,17 +110,7 @@ func (s *server) Start() error {
 }
 
 func (s *server) GetQueriesRepo() common.QueriesRepo {
-	return s.queriesRepo
-}
-
-func (s *server) findInRoutes(matchFunc func(route common.Route) bool) bool {
-	for _, route := range s.routes {
-
-		if matchFunc(route) {
-			return true
-		}
-	}
-	return false
+	return dbPkg.QueriesRepo{}
 }
 
 func (s *server) GetValidate() *validator.Validate {
@@ -140,5 +118,5 @@ func (s *server) GetValidate() *validator.Validate {
 }
 
 func (s *server) GetNotifier() common.Notifier {
-	return s.notifier
+	return mail.Notifier{}
 }

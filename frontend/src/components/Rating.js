@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Box, Flex, IconButton } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import theme from 'src/style';
 import config from 'src/config';
-import { getStringForCount } from 'src/helpers';
+import { TranslationsContext } from 'src/providers';
 
 function RatingStar({ onClick, active }) {
   if (onClick) {
@@ -46,6 +46,7 @@ const style = {
   reviewsCount: {
     fontSize: '0.8rem',
     margin: '0.5rem 0 0 0',
+    textTransform: 'lowercase',
   },
 };
 
@@ -61,6 +62,7 @@ export default function Rating({
     const [, size, unit] = sizeStr.match(/([0-9]+\.?[0-9]*)([a-z]*)/i);
     return `${parseFloat(size) / 4}${unit || 'px'}`;
   }, [sizeStr]);
+  const { T } = useContext(TranslationsContext);
 
   return (
     <Box sx={{ margin }}>
@@ -81,7 +83,7 @@ export default function Rating({
       </Flex>
       {reviewsCount ? (
         <Box sx={style.reviewsCount}>
-          ({getStringForCount(reviewsCount, ['reviews', 'review', 'reviews'])})
+          ({reviewsCount} {T('review', [], reviewsCount)})
         </Box>
       ) : null}
     </Box>

@@ -28,7 +28,7 @@ func create(server common.Server) gin.HandlerFunc {
 
 		common.SetOKJSONResponse(
 			ctx,
-			"",
+			"review form success",
 			map[string]string{"smsCode": paymentId},
 		)
 	}

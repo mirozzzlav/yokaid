@@ -8,6 +8,7 @@ import useDelayedAction from 'src/hooks/useDelayedAction';
 import usePlacesSearch from 'src/hooks/usePlacesSearch';
 import useNavigateAction from 'src/hooks/useNavigateAction';
 import useProfessionalDetail from 'src/hooks/useProfessionalDetail';
+import useValidationErrors from 'src/hooks/useValidationErrors';
 
 export {
   useCall,
@@ -18,4 +19,5 @@ export {
   usePlacesSearch,
   useNavigateAction,
   useProfessionalDetail,
+  useValidationErrors,
 };

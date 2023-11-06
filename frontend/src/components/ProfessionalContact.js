@@ -11,6 +11,7 @@ import useCall from 'src/hooks/useCall';
 import PropTypes from 'prop-types';
 import {
   InitialDataContext,
+  TranslationsContext,
   UserIdContext,
   UserIdFormControl,
 } from 'src/providers';
@@ -28,8 +29,9 @@ export default function ProfessionalContact({
   const [code, setCode] = useState('');
   const { smsPaymentPhone } = useContext(InitialDataContext);
   const [error, setError] = useState('');
+  const { T } = useContext(TranslationsContext);
 
-  const call = useCall((response, success) => {
+  const { callPost } = useCall((response, success) => {
     if (!success) {
       setError(
         `${getStringFirstCaps(
@@ -66,21 +68,17 @@ export default function ProfessionalContact({
   return (
     <FormGroup>
       <FormControl>
-        <InfoMessage
-          message={`Please click on the "Get contact" button. 
-            You will receive a code that need to be sent to phone number ${smsPaymentPhone} by SMS. Once this is done 
-            the contact for this professional will appear here.`}
-        />
+        <InfoMessage message={T('contact form info', [smsPaymentPhone])} />
       </FormControl>
       <FormControl>
         {error ? <ErrorMessage message={error} /> : null}
-        {code ? <SuccessMessage message={`Your SMS code is ${code}.`} /> : null}
+        {code ? <SuccessMessage message={T('your sms code', [code])} /> : null}
       </FormControl>
       <UserIdFormControl />
       <FormControl>
         <Button
           onClick={() =>
-            call(config.api.endPointsURLs.handleProfessionalContact, 'post', {
+            callPost(config.api.endPointsURLs.handleProfessionalContact, {
               userId,
               professionalId,
             })
@@ -88,7 +86,7 @@ export default function ProfessionalContact({
           variant="solid"
           colorScheme="blue"
         >
-          Get code
+          {T('get code')}
         </Button>
       </FormControl>
     </FormGroup>

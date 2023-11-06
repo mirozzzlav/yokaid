@@ -8,7 +8,6 @@ import React, {
 import PropTypes from 'prop-types';
 import {
   getLocalDataValue,
-  getValidationError,
   isFieldRequired,
   setLocalDataValue,
 } from 'src/helpers';
@@ -19,12 +18,15 @@ import {
   Input,
 } from '@chakra-ui/react';
 import config from 'src/config';
+import { TranslationsContext } from 'src/providers/TranslationsProvider';
+import { useValidationErrors } from 'src/hooks';
 
 export const UserIdContext = React.createContext({});
 
 export function UserIdFormControl({ error }) {
   const { label, inputFormat, validationRules } = config.userIdMeta;
   const { userId, setUserId, loadUserId } = useContext(UserIdContext);
+  const { T } = useContext(TranslationsContext);
 
   useEffect(() => {
     setUserId(loadUserId());
@@ -32,7 +34,7 @@ export function UserIdFormControl({ error }) {
 
   return (
     <FormControl isInvalid={!!error}>
-      <FormLabel>{label}</FormLabel>
+      <FormLabel>{T(label)}</FormLabel>
       <Input
         isRequired={isFieldRequired(validationRules)}
         value={userId}
@@ -55,6 +57,7 @@ export default function UserIdProvider({ children }) {
     () => getLocalDataValue('localInputs', 'userId') || '',
     [],
   );
+  const { getValidationError } = useValidationErrors();
   const [userId, setUserId] = useState(loadUserId());
   const { name: userIdName, inputFormat } = config.userIdMeta;
 

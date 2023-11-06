@@ -6,7 +6,7 @@ import { isInt } from 'src/helpers';
 import { IntervalContext, UserIdContext } from 'src/providers';
 
 export function useGetProfessional(onSearchFinish) {
-  const call = useCall((response) => {
+  const { call } = useCall((response) => {
     if (!response.data) {
       onSearchFinish(null);
       return;
@@ -25,11 +25,10 @@ export function useGetProfessional(onSearchFinish) {
   return useCallback(
     (professionalId) => {
       const userId = loadUserId();
-      call(
-        `${config.api.endPointsURLs.getProfessionalDetail}/${professionalId}${
-          userId ? `/${userId}` : ''
-        }`,
-      );
+      call(config.api.endPointsURLs.getProfessionalDetail, [
+        professionalId,
+        userId,
+      ]);
     },
     [call],
   );

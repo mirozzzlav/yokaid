@@ -31,16 +31,17 @@ function filterItemsHookCreator(filterName) {
 
   return (onSearchFinish = null) => {
     // hook itself
-    const call = useCall((response) => {
+    const { call } = useCall((response) => {
       if (onSearchFinish) {
         onSearchFinish(response.data);
       }
     });
     return useCallback(
       (searchedFilterItem) =>
-        call(
-          `${config.api.endPointsURLs.getFilterItems}/${config.filter.APIColumnAliases[filterName]}/${searchedFilterItem}`,
-        ),
+        call(config.api.endPointsURLs.getFilterItems, [
+          config.filter.APIColumnAliases[filterName],
+          searchedFilterItem,
+        ]),
       [call],
     );
   };
@@ -109,7 +110,7 @@ export default function FilterProvider({ children }) {
       saveFilter: () => {
         setFilter(draft);
       },
-      getFilterUrl: (skipFilterColumnAliases = []) =>
+      getFilterUrlParam: (skipFilterColumnAliases = []) =>
         Object.values(filter)
           .filter(
             ({ columnAlias }) => !skipFilterColumnAliases.includes(columnAlias),

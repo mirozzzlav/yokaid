@@ -12,6 +12,11 @@ type logsConfig struct {
 	LogsToScreen bool
 	LogsToFile   bool
 }
+
+type translationsConfig struct {
+	Root          string
+	DefaultDomain string
+}
 type config struct {
 	AppName             string
 	AppMailFrom         string
@@ -28,6 +33,7 @@ type config struct {
 	PublicRoles         []string
 	InputFormats        map[string]string
 	SMSPaymentPhone     string
+	Translations        translationsConfig
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -87,5 +93,9 @@ var Config, _ = func(mode string) (config, error) {
 			"phone": "+421 9xx xxx xxx",
 		},
 		SMSPaymentPhone: "2200",
+		Translations: translationsConfig{
+			Root:          "locale",
+			DefaultDomain: "default",
+		},
 	}, nil
 }(GetEnvMode())

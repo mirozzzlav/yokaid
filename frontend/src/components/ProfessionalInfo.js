@@ -7,7 +7,7 @@ import Rating from 'src/components/Rating';
 import DataContent from 'src/components/DataContent';
 import MultiItem from 'src/components/MultiItem';
 import ProfessionalContact from 'src/components/ProfessionalContact';
-import { GalleryContext } from 'src/providers';
+import { GalleryContext, TranslationsContext } from 'src/providers';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 
 const style = {
@@ -170,6 +170,7 @@ export default function ProfessionalInfo({
         : [],
     [data, showReviews],
   );
+  const { T } = useContext(TranslationsContext);
 
   const dataMapped = useMemo(() => {
     if (compact) {
@@ -188,15 +189,15 @@ export default function ProfessionalInfo({
 
     let res = [
       {
-        headline: 'Name / Business',
+        headline: T('name_business'),
         content: getProfessionalLabel(data),
       },
       {
-        headline: 'Location',
+        headline: T('location'),
         content: data.location,
       },
       {
-        headline: 'Professions',
+        headline: T('profession', [], 2),
         content: (
           <MultiItem
             labels={data.professions.map(({ title }) => title)}
@@ -210,7 +211,7 @@ export default function ProfessionalInfo({
       res = [
         ...res,
         {
-          headline: 'Rating',
+          headline: T('rating'),
           content: (
             <Rating
               rating={data.rating}
@@ -221,12 +222,11 @@ export default function ProfessionalInfo({
         },
       ];
     }
-
     if (showContact) {
       res = [
         ...res,
         {
-          headline: 'Professional contact',
+          headline: T('professional contact'),
           content: (
             <ProfessionalContact
               contact={data.contact}
@@ -242,7 +242,7 @@ export default function ProfessionalInfo({
       res = [
         ...res,
         {
-          headline: 'Reviews',
+          headline: T('review', [], 2),
           content: (
             <>
               {data.reviews
@@ -276,6 +276,9 @@ ProfessionalInfo.prototype.propTypes = {
   showContact: PropTypes.bool,
 };
 
-export function ProfessionalInfoDropdown(data) {
+export function ProfessionalInfoDropdown({ data }) {
   return <ProfessionalInfo data={data} compact />;
 }
+ProfessionalInfo.prototype.propTypes = {
+  data: unknownObjectValidator.isRequired,
+};

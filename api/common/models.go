@@ -54,7 +54,7 @@ type professional struct {
 }
 
 type review struct {
-	Id     int          `json:"id"`
+	Id     string       `json:"id"`
 	Text   string       `json:"text"`
 	Rating int          `json:"rating"`
 	Images *[]imagePath `json:"images"`

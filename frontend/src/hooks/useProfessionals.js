@@ -1,15 +1,20 @@
-import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import React, {
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { FilterContext, MapContext } from 'src/providers';
 import { ProfessionalInfoDropdown } from 'src/components/ProfessionalInfo';
-import { getLocalDataValue } from 'src/helpers';
 
 export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
-  const { getFilterUrl } = useContext(FilterContext);
+  const { getFilterUrlParam } = useContext(FilterContext);
   const [callId, setCallId] = useState(null);
-  const call = useCall((response, success) => {
+  const { call } = useCall((response, success) => {
     setProfessionals(success ? response.data : null);
   });
 
@@ -19,13 +24,14 @@ export function useFilterProfessionals() {
     if (!callId) {
       return;
     }
-    const filterUrl = getFilterUrl([config.filter.APIColumnAliases.location]);
-    call(
-      `${config.api.endPointsURLs.getProfessionals}/${
-        config.filter.APIColumnAliases.location
-      }=[${mapAreaRequest.bounds}]${filterUrl ? `;${filterUrl}` : ''}`,
-      'get',
-    );
+    const filterUrlParam = getFilterUrlParam([
+      config.filter.APIColumnAliases.location,
+    ]);
+    call(config.api.endPointsURLs.getProfessionals, [
+      `${config.filter.APIColumnAliases.location}=[${mapAreaRequest.bounds}]${
+        filterUrlParam ? `;${filterUrlParam}` : ''
+      }`,
+    ]);
   }, [callId]);
 
   return useMemo(
@@ -40,24 +46,19 @@ export function useFilterProfessionals() {
 }
 
 export function useSearchProfessional(onSearchFinish) {
-  const call = useCall((response) => {
+  const { call } = useCall((response) => {
     onSearchFinish(
       response.data
-        ? response.data.map((d) => ({
-            renderer: ProfessionalInfoDropdown,
-            label: `${d.fullName} - ${d.professions
-              .map(({ title }) => title)
-              .join(', ')}`,
-            value: d,
+        ? response.data.map((data) => ({
+            content: <ProfessionalInfoDropdown data={data} />,
+            value: data,
           }))
         : null,
     );
   });
   return useCallback(
     (professionalName) =>
-      call(
-        `${config.api.endPointsURLs.searchProfessionals}/${professionalName}`,
-      ),
+      call(config.api.endPointsURLs.searchProfessionals, [professionalName]),
     [call],
   );
 }

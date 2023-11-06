@@ -6,6 +6,7 @@ import {
   GalleryProvider,
   InitialDataProvider,
   IntervalProvider,
+  TranslationsProvider,
   LoaderProvider,
   MapProvider,
   UserIdProvider,
@@ -14,21 +15,23 @@ import {
 function App() {
   return (
     <BrowserRouter>
-      <IntervalProvider>
-        <LoaderProvider>
-          <InitialDataProvider>
-            <FilterProvider>
-              <MapProvider>
-                <UserIdProvider>
-                  <GalleryProvider>
-                    <Routes />
-                  </GalleryProvider>
-                </UserIdProvider>
-              </MapProvider>
-            </FilterProvider>
-          </InitialDataProvider>
-        </LoaderProvider>
-      </IntervalProvider>
+      <LoaderProvider>
+        <TranslationsProvider>
+          <IntervalProvider>
+            <InitialDataProvider>
+              <FilterProvider>
+                <MapProvider>
+                  <UserIdProvider>
+                    <GalleryProvider>
+                      <Routes />
+                    </GalleryProvider>
+                  </UserIdProvider>
+                </MapProvider>
+              </FilterProvider>
+            </InitialDataProvider>
+          </IntervalProvider>
+        </TranslationsProvider>
+      </LoaderProvider>
     </BrowserRouter>
   );
 }

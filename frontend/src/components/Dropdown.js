@@ -16,11 +16,11 @@ import React, {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
-import { useDelayedAction } from 'src/hooks';
-import { LoaderContext } from 'src/providers';
+import useDelayedAction from 'src/hooks/useDelayedAction';
+import { LoaderContext } from 'src/providers/LoaderProvider';
 
 const listElemStyle = {
   width: '100%',
@@ -114,11 +114,7 @@ function DropdownList({
                 setIsShown(false);
               }}
             >
-              <Box>
-                {restItem.renderer
-                  ? React.createElement(restItem.renderer, value)
-                  : `${label}`}
-              </Box>
+              <Box>{restItem.content || `${label}`}</Box>
             </Box>
           ))}
         </Box>
@@ -156,7 +152,7 @@ DropdownList.propTypes = {
   width: PropTypes.string.isRequired,
 };
 
-function Dropdown({ items, buttonMeta, position, width }) {
+function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
   const wrapperRef = useRef();
   const [isShown, setIsShown] = useState(false);
   useOutsideClick({
@@ -170,11 +166,13 @@ function Dropdown({ items, buttonMeta, position, width }) {
         onClick={() => setIsShown((prevShown) => !prevShown)}
         variant={buttonMeta.variant}
         sx={buttonMeta.style}
+        leftIcon={<ChevronDownIcon />}
       >
         {buttonMeta.content}
       </Button>
 
       <DropdownList
+        onItemClick={onItemClick}
         items={items}
         setIsShown={setIsShown}
         position={position}
@@ -189,6 +187,7 @@ Dropdown.defaultProps = {
   items: null,
   position: 'right',
   width: '300px',
+  onItemClick: null,
 };
 Dropdown.propTypes = {
   items: PropTypes.arrayOf(
@@ -211,6 +210,7 @@ Dropdown.propTypes = {
   }).isRequired,
   position: PropTypes.string,
   width: PropTypes.string,
+  onItemClick: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
 };
 
 function SearchDropdown({

@@ -10,13 +10,13 @@ const mapFilterColumnAlias = 'mapBounds';
 const filterElements = [
   {
     name: 'location',
-    placeholder: 'Location',
+    placeholder: 'location',
     infoPlaceholder: 'anywhere',
     iconName: 'LocationIcon',
   },
   {
     name: 'profession',
-    placeholder: 'Profession',
+    placeholder: 'profession',
     infoPlaceholder: 'any profession',
     iconName: 'WorkerIcon',
   },
@@ -35,6 +35,7 @@ export default {
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
       handleProfessionalContact: `${apiUrl}/professionals/handle-contact`,
+      getTranslations: `${apiUrl}/translations/get`,
     },
   },
   map: {
@@ -66,8 +67,23 @@ export default {
   maxReviewImages: 8,
   userIdMeta: {
     name: 'userId',
-    label: 'Your Phone',
+    label: 'your phone',
     inputFormat: '+421 9xx xxx xxx',
     validationRules: 'required,phone',
   },
+  defaultLanguage: 'en_US',
+  languages: [
+    { value: 'en_US', label: 'English', iconName: 'USIcon' },
+    { value: 'sk_SK', label: 'Slovenčina', iconName: 'SKIcon' },
+  ],
+  pluralFormGetter: (lang) =>
+    ({
+      en_US: (n) => (n !== 1 ? 1 : 0),
+      sk_SK: (n) => {
+        if (n === 1) {
+          return 0;
+        }
+        return n >= 2 && n <= 4 ? 1 : 2;
+      },
+    }[lang]),
 };

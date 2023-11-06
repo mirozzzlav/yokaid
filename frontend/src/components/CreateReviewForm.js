@@ -14,21 +14,15 @@ import {
 } from 'src/components/Messages';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-import { unknownObjectValidator, isFieldRequired } from 'src/helpers';
+import { unknownObjectValidator } from 'src/helpers';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import {
   InitialDataContext,
-  UserIdContext,
+  TranslationsContext,
   UserIdFormControl,
 } from 'src/providers';
 import FormGroup from 'src/components/FormGroup';
 import RatingFormControls from 'src/components/RatingFormControls';
-
-const getSuccessMessage = (smsCode, smsPaymentPhone) =>
-  `Thank you for your review! Please send the code "${smsCode}" to phone number ${smsPaymentPhone} to publish the review.`;
-
-const getFormInfoMessage = (smsPaymentPhone) =>
-  `Each review costs 0.5€. After submitting this form, you will receive a code. Please send the code to phone number ${smsPaymentPhone} via SMS.`;
 
 export function CreateReviewForm({
   formResult,
@@ -39,6 +33,7 @@ export function CreateReviewForm({
   professional,
   validationRules,
 }) {
+  const { T } = useContext(TranslationsContext);
   const { smsPaymentPhone } = useContext(InitialDataContext);
 
   if (!professional) {
@@ -48,12 +43,12 @@ export function CreateReviewForm({
   return (
     <Box>
       <FormControl>
-        <InfoMessage message={getFormInfoMessage(smsPaymentPhone)} />
+        <InfoMessage message={T('review form info', [smsPaymentPhone])} />
       </FormControl>
-      <FormGroup groupLabel="Reviewed person">
+      <FormGroup groupLabel={T('reviewed person')}>
         <ProfessionalInfo data={professional} />
       </FormGroup>
-      <FormGroup groupLabel="Review">
+      <FormGroup groupLabel={T('review')}>
         <RatingFormControls
           getInput={getInput}
           inputsErrors={inputsErrors}
@@ -64,10 +59,13 @@ export function CreateReviewForm({
       <FormGroup>
         <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
       </FormGroup>
-      {state.isError ? <ErrorMessage message={formResult.msg} /> : null}
+      {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={getSuccessMessage(formResult?.data.smsCode, smsPaymentPhone)}
+          message={T(formResult.msg, [
+            formResult?.data.smsCode,
+            smsPaymentPhone,
+          ])}
         />
       ) : null}
     </Box>
@@ -98,10 +96,10 @@ export function formConfigFactory(professional) {
   return {
     validationGroup: 'createReviewForExistingProfessionalRequest',
     hook: (onCallFinish) => {
-      const call = useCall(onCallFinish);
+      const { callPost } = useCall(onCallFinish);
 
       return (inputs) =>
-        call(config.api.endPointsURLs.createReview, 'post', inputs);
+        callPost(config.api.endPointsURLs.createReview, inputs);
     },
     formUI: CreateReviewForm,
     professional,

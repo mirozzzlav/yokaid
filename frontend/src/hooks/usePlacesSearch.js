@@ -11,7 +11,7 @@ export default function usePlacesSearch(
   onSearchFinish,
   responseMapper = defaultResponseMapper,
 ) {
-  const call = useCall((response) => {
+  const { call } = useCall((response) => {
     const mapResults = responseMapper(response.data);
     onSearchFinish(mapResults);
   });

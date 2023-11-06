@@ -15,6 +15,8 @@ import { LoaderContext } from 'src/providers/LoaderProvider';
 import { useNavigateAction } from 'src/hooks';
 import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
+import { TranslationsContext, LanguageDropdown } from 'src/providers';
+import config from 'src/config';
 
 const loaderAnim = keyframes(`
   from {
@@ -49,8 +51,9 @@ function useStyle() {
       lineHeight: 1,
     },
     logo: {
-      width: '8rem',
+      width: '100%',
       height: '2rem',
+      maxWidth: '8rem',
     },
     topContent: {
       padding: '0 2rem',
@@ -101,7 +104,7 @@ function useStyle() {
       topInner: { flexWrap: 'wrap' },
       topContent: { order: 3, padding: '1rem 0 0 0', width: '100%' },
     },
-    md: {
+    lg: {
       topContent: { order: 2 },
       topRight: { order: 3 },
     },
@@ -128,6 +131,7 @@ function Page({
     }),
     [action, actionParams, modalsConfigFromProps],
   );
+  const { lang, setLang } = useContext(TranslationsContext);
 
   const filterRef = useRef();
 
@@ -143,7 +147,13 @@ function Page({
             icon={<Icon as={Logo} sx={style.logo} />}
           />
           <Box sx={style.topContent}>{topContent}</Box>
-          <Box sx={style.topRight} />
+          <Box sx={style.topRight}>
+            <LanguageDropdown
+              selectedLanguage={lang}
+              languages={config.languages}
+              onLanguageSelect={({ value: langCode }) => setLang(langCode)}
+            />
+          </Box>
         </Flex>
       </Box>
       {filterContent && (

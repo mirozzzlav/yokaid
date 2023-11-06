@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal as ModalChakra,
@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import theme from 'src/style';
 import { buttonPropType } from 'src/constants';
+import { TranslationsContext } from 'src/providers';
 
 const style = {
   modalContent: {
@@ -34,6 +35,7 @@ export default function Modal({
   isScrolledDown,
 }) {
   const bodyRef = useRef();
+  const { T } = useContext(TranslationsContext);
   useEffect(() => {
     if (isScrolledDown && bodyRef.current) {
       bodyRef.current.scrollTo({
@@ -69,7 +71,7 @@ export default function Modal({
             </Button>
           )}
           <Button onClick={close} variant="solid">
-            Close
+            {T('close')}
           </Button>
         </ModalFooter>
       </ModalContent>

@@ -18,9 +18,9 @@ export default function InitialDataProvider({ children }) {
 
     setInitialData(response.data);
   }, []);
-  const call = useCall(onDataArrived);
+  const { call } = useCall(onDataArrived);
 
-  useEffect(() => call(config.api.endPointsURLs.getInitialData, 'get'), []);
+  useEffect(() => call(config.api.endPointsURLs.getInitialData), []);
 
   return (
     <InitialDataContext.Provider value={initialData}>

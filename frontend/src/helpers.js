@@ -83,35 +83,18 @@ function getLocalDataValue(storageKey, dataKey) {
   return !data[dataKey] ? null : data[dataKey];
 }
 
-function getStringForCount(count, wordShapes) {
-  return `${count} ${
-    count >= wordShapes.length
-      ? wordShapes[wordShapes.length - 1]
-      : wordShapes[count]
-  }`;
-}
-
 function getHexSHA256(inputString) {
   return Sha256(inputString).toString(encHex);
 }
-function getValidationError(validationError) {
-  const unknownError = 'unknown error';
-  if (!validationError) {
-    return unknownError;
+
+function sprintf(string, textParts) {
+  if (textParts.length === 0) {
+    return string;
   }
-  const { validator, field, format, param } = validationError;
-  return (
-    {
-      min: `${field} is too short or haven't reach min limit`,
-      max: `${field} is too long or above the limit`,
-      required: `${field} is empty`,
-      email: 'fix the email',
-      multiWords: format
-        ? `ensure the ${field} match the format: ${format}`
-        : `${field} has to have at least 2 words`,
-      requiredWithout: `${field} or ${param} have to be filled in`,
-      phone: `ensure the phone match the format: ${format}`,
-    }[validator] || unknownError
+  return textParts.reduce(
+    (previousValue, currentValue, index) =>
+      previousValue.replace(`$${index + 1}`, currentValue),
+    string,
   );
 }
 
@@ -126,7 +109,6 @@ export {
   getStringFirstCaps,
   setLocalDataValue,
   getLocalDataValue,
-  getStringForCount,
   getHexSHA256,
-  getValidationError,
+  sprintf,
 };

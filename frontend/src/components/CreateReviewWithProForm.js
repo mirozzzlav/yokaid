@@ -1,5 +1,9 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { InitialDataContext, UserIdFormControl } from 'src/providers';
+import {
+  InitialDataContext,
+  TranslationsContext,
+  UserIdFormControl,
+} from 'src/providers';
 import {
   Box,
   FormControl,
@@ -25,7 +29,7 @@ import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 
 function useProfessionsSearch(onSearchFinish) {
-  const call = useCall((response) => {
+  const { call } = useCall((response) => {
     onSearchFinish(
       response.data
         ? response.data.map((d) => ({
@@ -38,16 +42,10 @@ function useProfessionsSearch(onSearchFinish) {
 
   return useCallback(
     (professionTitle) =>
-      call(`${config.api.endPointsURLs.getProfessions}/${professionTitle}`),
+      call(config.api.endPointsURLs.getProfessions, [professionTitle]),
     [call],
   );
 }
-
-const getSuccessMessage = (smsCode, smsPaymentPhone) =>
-  `Thank you for your review! Please send the code "${smsCode}" to phone number ${smsPaymentPhone} to publish the review.`;
-
-const getFormInfoMessage = (smsPaymentPhone) =>
-  `Each review costs 0.5€. After submitting this form, you will receive a code. Please send the code to phone number ${smsPaymentPhone} via SMS.`;
 
 export function CreateReviewWithPro({
   formResult,
@@ -77,17 +75,19 @@ export function CreateReviewWithPro({
     [filters],
   );
 
+  const { T } = useContext(TranslationsContext);
+
   return (
     <Box>
       <FormControl>
-        <InfoMessage message={getFormInfoMessage(smsPaymentPhone)} />
+        <InfoMessage message={T('review form info', [smsPaymentPhone])} />
       </FormControl>
-      <FormGroup groupLabel="Reviewed person">
+      <FormGroup groupLabel={T('reviewed person')}>
         <FormControl
           isInvalid={inputsErrors?.fullName}
           isRequired={isFieldRequired(validationRules?.fullName)}
         >
-          <FormLabel>Full name</FormLabel>
+          <FormLabel>{T('full name')}</FormLabel>
           <SearchDropdown
             searchHook={useSearchProfessional}
             inputVal={getInput('fullName')}
@@ -100,7 +100,7 @@ export function CreateReviewWithPro({
             }}
             position="left"
             dropdownWidth="100%"
-            placeholder={inputFormats?.fullName}
+            placeholder={T(inputFormats?.fullName)}
           />
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
@@ -113,7 +113,7 @@ export function CreateReviewWithPro({
           }
           isRequired={isFieldRequired(validationRules?.location)}
         >
-          <FormLabel>Location</FormLabel>
+          <FormLabel>{T('location')}</FormLabel>
           <SearchDropdown
             inputVal={getInput('location')}
             inputValSetter={(v) => updateInput('location', v)}
@@ -142,7 +142,7 @@ export function CreateReviewWithPro({
           isInvalid={inputsErrors?.businessId}
           isRequired={isFieldRequired(validationRules?.businessId)}
         >
-          <FormLabel>Business Id</FormLabel>
+          <FormLabel>{T('business id')}</FormLabel>
           <InputGroup>
             <Input
               type="text"
@@ -158,7 +158,7 @@ export function CreateReviewWithPro({
           isInvalid={inputsErrors?.phone}
           isRequired={isFieldRequired(validationRules?.phone)}
         >
-          <FormLabel>Phone</FormLabel>
+          <FormLabel>{T('phone')}</FormLabel>
           <Input
             type="text"
             value={getInput('phone')}
@@ -187,7 +187,7 @@ export function CreateReviewWithPro({
           isInvalid={inputsErrors?.professions}
           isRequired={isFieldRequired(validationRules?.professions)}
         >
-          <FormLabel>Professions</FormLabel>
+          <FormLabel>{T('profession', [], 2)}</FormLabel>
           <SearchDropdown
             inputVal={searchedProfession}
             inputValSetter={(v) => setSearchedProfession(v)}
@@ -220,7 +220,7 @@ export function CreateReviewWithPro({
           <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
         </FormControl>
       </FormGroup>
-      <FormGroup groupLabel="Review">
+      <FormGroup groupLabel={T('review')}>
         <RatingFormControls
           inputs={inputs}
           inputsErrors={inputsErrors}
@@ -233,10 +233,13 @@ export function CreateReviewWithPro({
         <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
       </FormGroup>
 
-      {state.isError ? <ErrorMessage message={formResult.msg} /> : null}
+      {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={getSuccessMessage(formResult.data.smsCode, smsPaymentPhone)}
+          message={T(formResult.msg, [
+            formResult.data.smsCode,
+            smsPaymentPhone,
+          ])}
         />
       ) : null}
     </Box>
@@ -265,14 +268,10 @@ export function formConfigFactory(onProfessionalFound) {
   return {
     validationGroup: 'createReviewAndProfessionalRequest',
     hook: (onCallFinish) => {
-      const call = useCall(onCallFinish);
+      const { callPost } = useCall(onCallFinish);
 
       return (inputs) =>
-        call(
-          config.api.endPointsURLs.createProfessionalWithReview,
-          'post',
-          inputs,
-        );
+        callPost(config.api.endPointsURLs.createProfessionalWithReview, inputs);
     },
     formUI: CreateReviewWithPro,
     onProfessionalFound,

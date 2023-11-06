@@ -7,7 +7,8 @@ import {
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import Rating from 'src/components/Rating';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useContext } from 'react';
+import { TranslationsContext } from 'src/providers';
 
 const style = {
   reviewTextArea: {
@@ -21,6 +22,7 @@ export default function RatingFormControls({
   updateInput,
   validationRules,
 }) {
+  const { T } = useContext(TranslationsContext);
   return (
     <>
       <FormControl
@@ -40,7 +42,6 @@ export default function RatingFormControls({
         isInvalid={inputsErrors?.rating}
         isRequired={isFieldRequired(validationRules?.rating)}
       >
-        <FormLabel>Rating</FormLabel>
         <Rating
           rating={getInput('rating')}
           onStarClick={(r) => updateInput('rating', r)}

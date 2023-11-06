@@ -27,7 +27,7 @@ func create(server common.Server) gin.HandlerFunc {
 			panic(
 				common.HttpResponse{
 					Code: http.StatusBadRequest,
-					Msg:  "Person with the given phone or email already exist.",
+					Msg:  "review form existing person",
 				},
 			)
 		}
@@ -38,7 +38,7 @@ func create(server common.Server) gin.HandlerFunc {
 
 		common.SetOKJSONResponse(
 			ctx,
-			"",
+			"review form success",
 			map[string]string{"smsCode": paymentId},
 		)
 	}

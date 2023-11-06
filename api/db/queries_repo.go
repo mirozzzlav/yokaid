@@ -45,7 +45,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 	return prepareQueryString(strings.Join(qStrings, " ")), params
 }
 
-type queriesRepo struct{}
+type QueriesRepo struct{}
 
 func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userId string) common.Query {
 
@@ -157,7 +157,7 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews 
 	}
 
 }
-func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) common.Query {
 	q := "SELECT count(id) FROM professionals WHERE "
 	return dbQuery{
 		partials: []common.QueryPartial{
@@ -169,7 +169,7 @@ func (qr queriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) com
 	}
 }
 
-func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -181,7 +181,7 @@ func (qr queriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 	}
 }
 
-func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalRequest) common.Query {
+func (qr QueriesRepo) CreateProfessionalQuery(req common.CreateProfessionalRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -203,7 +203,7 @@ func (qr queriesRepo) CreateProfessionalQuery(req common.CreateProfessionalReque
 	}
 }
 
-func (qr queriesRepo) CreateProfessionalProfessionsQuery(professionalId int, professions []int) common.Query {
+func (qr QueriesRepo) CreateProfessionalProfessionsQuery(professionalId int, professions []int) common.Query {
 
 	var valPlaceholders []string
 	var params []any
@@ -223,7 +223,7 @@ func (qr queriesRepo) CreateProfessionalProfessionsQuery(professionalId int, pro
 	}
 }
 
-func (qr queriesRepo) CreateReviewQuery(paymentId string, professionalId int, req common.CreateReviewRequest) common.Query {
+func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, req common.CreateReviewRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -239,7 +239,7 @@ func (qr queriesRepo) CreateReviewQuery(paymentId string, professionalId int, re
 	}
 }
 
-func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Query {
 	query := `SELECT 
 				id, title 
 			  FROM
@@ -258,22 +258,23 @@ func (qr queriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 	return q
 }
 
-func (qr queriesRepo) CreatePaymentQuery(id string, userId string, productId string) common.Query {
+func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId string) common.Query {
 
-	query := `INSERT INTO payments ("id", "user_id", "product_id") VALUES(?, ?, ?)`
+	query := `INSERT INTO payments ("id", "user_id", "product_id", "state") VALUES(?, ?, ?, ?)`
+	paymentState := common.PaymentStates.New
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{id, userId, productId},
+				Params: []any{id, userId, productId, paymentState},
 			},
 		},
 	}
 	return q
 }
 
-func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userId string, columns ...string) common.Query {
+func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId string, columns ...string) common.Query {
 
 	columnsStr := "email, phone"
 	if len(columns) > 0 {
@@ -295,7 +296,7 @@ func (qr queriesRepo) GetProfessionalContactQuery(professionalId int, userId str
 	return q
 }
 
-func (qr queriesRepo) CreateProfessionalContactQuery(paymentId string, req common.CreateUserProfessionalContactRequest) common.Query {
+func (qr QueriesRepo) CreateProfessionalContactQuery(paymentId string, req common.CreateUserProfessionalContactRequest) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -308,5 +309,3 @@ func (qr queriesRepo) CreateProfessionalContactQuery(paymentId string, req commo
 		},
 	}
 }
-
-var QueriesRepo = queriesRepo{}

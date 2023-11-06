@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { callStates } from 'src/constants';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 
@@ -12,11 +12,11 @@ export default function useCall(onCallFinish = null) {
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
   const { setIsLoading } = useContext(LoaderContext);
-
   const call = useCallback(
-    (url, method = 'get', payload = null, headers = null) => {
+    (url, urlParams = [], method = 'get', payload = null, headers = null) => {
       setState(callStates.loading);
-      fetch(url, {
+      const urlParamsStr = urlParams.filter((p) => p).join('/');
+      fetch(`${url}${urlParamsStr ? `/${urlParamsStr}` : ''}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -62,5 +62,13 @@ export default function useCall(onCallFinish = null) {
     }
   }, [state, response, httpResponseCode]);
 
-  return call;
+  return useMemo(
+    () => ({
+      call: (url, urlParams) => {
+        call(url, urlParams);
+      },
+      callPost: (url, payload) => call(url, [], 'post', payload),
+    }),
+    [call],
+  );
 }

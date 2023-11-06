@@ -1,16 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { InitialDataContext, UserIdContext } from 'src/providers';
 import config from 'src/config';
-import { getValidationError } from 'src/helpers';
-
-function mapValidationErrors(errors, formats) {
-  return Object.fromEntries(
-    errors.map((error) => [
-      error.field,
-      getValidationError({ ...error, format: formats[error.validator] }),
-    ]),
-  );
-}
+import useValidationErrors from 'src/hooks/useValidationErrors';
 
 const requestStatesConsts = {
   initial: 'initial',
@@ -24,12 +15,11 @@ const getDefaultFormState = () => ({
     msg: '',
     data: null,
   },
-  inputsErrors: null,
   inputs: null,
 });
 
 export default function useForms(formConfigs) {
-  const { validationRules, inputFormats } = useContext(InitialDataContext);
+  const { validationRules } = useContext(InitialDataContext);
   const { userId, saveUserId } = useContext(UserIdContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
@@ -67,15 +57,13 @@ export default function useForms(formConfigs) {
       })),
     [],
   );
+  const { getValidationErrors } = useValidationErrors();
 
   const getFormStateAndHelpers = useCallback(
     (formId) => ({
-      setformResult: (formResult) => updateFormState(formId, { formResult }),
-      setInputsErrors: (inputsErrors) =>
-        updateFormState(formId, { inputsErrors }),
+      setFormResult: (formResult) => updateFormState(formId, { formResult }),
       resetForm: () => {
         updateFormState(formId, {
-          inputsErrors: null,
           inputs: null,
         });
         setRequestState(formId, requestStatesConsts.initial);
@@ -138,23 +126,24 @@ export default function useForms(formConfigs) {
 
         return isAdded;
       },
+      inputsErrors:
+        requestStates[formId] === requestStatesConsts.error &&
+        formStates[formId].formResult.data
+          ? getValidationErrors(formStates[formId].formResult.data)
+          : null,
     }),
     [formStates, requestStates, formConfigs, validationRules],
   );
 
   const calls = Object.fromEntries(
     Object.entries(formConfigs).map(([formId, formConfig]) => {
-      const { resetForm, setInputsErrors, setformResult } =
-        getFormStateAndHelpers(formId);
+      const { resetForm, setFormResult } = getFormStateAndHelpers(formId);
       return [
         formId,
         formConfig.hook((response, success) => {
-          setformResult(response);
+          setFormResult(response);
           if (!success) {
             setRequestState(formId, requestStatesConsts.error);
-            if (response.data) {
-              setInputsErrors(mapValidationErrors(response.data, inputFormats));
-            }
             return;
           }
           saveUserId();
@@ -171,7 +160,6 @@ export default function useForms(formConfigs) {
         const { inputs: inputsRaw } = getFormStateAndHelpers(formId);
         const inputsToRequestMapper =
           formConfigs[formId]?.inputsToRequestMapper;
-
         if (requestStates[formId] === requestStatesConsts.loading) {
           calls[formId]({
             ...(inputsToRequestMapper

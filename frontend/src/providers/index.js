@@ -12,6 +12,10 @@ import IntervalProvider, {
   IntervalContext,
 } from 'src/providers/IntervalProvider';
 import GalleryProvider, { GalleryContext } from 'src/providers/GalleryProvider';
+import TranslationsProvider, {
+  TranslationsContext,
+  LanguageDropdown,
+} from 'src/providers/TranslationsProvider';
 
 export {
   LoaderProvider,
@@ -29,4 +33,7 @@ export {
   IntervalContext,
   GalleryProvider,
   GalleryContext,
+  TranslationsProvider,
+  TranslationsContext,
+  LanguageDropdown,
 };

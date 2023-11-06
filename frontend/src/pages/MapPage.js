@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,7 +14,6 @@ import {
   createReviewFormConfigFactory,
   createReviewWithProConfigFactory,
   Map,
-  ProfessionalContact,
   SearchDropdown,
 } from 'src/components';
 import {
@@ -22,6 +21,7 @@ import {
   InitialDataContext,
   IntervalContext,
   MapContext,
+  TranslationsContext,
 } from 'src/providers';
 import config from 'src/config';
 import {
@@ -173,6 +173,7 @@ function FilterInfo({
   onClick,
   sx,
 }) {
+  const { T } = useContext(TranslationsContext);
   const data = useMemo(
     () =>
       Object.fromEntries(
@@ -180,10 +181,10 @@ function FilterInfo({
           name,
           filterInputValuesFromProps && filterInputValuesFromProps[name]
             ? filterInputValuesFromProps[name]
-            : infoPlaceholder,
+            : T(infoPlaceholder),
         ]),
       ),
-    [filterInputValuesFromProps],
+    [filterInputValuesFromProps, T],
   );
   const style = useStyle();
 
@@ -191,7 +192,7 @@ function FilterInfo({
     <Flex sx={sx} onClick={onClick}>
       {Object.entries(data).map(([fName, value]) => (
         <Box sx={style.filterInfoBlock} key={fName}>
-          <Text sx={style.filterInfoName}>{getStringFirstCaps(fName)}</Text>
+          <Text sx={style.filterInfoName}>{T(fName)}</Text>
           <Text sx={style.filterInfoVal}>{value}</Text>
         </Box>
       ))}
@@ -212,6 +213,7 @@ FilterInfo.prototype.propTypes = {
 
 export default function MapPage() {
   const { navigateAction, action } = useNavigateAction();
+  const { T } = useContext(TranslationsContext);
 
   const { filters: filterInitialItems } = useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
@@ -232,7 +234,7 @@ export default function MapPage() {
     filterInputValues,
     getFilterInputValSetter,
   } = useContext(FilterContext);
-  const [professionalDetail, setProfessionalDetail] = useProfessionalDetail();
+  const [professionalDetail] = useProfessionalDetail();
   const { addSubscriber, setNextInterval } = useContext(IntervalContext);
 
   useEffect(() => {
@@ -244,23 +246,23 @@ export default function MapPage() {
   const modalsConfig = useMemo(
     () => ({
       'add-review': {
-        title: 'Your review',
+        title: T('your review'),
         submitButton: {
-          label: 'Submit',
+          label: T('submit'),
         },
         formConfig: createReviewFormConfigFactory(professionalDetail),
       },
       'add-review-with-professional': {
-        title: 'Your review',
+        title: T('your review'),
         submitButton: {
-          label: 'Submit',
+          label: T('submit'),
         },
         formConfig: createReviewWithProConfigFactory(({ id }) =>
           navigateAction('add-review', id),
         ),
       },
     }),
-    [professionalDetail],
+    [professionalDetail, T],
   );
   const style = useStyle();
   useEffect(() => {
@@ -295,7 +297,7 @@ export default function MapPage() {
               navigateAction('professional-detail', id);
             }}
             position="left"
-            placeholder="Find person by name"
+            placeholder={T('find person by name')}
             sx={style.mainSearch}
             setInputValOnValSet={false}
           />
@@ -330,7 +332,7 @@ export default function MapPage() {
                     }}
                     onValueEmpty={() => resetDraft(filterName)}
                     position="left"
-                    placeholder={placeholder}
+                    placeholder={T(placeholder)}
                     inputVal={
                       (filterInputValues && filterInputValues[filterName]) || ''
                     }
@@ -395,7 +397,7 @@ export default function MapPage() {
             colorScheme="blue"
             leftIcon={<AddIcon />}
           >
-            Write review
+            {T('write review')}
           </Button>
           <IconButton
             icon={<AddIcon />}
@@ -420,7 +422,7 @@ export default function MapPage() {
       <Modal
         isShown={!!professionalDetail && action === 'professional-detail'}
         close={() => navigateAction(null)}
-        title="Professional info"
+        title={T('professional info')}
       >
         <ProfessionalInfo
           data={professionalDetail || null}
