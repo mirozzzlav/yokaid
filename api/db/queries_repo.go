@@ -47,57 +47,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type queriesRepo struct{}
 
-func (qr queriesRepo) GetUsersCountQuery(filter common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  `select count(id) from users where `,
-				Params: []any{},
-			},
-			filter,
-		},
-	}
-}
-
-func (qr queriesRepo) UpdateUsersQuery(data common.QueryPartial, filter common.QueryPartial) common.Query {
-	filter.Query = " where " + filter.Query
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  "update users set ",
-				Params: []any{},
-			},
-			data,
-			filter,
-		},
-	}
-}
-
-func (qr queriesRepo) ListPoliciesQuery() common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  `select p.user, p.role, p.action, p.resource from policies as p`,
-				Params: []any{},
-			},
-		},
-	}
-
-}
-
-func (qr queriesRepo) QueryUserTest(filter common.QueryPartial) common.Query {
-	return dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  `select * from "users" INNER JOIN "roles" ON "users"."role" = "roles"."name"`,
-				Params: []any{},
-			},
-			filter,
-		},
-	}
-}
-
-func (qr queriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userId string) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userId string) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
 	reviewsQuery := fmt.Sprintf(`JOIN (
