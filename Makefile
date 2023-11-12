@@ -1,58 +1,74 @@
-# Load the environment variables from the .env file
+include ./.env
 
-ifndef ENV
-    $(error ENV is not set)
-endif
+$(eval exit_status := $(shell apt list > /dev/null 2>&1; echo $$?))
 
-ifeq ($(ENV),local)
-    include ./api/.env.local
-    $(info ------ Running local environment ------)
-else ifdef ($(ENV),production)
-	include ./api/.env.production
-    $(info ------ Running production environment ------)
-else
-    include ./api/.env
-    $(info ------ Running development environment ------)
-endif
+grantperms_cmd := docker exec postgres psql -U $(POSTGRES_ROOT) -d $(APP_NAME) -c \
+				"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $(POSTGRES_APP_USER);\
+				 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO $(POSTGRES_APP_USER);"
 
 export
 
-DOCKER_NET = $(APP_NAME)_network
 POSTGRES = $(shell docker ps -aq --filter name=postgres)
 ADMINER = $(shell docker ps -aq --filter name=adminer)
+API = $(shell docker ps -aq --filter name=api)
 
 postgres:
-	docker network ls|grep $(DOCKER_NET) > /dev/null || docker network create $(DOCKER_NET); docker run --name postgres --network $(DOCKER_NET) -p 5432:5432 -e POSTGRES_USER=$(POSTGRES_USER) -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) -d postgres
-
-adminer:
-	docker run --name adminer --network $(DOCKER_NET) -p 8000:8080 -d adminer
+	docker network ls|grep $(DOCKER_NET) > /dev/null || docker network create $(DOCKER_NET); \
+	docker run -d --rm --name postgres --network $(DOCKER_NET) -p 5432:5432 \
+  		   -e POSTGRES_USER=$(POSTGRES_ROOT) -e POSTGRES_PASSWORD=$(POSTGRES_ROOT_PASS) postgres
 
 createdb:
-	docker exec -it postgres createdb --username=$(POSTGRES_USER) --owner=$(POSTGRES_USER) $(APP_NAME)
+	docker exec postgres createdb --username=$(POSTGRES_ROOT) --owner=$(POSTGRES_ROOT) $(APP_NAME); \
+  	docker exec postgres psql --username=$(POSTGRES_ROOT) --command="\
+  		 CREATE USER $(POSTGRES_APP_USER) WITH PASSWORD '$(POSTGRES_APP_PASSWORD)';"
+
+buildapi:
+	docker build -t api ./api
+
+runapi:
+	docker run -d --rm --name api --network $(DOCKER_NET) -p 8080:8080 --env-file .env api
+
+buildfe:
+	docker build -t fe --build-arg API_URL=$(API_URL) --build-arg API_DOCKER_URL=$(API_DOCKER_URL) ./frontend
+
+runfe:
+	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 fe
+
+adminer:
+	docker run -d --rm --name adminer --network $(DOCKER_NET) -p 8088:8080 adminer
 
 dropdb:
-	docker exec -it postgres dropdb --if-exists --username=$(POSTGRES_USER) $(APP_NAME)
+	docker exec postgres dropdb --if-exists --username=$(POSTGRES_ROOT) $(APP_NAME)
+
+grantprivs:
+	$(grantperms_cmd);
 
 migrateup:
-	migrate -path api/db/migrations -database "$(DB_URL)" -verbose up
+	@if [ "$(API)" ];then \
+  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose up; $(grantperms_cmd);\
+  	fi
 
 migrateup1:
-	migrate -path api/db/migrations -database "$(DB_URL)" -verbose up 1
+	@if [ "$(API)" ];then \
+  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose up 1; $(grantperms_cmd);\
+  	fi
 
 migratedown:
-	migrate -path api/db/migrations -database "$(DB_URL)" -verbose down
+	@if [ "$(API)" ];then \
+  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose down;\
+  	fi
 
 migratedown1:
-	migrate -path api/db/migrations -database "$(DB_URL)" -verbose down 1
+	@if [ "$(API)" ];then \
+  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose down 1;\
+  	fi
 
 newmigration:
-	migrate create -dir api/db/migrations -ext sql -seq -digits 8 $(name)
-	
+	@if [ "$(API)" ];then \
+  		docker exec migrate create -dir db/migrations -ext sql -seq -digits 8 $(name);\
+  	fi
 
 cleanup:
 	@if [ "$(POSTGRES)" ]; then make dropdb; docker rm -f $(POSTGRES); fi;
 	@if [ "$(ADMINER)" ]; then docker rm -f $(ADMINER); fi;
 	@echo "--- CLEANUP FINISHED ---"
-
-server:
-	cd ./api && go run . mode=$(ENV)

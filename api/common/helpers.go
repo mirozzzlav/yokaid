@@ -108,7 +108,7 @@ func StripTags(text string) string {
 	return r.ReplaceAllString(text, "")
 }
 
-func GetEnvMode() string {
+func GetSystemArgs() map[string]string {
 	args := os.Args[1:] // Exclude the program name
 
 	// Parse command-line arguments
@@ -119,12 +119,7 @@ func GetEnvMode() string {
 			params[parts[0]] = parts[1]
 		}
 	}
-	// Access specific parameters
-	mode, modeExists := params["mode"]
-	if modeExists {
-		return mode
-	}
-	return "development" // default if nothing set
+	return params
 }
 
 func ToSnakeCase(pascalOrCamel string) string {

@@ -70,12 +70,10 @@ func (s *server) GetStoreHelpers(ctx *gin.Context) common.StoreHelpers {
 func (s *server) initRouter() {
 
 	var router *gin.Engine
-	envMode := common.GetEnvMode()
-	if envMode == "development" || envMode == "local" {
+	if gin.Mode() != "release" {
 		// running GIN in devel mode - enabling GIN logs on screen
 		router = gin.Default()
 	} else {
-		gin.SetMode(gin.ReleaseMode)
 		router = gin.New()
 	}
 

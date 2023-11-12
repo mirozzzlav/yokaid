@@ -5,7 +5,6 @@ import (
 	"github.com/joho/godotenv"
 	"os"
 	"strconv"
-	"time"
 )
 
 type logsConfig struct {
@@ -25,7 +24,6 @@ type config struct {
 	DBDriver            string
 	DBSource            string
 	TokenSymmetricKey   string
-	AccessTokenDuration time.Duration
 	Url                 string
 	AssetsFolder        string
 	AssetsRelativeUrl   string
@@ -63,14 +61,15 @@ func getLogsConfig() logsConfig {
 	return logsConfig{LogsToScreen: logsToScreen, LogsToFile: logsToFile}
 }
 
-var Config, _ = func(mode string) (config, error) {
-	envFilePath := ".env." + mode
-	err := godotenv.Load(envFilePath)
-	if err != nil {
-		return config{}, err
+var Config, _ = func() (config, error) {
+	sysParams := GetSystemArgs()
+	if envFile, ok := sysParams["envfile"]; ok {
+		err := godotenv.Load(envFile)
+		if err != nil {
+			return config{}, err
+		}
 	}
 
-	accessTokenDuration, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_DURATION"))
 	enableNotifications, err := strconv.ParseBool(os.Getenv("ENABLE_NOTIFICATIONS"))
 	if err != nil {
 		return config{}, err
@@ -84,7 +83,6 @@ var Config, _ = func(mode string) (config, error) {
 		DBDriver:            os.Getenv("DB_DRIVER"),
 		DBSource:            os.Getenv("DB_URL"),
 		TokenSymmetricKey:   os.Getenv("TOKEN_SYMMETRIC_KEY"),
-		AccessTokenDuration: time.Minute * time.Duration(accessTokenDuration),
 		Url:                 os.Getenv("API_URL"),
 		AssetsFolder:        "./assets",
 		AssetsRelativeUrl:   "/assets",
@@ -98,4 +96,4 @@ var Config, _ = func(mode string) (config, error) {
 			DefaultDomain: "default",
 		},
 	}, nil
-}(GetEnvMode())
+}()
