@@ -2,6 +2,7 @@ FROM nginx
 
 ARG API_URL
 ARG API_DOCKER_URL
+ARG ADMINER_DOCKER_URL
 ENV VITE_API_URL=${API_URL}
 
 WORKDIR /app
@@ -24,6 +25,14 @@ RUN echo "server { \
     location /api { \
         rewrite ^/api(/.*)$ \$1 break; \
         proxy_pass ${API_DOCKER_URL}; \
+        proxy_set_header Host api; \
+        proxy_set_header X-Real-IP \$remote_addr; \
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto \$scheme; \
+    } \
+    location /adminer { \
+        rewrite ^/adminer(/.*)$ \$1 break; \
+        proxy_pass ${ADMINER_DOCKER_URL}; \
         proxy_set_header Host api; \
         proxy_set_header X-Real-IP \$remote_addr; \
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for; \

@@ -29,7 +29,8 @@ runapi:
 	docker run -d --rm --name api --network $(DOCKER_NET) -p 8080:8080 --env-file .env api
 
 buildfe:
-	docker build -t fe --build-arg API_URL=$(API_URL) --build-arg API_DOCKER_URL=$(API_DOCKER_URL) ./frontend
+	docker build -t fe --build-arg API_URL=$(API_URL) --build-arg API_DOCKER_URL=$(API_DOCKER_URL) \
+ 		--build-arg ADMINER_DOCKER_URL=$(ADMINER_DOCKER_URL) ./frontend
 
 runfe:
 	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 fe
