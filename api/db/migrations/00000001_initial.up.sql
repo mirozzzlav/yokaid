@@ -46,7 +46,8 @@ CREATE TABLE "review_images" (
 CREATE TABLE "professions" (
     "id" serial NOT NULL,
     "title" character varying(256) NOT NULL,
-    CONSTRAINT "professions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "professions_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "professions_title_key" UNIQUE ("title")
 ) WITH (oids = false);
 
 

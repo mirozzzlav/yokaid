@@ -1,15 +1,11 @@
 include ./.env
 
-$(eval exit_status := $(shell apt list > /dev/null 2>&1; echo $$?))
-
 grantperms_cmd := docker exec postgres psql -U $(POSTGRES_ROOT) -d $(APP_NAME) -c \
 				"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $(POSTGRES_APP_USER);\
 				 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO $(POSTGRES_APP_USER);"
 
 export
 
-POSTGRES = $(shell docker ps -aq --filter name=postgres)
-ADMINER = $(shell docker ps -aq --filter name=adminer)
 API = $(shell docker ps -aq --filter name=api)
 
 postgres:
@@ -64,12 +60,11 @@ migratedown1:
   		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose down 1;\
   	fi
 
-newmigration:
-	@if [ "$(API)" ];then \
-  		docker exec migrate create -dir db/migrations -ext sql -seq -digits 8 $(name);\
-  	fi
+# this is for local development to create new migrations
+# migrate create -dir api/db/migrations -ext sql -seq -digits 8 __migration_name__
 
 cleanup:
-	@if [ "$(POSTGRES)" ]; then make dropdb; docker rm -f $(POSTGRES); fi;
-	@if [ "$(ADMINER)" ]; then docker rm -f $(ADMINER); fi;
+	docker rm -f; \
+	docker image prune -f; \
+	docker network prune -f;\
 	@echo "--- CLEANUP FINISHED ---"
