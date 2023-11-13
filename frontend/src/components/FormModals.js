@@ -42,7 +42,6 @@ export default function FormModals({
               title={title}
               isShown={id === shownModalId}
               close={() => setShownModalId(null)}
-              isScrolledDown={formRequestState.isFinished}
               submitButton={{
                 ...submitButton,
                 onClick: submitForm,

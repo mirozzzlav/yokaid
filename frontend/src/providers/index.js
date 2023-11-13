@@ -16,6 +16,9 @@ import TranslationsProvider, {
   TranslationsContext,
   LanguageDropdown,
 } from 'src/providers/TranslationsProvider';
+import WindowScrollProvider, {
+  WindowScrollContext,
+} from 'src/providers/WindowScrollProvider';
 
 export {
   LoaderProvider,
@@ -36,4 +39,6 @@ export {
   TranslationsProvider,
   TranslationsContext,
   LanguageDropdown,
+  WindowScrollContext,
+  WindowScrollProvider,
 };

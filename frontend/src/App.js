@@ -10,6 +10,7 @@ import {
   LoaderProvider,
   MapProvider,
   UserIdProvider,
+  WindowScrollProvider,
 } from 'src/providers';
 
 function App() {
@@ -19,15 +20,17 @@ function App() {
         <TranslationsProvider>
           <IntervalProvider>
             <InitialDataProvider>
-              <FilterProvider>
-                <MapProvider>
-                  <UserIdProvider>
-                    <GalleryProvider>
-                      <Routes />
-                    </GalleryProvider>
-                  </UserIdProvider>
-                </MapProvider>
-              </FilterProvider>
+              <WindowScrollProvider>
+                <FilterProvider>
+                  <MapProvider>
+                    <UserIdProvider>
+                      <GalleryProvider>
+                        <Routes />
+                      </GalleryProvider>
+                    </UserIdProvider>
+                  </MapProvider>
+                </FilterProvider>
+              </WindowScrollProvider>
             </InitialDataProvider>
           </IntervalProvider>
         </TranslationsProvider>

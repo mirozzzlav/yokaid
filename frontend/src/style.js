@@ -10,6 +10,12 @@ const originalTheme = extendTheme();
 
 const Modal = {
   baseStyle: {
+    dialog: {
+      width: '400px',
+      minHeight: '400px',
+      maxWidth: `calc(100vw - ${originalTheme.space[10]})`,
+      margin: `${originalTheme.space[10]} ${originalTheme.space[5]}`,
+    },
     header: {
       background: originalTheme.colors.gray[100],
       borderBottom: `1px solid ${originalTheme.colors.gray[300]}`,
@@ -21,8 +27,8 @@ const Modal = {
       padding: `${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]} ${originalTheme.space[4]}`,
     },
     body: {
-      padding: `0 ${originalTheme.space[4]}`,
-      margin: `${originalTheme.space[4]} 0`,
+      padding: `${originalTheme.space[4]}`,
+      margin: 0,
     },
     footer: {
       background: originalTheme.colors.gray[50],

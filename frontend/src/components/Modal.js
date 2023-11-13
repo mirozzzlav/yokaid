@@ -9,22 +9,10 @@ import {
   ModalFooter,
   Button,
 } from '@chakra-ui/react';
-import theme from 'src/style';
 import { buttonPropType } from 'src/constants';
-import { TranslationsContext } from 'src/providers';
+import { TranslationsContext, WindowScrollContext } from 'src/providers';
 
-const style = {
-  modalContent: {
-    width: '400px',
-    maxWidth: 'calc(100vw - 30px)',
-  },
-  modalBody: {
-    maxHeight: '360px',
-    overflowY: 'auto',
-    scrollbarWidth: 'thin',
-    scrollbarColor: `${theme.colors.black} ${theme.colors.white}`,
-  },
-};
+const style = {};
 export default function Modal({
   isShown,
   onShow,
@@ -32,40 +20,39 @@ export default function Modal({
   title,
   submitButton,
   children,
-  isScrolledDown,
   onScrolledDown,
 }) {
   const bodyRef = useRef();
+  const { isScrolledDown } = useContext(WindowScrollContext);
   const { T } = useContext(TranslationsContext);
+
   useEffect(() => {
-    if (isScrolledDown && bodyRef.current) {
-      bodyRef.current.scrollTo({
-        top: bodyRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    if (isScrolledDown && isShown) {
+      onScrolledDown();
     }
   }, [isScrolledDown]);
 
   useEffect(() => {
-    if (!bodyRef.current) {
-      return () => {};
-    }
-
-    const scrollListener = () => {
-      if (
-        bodyRef.current.scrollTop + bodyRef.current.clientHeight ===
-        bodyRef.current.scrollHeight
-      ) {
-        onScrolledDown();
+    const inputFocusListener = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        setTimeout(
+          () =>
+            e.target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+              inline: 'nearest',
+            }),
+          200,
+        );
       }
     };
-
-    bodyRef.current.addEventListener('scroll', scrollListener);
-
+    if (bodyRef.current) {
+      bodyRef.current.addEventListener('focus', inputFocusListener, true);
+    }
     return () =>
       bodyRef.current &&
-      bodyRef.current.removeEventListener('scroll', scrollListener);
-  }, [bodyRef.current, onScrolledDown]);
+      bodyRef.current.removeEventListener('focus', inputFocusListener);
+  }, [bodyRef.current]);
 
   useEffect(() => {
     if (isShown) {
@@ -103,7 +90,6 @@ export default function Modal({
 
 Modal.defaultProps = {
   submitButton: null,
-  isScrolledDown: false,
   onShow: () => {},
   onScrolledDown: () => {},
 };
@@ -115,6 +101,5 @@ Modal.prototype.propTypes = {
   children: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
   submitButton: PropTypes.oneOfType([buttonPropType, PropTypes.oneOf([null])]),
-  isScrolledDown: PropTypes.bool,
   onScrolledDown: PropTypes.func,
 };
