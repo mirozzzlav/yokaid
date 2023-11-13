@@ -19,7 +19,7 @@ const style = {
     maxWidth: 'calc(100vw - 30px)',
   },
   modalBody: {
-    maxHeight: '400px',
+    maxHeight: '360px',
     overflowY: 'auto',
     scrollbarWidth: 'thin',
     scrollbarColor: `${theme.colors.black} ${theme.colors.white}`,
