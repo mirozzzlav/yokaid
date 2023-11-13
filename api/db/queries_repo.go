@@ -47,54 +47,57 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviews bool, userId string) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string) common.Query {
 
-	reviewsColumns := `,reviews_view.reviews, reviews_view.rating, reviews_count_view.reviews_count `
+	reviewsColumns := `,reviews_view.reviews, reviews_stats_view.rating, reviews_stats_view.reviews_count `
 	reviewsQuery := fmt.Sprintf(`JOIN (
 		SELECT 
-		  professional_id, 
-		  round(avg(rating)) AS rating,
-		  JSON_AGG(
-			JSON_BUILD_OBJECT(
-			  'id', reviews.id, 'text', text, 'rating', rating, 
-			  'images', images
-			)
-		  ) AS reviews 
-		FROM 
-		  reviews
-		  JOIN payments ON reviews.id = payments.id
-			
-		  LEFT JOIN (
-			SELECT 
-			  review_id, 
-			  JSON_AGG(images.path) AS images 
+			professional_id,
+			JSON_AGG(
+				JSON_BUILD_OBJECT(
+				  'id', id, 'text', text, 'rating', rating, 
+				  'images', images
+				)
+			) AS reviews 
+		FROM (
+			SELECT reviews.id, professional_id, reviews.text, reviews.rating, review_images_view.images
 			FROM 
-			  review_images 
-			  JOIN images ON review_images.image_id = images.id 
-			GROUP BY 
-			  review_images.review_id
-		  ) AS review_images_view ON reviews.id = review_images_view.review_id 
-		WHERE payments.state='%s'
-		GROUP BY 
-		  professional_id
+			  reviews
+			  JOIN payments ON reviews.id = payments.id
+			  LEFT JOIN (
+				SELECT 
+				  review_id, 
+				  JSON_AGG(images.path) AS images 
+				FROM 
+				  review_images 
+				  JOIN images ON review_images.image_id = images.id 
+				GROUP BY 
+				  review_images.review_id
+			  ) AS review_images_view ON reviews.id = review_images_view.review_id 
+			WHERE payments.state='%s' 
+			ORDER BY reviews.created_at DESC
+			LIMIT %d 
+		) AS reviews_ordered
+		GROUP BY professional_id
 	) AS reviews_view ON professionals.id = reviews_view.professional_id
 	JOIN (
-	  SELECT count(reviews.id) AS reviews_count, reviews.professional_id 
+	  SELECT COUNT(reviews.id) AS reviews_count, ROUND(AVG(reviews.rating)) AS rating, reviews.professional_id 
 	  FROM reviews JOIN payments ON reviews.id = payments.id
 	  WHERE payments.state='%s'
 	  GROUP BY reviews.professional_id
-	) AS reviews_count_view
-	ON professionals.id = reviews_count_view.professional_id`, common.PaymentStates.Paid, common.PaymentStates.Paid)
+	) AS reviews_stats_view
+	ON professionals.id = reviews_stats_view.professional_id`,
+		common.PaymentStates.Paid, common.Config.ReviewsPerPage*reviewsPage, common.PaymentStates.Paid)
 
-	if !reviews {
+	if reviewsPage < 1 {
 		reviewsQuery = fmt.Sprintf(
 			`JOIN (
 			  SELECT reviews.professional_id 
 			  FROM reviews JOIN payments ON reviews.id = payments.id
 			  WHERE payments.state='%s'
 			  GROUP BY reviews.professional_id
-			) AS reviews_count_view
-			ON professionals.id = reviews_count_view.professional_id`,
+			) AS reviews_stats_view
+			ON professionals.id = reviews_stats_view.professional_id`,
 			common.PaymentStates.Paid,
 		)
 		reviewsColumns = ""

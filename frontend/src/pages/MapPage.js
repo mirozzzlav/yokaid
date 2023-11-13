@@ -32,11 +32,7 @@ import {
 } from 'src/hooks';
 import { AddIcon } from '@chakra-ui/icons';
 import Icons from 'src/components/Icons';
-import {
-  unknownObjectValidator,
-  getMergedStyle,
-  getStringFirstCaps,
-} from 'src/helpers';
+import { unknownObjectValidator, getMergedStyle } from 'src/helpers';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
@@ -234,7 +230,7 @@ export default function MapPage() {
     filterInputValues,
     getFilterInputValSetter,
   } = useContext(FilterContext);
-  const [professionalDetail] = useProfessionalDetail();
+  const { professionalDetail, nextPage } = useProfessionalDetail();
   const { addSubscriber, setNextInterval } = useContext(IntervalContext);
 
   useEffect(() => {
@@ -401,10 +397,10 @@ export default function MapPage() {
           </Button>
           <IconButton
             icon={<AddIcon />}
-            onClick={() => navigateAction('add-review')}
+            onClick={() => navigateAction('add-review-with-professional')}
             sx={style.addReviewBtnMobile}
             colorScheme="blue"
-            aria-label="Add review"
+            aria-label={T('write review')}
           />
         </>
       }
@@ -423,6 +419,7 @@ export default function MapPage() {
         isShown={!!professionalDetail && action === 'professional-detail'}
         close={() => navigateAction(null)}
         title={T('professional info')}
+        onScrolledDown={nextPage}
       >
         <ProfessionalInfo
           data={professionalDetail || null}

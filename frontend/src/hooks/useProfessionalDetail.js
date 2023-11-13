@@ -1,11 +1,22 @@
 import useCall from 'src/hooks/useCall';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import config from 'src/config';
 import useNavigateAction from 'src/hooks/useNavigateAction';
 import { isInt } from 'src/helpers';
-import { IntervalContext, UserIdContext } from 'src/providers';
+import {
+  InitialDataContext,
+  IntervalContext,
+  UserIdContext,
+} from 'src/providers';
 
-export function useGetProfessional(onSearchFinish) {
+export function useGetProfessionalDetail(onSearchFinish) {
   const { call } = useCall((response) => {
     if (!response.data) {
       onSearchFinish(null);
@@ -23,10 +34,11 @@ export function useGetProfessional(onSearchFinish) {
   });
   const { loadUserId } = useContext(UserIdContext);
   return useCallback(
-    (professionalId) => {
+    (professionalId, reviewsPage = 1) => {
       const userId = loadUserId();
       call(config.api.endPointsURLs.getProfessionalDetail, [
         professionalId,
+        reviewsPage,
         userId,
       ]);
     },
@@ -36,9 +48,13 @@ export function useGetProfessional(onSearchFinish) {
 
 export default function useProfessionalDetail() {
   const [professionalDetail, setProfessionalDetail] = useState(null);
-  const callGetProfessional = useGetProfessional(setProfessionalDetail);
+  const callGetProfessional = useGetProfessionalDetail(setProfessionalDetail);
   const { action, actionParams } = useNavigateAction();
   const { addSubscriber, removeSubscriber } = useContext(IntervalContext);
+  const [professionalId, setProfessionalId] = useState(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [callId, setCallId] = useState(0);
+  const { reviewsPerPage } = useContext(InitialDataContext);
 
   useEffect(() => {
     if (!action) {
@@ -47,17 +63,42 @@ export default function useProfessionalDetail() {
       return;
     }
     if (action === 'add-review' || action === 'professional-detail') {
-      const professionalId = isInt(actionParams)
+      const auxProfessionalId = isInt(actionParams)
         ? parseInt(actionParams, 10)
         : null;
 
-      if (professionalId) {
-        addSubscriber('callGetProfessional', () =>
-          callGetProfessional(professionalId),
-        );
+      setProfessionalId(auxProfessionalId);
+      if (auxProfessionalId) {
+        // did this hack because I needed to call detail with current reviewsPage value
+        addSubscriber('callGetProfessional', () => setCallId(Math.random));
       }
     }
   }, [action, actionParams]);
 
-  return [professionalDetail, setProfessionalDetail];
+  useEffect(() => {
+    if (professionalId) {
+      callGetProfessional(professionalId, reviewsPage);
+    }
+  }, [callId, reviewsPage, professionalId]);
+
+  return useMemo(
+    () => ({
+      professionalDetail,
+      setProfessionalDetail,
+      reviewsPage,
+      nextPage: () => {
+        setReviewsPage((prevPage) => {
+          if (
+            Math.abs(
+              professionalDetail.reviewsCount - reviewsPerPage * (prevPage + 1),
+            ) < reviewsPerPage
+          ) {
+            return prevPage + 1;
+          }
+          return prevPage;
+        });
+      },
+    }),
+    [professionalDetail, reviewsPage, reviewsPerPage],
+  );
 }

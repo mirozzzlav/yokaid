@@ -33,6 +33,7 @@ export default function Modal({
   submitButton,
   children,
   isScrolledDown,
+  onScrolledDown,
 }) {
   const bodyRef = useRef();
   const { T } = useContext(TranslationsContext);
@@ -44,6 +45,27 @@ export default function Modal({
       });
     }
   }, [isScrolledDown]);
+
+  useEffect(() => {
+    if (!bodyRef.current) {
+      return () => {};
+    }
+
+    const scrollListener = () => {
+      if (
+        bodyRef.current.scrollTop + bodyRef.current.clientHeight ===
+        bodyRef.current.scrollHeight
+      ) {
+        onScrolledDown();
+      }
+    };
+
+    bodyRef.current.addEventListener('scroll', scrollListener);
+
+    return () =>
+      bodyRef.current &&
+      bodyRef.current.removeEventListener('scroll', scrollListener);
+  }, [bodyRef.current, onScrolledDown]);
 
   useEffect(() => {
     if (isShown) {
@@ -83,6 +105,7 @@ Modal.defaultProps = {
   submitButton: null,
   isScrolledDown: false,
   onShow: () => {},
+  onScrolledDown: () => {},
 };
 
 Modal.prototype.propTypes = {
@@ -93,4 +116,5 @@ Modal.prototype.propTypes = {
   title: PropTypes.string.isRequired,
   submitButton: PropTypes.oneOfType([buttonPropType, PropTypes.oneOf([null])]),
   isScrolledDown: PropTypes.bool,
+  onScrolledDown: PropTypes.func,
 };

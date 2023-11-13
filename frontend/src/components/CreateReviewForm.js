@@ -1,12 +1,6 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Box,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-} from '@chakra-ui/react';
+import { Box, FormControl } from '@chakra-ui/react';
 import {
   ErrorMessage,
   InfoMessage,

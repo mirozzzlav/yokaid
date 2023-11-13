@@ -32,6 +32,7 @@ type config struct {
 	InputFormats        map[string]string
 	SMSPaymentPhone     string
 	Translations        translationsConfig
+	ReviewsPerPage      int
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -95,5 +96,6 @@ var Config, _ = func() (config, error) {
 			Root:          "locale",
 			DefaultDomain: "default",
 		},
+		ReviewsPerPage: 5,
 	}, nil
 }()

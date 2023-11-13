@@ -29,7 +29,7 @@ type Query interface {
 
 type QueriesRepo interface {
 	GetProfessionalsCountQuery(filter QueryPartial) Query
-	GetProfessionalsQuery(filter QueryPartial, reviews bool, userId string) Query
+	GetProfessionalsQuery(filter QueryPartial, reviewsPage int, userId string) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
 	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query

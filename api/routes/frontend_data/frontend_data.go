@@ -11,6 +11,7 @@ type frontEndDataResponse struct {
 	ValidationRules map[string]map[string]string    `json:"validationRules"`
 	InputFormats    map[string]string               `json:"inputFormats"`
 	SMSPaymentPhone string                          `json:"smsPaymentPhone"`
+	ReviewsPerPage  int                             `json:"reviewsPerPage"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
@@ -33,6 +34,7 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 				"fullName": "fullname placeholder",
 			},
 			SMSPaymentPhone: common.Config.SMSPaymentPhone,
+			ReviewsPerPage:  common.Config.ReviewsPerPage,
 		})
 	}
 }

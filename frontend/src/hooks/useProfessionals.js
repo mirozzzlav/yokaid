@@ -7,7 +7,8 @@ import React, {
 } from 'react';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
-import { FilterContext, MapContext } from 'src/providers';
+import { FilterContext } from 'src/providers/FilterProvider';
+import { MapContext } from 'src/providers/MapProvider';
 import { ProfessionalInfoDropdown } from 'src/components/ProfessionalInfo';
 
 export function useFilterProfessionals() {

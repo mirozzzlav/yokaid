@@ -4,7 +4,7 @@ import { StarIcon } from '@chakra-ui/icons';
 import PropTypes from 'prop-types';
 import theme from 'src/style';
 import config from 'src/config';
-import { TranslationsContext } from 'src/providers';
+import { TranslationsContext } from 'src/providers/TranslationsProvider';
 
 function RatingStar({ onClick, active }) {
   if (onClick) {
