@@ -39,7 +39,7 @@ function useStyle() {
     top: {
       position: 'fixed',
       width: '100%',
-      zIndex: 500,
+      zIndex: 1111,
     },
     topInner: {
       alignItems: 'center',
@@ -74,7 +74,7 @@ function useStyle() {
     filter: {
       position: 'fixed',
       background: theme.colors.blackAlpha[600],
-      zIndex: 500,
+      zIndex: 1111,
       width: '100vw',
       height: '100vh',
       top: 0,
@@ -167,7 +167,6 @@ function Page({
           {filterContent}
         </Box>
       )}
-
       <Box sx={style.content}>
         {children}
         <FormModals

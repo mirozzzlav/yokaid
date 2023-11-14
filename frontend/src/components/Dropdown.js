@@ -21,6 +21,7 @@ import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
+import { WindowScrollContext } from 'src/providers';
 
 const listElemStyle = {
   width: '100%',
@@ -28,12 +29,14 @@ const listElemStyle = {
   borderRadius: 0,
 };
 const style = {
-  list: (isShown) => ({
+  list: (isShown, thinScreen = false) => ({
     background: theme.colors.white,
     borderRadius: theme.radii.base,
     border: `1px solid ${theme.colors.gray[300]}`,
-    overflow: 'hidden',
+    overflowX: 'hidden',
+    overflowY: 'auto',
     ...(!isShown ? { display: 'none' } : null),
+    ...(thinScreen ? { maxHeight: '150px' } : null),
     boxShadow: theme.shadows.base,
   }),
   noResults: {
@@ -78,10 +81,11 @@ function DropdownList({
   position,
   width,
 }) {
+  const { thinScreen } = useContext(WindowScrollContext);
   return (
     <Box
       sx={{
-        ...style.list(isShown),
+        ...style.list(isShown, thinScreen),
         ...theme.styles.global.contextMenuLikeChild(position, width),
       }}
     >
