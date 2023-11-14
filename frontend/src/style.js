@@ -12,7 +12,6 @@ const Modal = {
   baseStyle: {
     dialog: {
       width: '400px',
-      minHeight: '400px',
       maxWidth: `calc(100vw - ${originalTheme.space[10]})`,
       margin: `${originalTheme.space[10]} ${originalTheme.space[5]}`,
     },

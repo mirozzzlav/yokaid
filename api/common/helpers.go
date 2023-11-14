@@ -65,10 +65,10 @@ func GetValidationErrors(errors any) []map[string]any {
 	return res
 }
 
-func GetHttpResponseFromError(err error) *HttpResponse {
+func GetHttpResponseFromError(err error) any {
 	validationErrors := GetValidationErrors(err)
 	if validationErrors != nil || err == ErrBadInputs {
-		return &HttpResponse{
+		return HttpResponse{
 			Code: http.StatusBadRequest,
 			Msg:  "response invalid inputs",
 			Data: validationErrors,
@@ -76,11 +76,11 @@ func GetHttpResponseFromError(err error) *HttpResponse {
 	}
 
 	if err == ErrNoRows {
-		return &HttpResponse{Code: http.StatusBadRequest, Msg: "response no results"}
+		return HttpResponse{Code: http.StatusBadRequest, Msg: "response no results"}
 	}
 
 	if err == ErrRecordExist {
-		return &HttpResponse{Code: http.StatusBadRequest, Msg: "response record exist"}
+		return HttpResponse{Code: http.StatusBadRequest, Msg: "response record exist"}
 	}
 
 	return nil
@@ -93,7 +93,7 @@ func CheckErrAndPanic(err error) {
 
 	httpResponse := GetHttpResponseFromError(err)
 	if httpResponse != nil {
-		panic(*httpResponse)
+		panic(httpResponse)
 	}
 
 	panic(err)

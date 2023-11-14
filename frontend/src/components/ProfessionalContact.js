@@ -9,15 +9,12 @@ import React, { useContext, useState } from 'react';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
 import PropTypes from 'prop-types';
-import {
-  InitialDataContext,
-  TranslationsContext,
-  UserIdContext,
-  UserIdFormControl,
-} from 'src/providers';
+import { InitialDataContext } from 'src/providers/InitialDataProvider';
+import { UserIdContext, UserIdFormControl } from 'src/providers/UserIdProvider';
 import MultiItem from 'src/components/MultiItem';
 import theme from 'src/style';
 import { getStringFirstCaps } from 'src/helpers';
+import { TranslationsContext } from 'src/providers';
 
 export default function ProfessionalContact({
   professionalId,
@@ -25,7 +22,6 @@ export default function ProfessionalContact({
   onContactPaid,
 }) {
   const { userId, saveUserId, getUserIdError } = useContext(UserIdContext);
-
   const [code, setCode] = useState('');
   const { smsPaymentPhone } = useContext(InitialDataContext);
   const [error, setError] = useState('');
@@ -35,7 +31,7 @@ export default function ProfessionalContact({
     if (!success) {
       setError(
         `${getStringFirstCaps(
-          getUserIdError(response.data) || response.msg || 'Unknown error',
+          getUserIdError(response.data) || T(response.msg || 'unknown error'),
         )}.`,
       );
       setCode('');

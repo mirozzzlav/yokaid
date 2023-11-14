@@ -312,3 +312,17 @@ func (qr QueriesRepo) CreateProfessionalContactQuery(paymentId string, req commo
 		},
 	}
 }
+
+func (qr QueriesRepo) MakePaymentQuery(code string) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: `UPDATE payments SET state= ? WHERE id = ?`,
+				Params: []any{
+					common.PaymentStates.Paid,
+					code,
+				},
+			},
+		},
+	}
+}

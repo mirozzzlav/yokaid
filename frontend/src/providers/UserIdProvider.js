@@ -19,7 +19,7 @@ import {
 } from '@chakra-ui/react';
 import config from 'src/config';
 import { TranslationsContext } from 'src/providers/TranslationsProvider';
-import { useValidationErrors } from 'src/hooks';
+import useValidationErrors from 'src/hooks/useValidationErrors';
 
 export const UserIdContext = React.createContext({});
 

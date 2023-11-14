@@ -64,9 +64,7 @@ export default function useCall(onCallFinish = null) {
 
   return useMemo(
     () => ({
-      call: (url, urlParams) => {
-        call(url, urlParams);
-      },
+      call,
       callPost: (url, payload) => call(url, [], 'post', payload),
     }),
     [call],

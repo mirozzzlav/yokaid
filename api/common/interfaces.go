@@ -37,6 +37,7 @@ type QueriesRepo interface {
 	CreatePaymentQuery(id string, userId string, productId string) Query
 	GetProfessionalContactQuery(professionalId int, userId string, columns ...string) Query
 	CreateProfessionalContactQuery(paymentId string, req CreateUserProfessionalContactRequest) Query
+	MakePaymentQuery(code string) Query
 }
 
 type StoreHelpers interface {

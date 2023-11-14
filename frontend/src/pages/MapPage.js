@@ -1,12 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  IconButton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Text, useBreakpointValue } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 import theme from 'src/style';
 
@@ -388,6 +381,12 @@ export default function MapPage() {
       footer={
         <>
           <Button
+            onClick={() => navigateAction('send-sms')}
+            sx={{ marginRight: theme.space[2] }}
+          >
+            {T('SMS')}
+          </Button>
+          <Button
             onClick={() => navigateAction('add-review-with-professional')}
             sx={style.addReviewBtn}
             colorScheme="blue"
@@ -395,11 +394,11 @@ export default function MapPage() {
           >
             {T('write review')}
           </Button>
-          <IconButton
+          <Button
             icon={<AddIcon />}
             onClick={() => navigateAction('add-review-with-professional')}
             sx={style.addReviewBtnMobile}
-            colorScheme="blue"
+            variant="solid"
             aria-label={T('write review')}
           />
         </>

@@ -84,9 +84,6 @@ func (s *server) initRouter() {
 	router.Use(
 		panicMiddleware(s),
 		func(ctx *gin.Context) {
-
-		},
-		func(ctx *gin.Context) {
 			// init repo + store helper
 			qRunner := dbPkg.NewQueryRunner(ctx, s.db)
 			dbPkg.NewStoreHelpers(qRunner, dbPkg.QueriesRepo{})

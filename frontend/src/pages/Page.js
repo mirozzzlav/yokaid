@@ -17,6 +17,7 @@ import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
 import { TranslationsContext, LanguageDropdown } from 'src/providers';
 import config from 'src/config';
+import SendSMSFormModal from 'src/components/SendSMSForm';
 
 const loaderAnim = keyframes(`
   from {
@@ -173,6 +174,10 @@ function Page({
           modalsConfig={modalsConfig}
           shownModalId={action}
           setShownModalId={navigateAction}
+        />
+        <SendSMSFormModal
+          isShown={action === 'send-sms'}
+          onClose={() => navigateAction(null)}
         />
       </Box>
       {footer && <Flex sx={style.footer}>{footer}</Flex>}
