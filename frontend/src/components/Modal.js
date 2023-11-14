@@ -35,15 +35,14 @@ export default function Modal({
   useEffect(() => {
     const inputFocusListener = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        setTimeout(
-          () =>
-            e.target.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-              inline: 'nearest',
-            }),
-          200,
-        );
+        setTimeout(() => {
+          const controlElm = e.target.closest('.chakra-form-control');
+          controlElm.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
+          });
+        }, 200);
       }
     };
     if (bodyRef.current) {
