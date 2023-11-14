@@ -363,7 +363,7 @@ export default function MapPage() {
                 isDisabled={!isFilterChanged}
                 colorScheme="blue"
               >
-                Apply Filter
+                {T('apply filter')}
               </Button>
 
               <Button
@@ -379,7 +379,7 @@ export default function MapPage() {
                   }
                 }}
               >
-                Reset filter
+                {T('reset filter')}
               </Button>
             </Flex>
           </Flex>
