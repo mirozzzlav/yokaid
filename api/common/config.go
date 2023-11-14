@@ -16,6 +16,11 @@ type translationsConfig struct {
 	Root          string
 	DefaultDomain string
 }
+
+type sessionConfig struct {
+	Secret string
+	Name   string
+}
 type config struct {
 	AppName             string
 	AppMailFrom         string
@@ -33,6 +38,8 @@ type config struct {
 	SMSPaymentPhone     string
 	Translations        translationsConfig
 	ReviewsPerPage      int
+	DefaultLanguage     string
+	Session             sessionConfig
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -96,6 +103,8 @@ var Config, _ = func() (config, error) {
 			Root:          "locale",
 			DefaultDomain: "default",
 		},
-		ReviewsPerPage: 5,
+		ReviewsPerPage:  5,
+		DefaultLanguage: "en_US",
+		Session:         sessionConfig{Name: "superstarSession", Secret: "SecretForSessionStore123"},
 	}, nil
 }()

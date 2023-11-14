@@ -47,7 +47,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string, lang string) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_stats_view.rating, reviews_stats_view.reviews_count `
 	reviewsQuery := fmt.Sprintf(`JOIN (
@@ -104,13 +104,13 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsP
 	}
 	contactObj := ""
 	contactQuery := ""
-	var params []any
+	var params []any = []any{lang}
 	if userId != "" {
 		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
 		contactQuery = fmt.Sprintf(`JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
 						JOIN payments ON user_professional_contacts.id = payments.id 
 						AND payments.user_id = ? AND payments.product_id='con' AND payments.state='%s'`, common.PaymentStates.Paid)
-		params = []any{userId}
+		params = append(params, userId)
 	}
 
 	query := fmt.Sprintf(`SELECT 
@@ -128,7 +128,7 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsP
 	  JOIN (
 	      SELECT JSON_AGG(
 			JSON_BUILD_OBJECT(
-			  'id', professions.id, 'title', professions.title
+			  'id', professions.id, 'title', title->>?
 			)
 	  	  ) AS professions, professional_professions.professional_id 
 	      FROM
@@ -242,9 +242,9 @@ func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, re
 	}
 }
 
-func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang string) common.Query {
 	query := `SELECT 
-				id, title 
+				id, title->>? AS title
 			  FROM
 				professions 
 			  WHERE `
@@ -253,7 +253,7 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial) common.Que
 		partials: []common.QueryPartial{
 			{
 				Query:  query,
-				Params: []any{},
+				Params: []any{lang},
 			},
 			filter,
 		},

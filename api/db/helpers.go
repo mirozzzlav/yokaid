@@ -35,15 +35,15 @@ func (_ *StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) 
 	return handleFilter(filter)
 }
 
-func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int) (*[]common.FilterItem, error) {
+func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int, lang string) (*[]common.FilterItem, error) {
 	type filterMapItem struct {
 		Q       string
 		FilterQ string
 	}
 	var columnAliasesQueries = map[string]filterMapItem{
 		"professionId": {
-			Q:       "SELECT title AS label, id AS value FROM professions ",
-			FilterQ: "WHERE title ILIKE ? ",
+			Q:       "SELECT title->>? AS label, id AS value FROM professions ",
+			FilterQ: "WHERE title->>? ILIKE ?",
 		},
 	}
 
@@ -55,7 +55,7 @@ func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem stri
 		if qExists {
 			if searchedItem != "" {
 				queries = append(queries, query.Q+query.FilterQ)
-				params = append(params, fmt.Sprintf("%%%s%%", searchedItem))
+				params = append(params, lang, lang, fmt.Sprintf("%%%s%%", searchedItem))
 			} else {
 				queries = append(queries, query.Q)
 			}
@@ -89,12 +89,13 @@ func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem stri
 	return filterItems, nil
 }
 
-func (sH *StoreHelpers) GetProfessionalProfessionsForFilter() (*[]common.FilterItem, error) {
+func (sH *StoreHelpers) GetProfessionalProfessionsForFilter(lang string) (*[]common.FilterItem, error) {
 
 	q := dbQuery{
 		partials: []common.QueryPartial{{
-			Query:  "SELECT 'professionId' AS filter_column_alias, title AS label, id AS value FROM professions LIMIT 10",
-			Params: []any{},
+			Query: `SELECT 'professionId' AS filter_column_alias, title->>? AS label, id AS value 
+					 FROM professions LIMIT 10`,
+			Params: []any{lang},
 		}},
 	}
 

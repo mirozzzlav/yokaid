@@ -14,9 +14,11 @@ postgres:
   		   -e POSTGRES_USER=$(POSTGRES_ROOT) -e POSTGRES_PASSWORD=$(POSTGRES_ROOT_PASS) postgres
 
 createdb:
+	docker exec postgres psql --username=$(POSTGRES_ROOT) --command="DROP DATABASE IF EXISTS \"$(APP_NAME)\""; \
 	docker exec postgres createdb --username=$(POSTGRES_ROOT) --owner=$(POSTGRES_ROOT) $(APP_NAME); \
   	docker exec postgres psql --username=$(POSTGRES_ROOT) --command="\
-  		 CREATE USER $(POSTGRES_APP_USER) WITH PASSWORD '$(POSTGRES_APP_PASSWORD)';"
+  		  DROP ROLE IF EXISTS $(POSTGRES_APP_USER); \
+  		  CREATE USER $(POSTGRES_APP_USER) WITH PASSWORD '$(POSTGRES_APP_PASSWORD)';"
 
 buildapi:
 	docker build -t api ./api

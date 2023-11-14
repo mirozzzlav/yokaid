@@ -2,6 +2,8 @@ package server
 
 import (
 	"database/sql"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
@@ -77,14 +79,20 @@ func (s *server) initRouter() {
 		router = gin.New()
 	}
 
+	cookieStore := cookie.NewStore([]byte(common.Config.Session.Secret))
+
 	router.Use(
 		panicMiddleware(s),
+		func(ctx *gin.Context) {
+
+		},
 		func(ctx *gin.Context) {
 			// init repo + store helper
 			qRunner := dbPkg.NewQueryRunner(ctx, s.db)
 			dbPkg.NewStoreHelpers(qRunner, dbPkg.QueriesRepo{})
 			ctx.Next()
 		},
+		sessions.Sessions(common.Config.Session.Name, cookieStore),
 	)
 	router.Static(common.Config.AssetsRelativeUrl, common.Config.AssetsFolder)
 	for _, route := range routes.GetRoutes(s) {

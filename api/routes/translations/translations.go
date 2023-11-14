@@ -1,6 +1,7 @@
 package translations
 
 import (
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/leonelquinteros/gotext"
 	"net/http"
@@ -41,8 +42,11 @@ func GetRoutes(_ common.Server) []common.Route {
 			func(ctx *gin.Context) {
 				lang, exist := ctx.Params.Get("lang")
 				if !exist || !regexp.MustCompile("[a-z]{2}_[A-Z]{2}").MatchString(lang) {
-					lang = "en_US"
+					lang = common.Config.DefaultLanguage
 				}
+				session := sessions.Default(ctx)
+				session.Set("lang", lang)
+				session.Save()
 				common.SetOKJSONResponse(ctx, "", getTranslations(lang))
 			},
 		),

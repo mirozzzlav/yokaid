@@ -9,6 +9,8 @@ import (
 
 func getFilterItems(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		lang := common.GetLangFromSession(ctx)
+
 		searchTerm, paramExist := ctx.Params.Get("searchTerm")
 		if !paramExist {
 			searchTerm = ""
@@ -20,7 +22,8 @@ func getFilterItems(server common.Server) gin.HandlerFunc {
 		}
 		columnAliases := strings.Split(columnAliasesStr, ";")
 		server.GetQueryRunner(ctx).Begin()
-		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(columnAliases, searchTerm, 10)
+		filterItems, err := server.GetStoreHelpers(ctx).GetFilterItems(
+			columnAliases, searchTerm, 10, lang)
 		if err != nil && err != common.ErrNoRows {
 			common.CheckErrAndPanic(err)
 		}

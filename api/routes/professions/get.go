@@ -12,12 +12,13 @@ func getProfessions(server common.Server) gin.HandlerFunc {
 		searchTitle, _ := ctx.Params.Get("filter")
 
 		common.CheckErrAndPanic(err)
+		lang := common.GetLangFromSession(ctx)
 
 		dbQuery := server.GetQueriesRepo().GetProfessionsQuery(
 			common.QueryPartial{
-				Query:  "title ILIKE ?",
-				Params: []any{"%" + searchTitle + "%"},
-			})
+				Query:  "title->>? ILIKE ?",
+				Params: []any{lang, "%" + searchTitle + "%"},
+			}, lang)
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionsModelLoader)
 		common.CheckErrAndPanic(err)

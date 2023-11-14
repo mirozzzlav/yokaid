@@ -21,7 +21,7 @@ import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
-import { WindowScrollContext } from 'src/providers';
+import { WindowScrollContext } from 'src/providers/WindowScrollProvider';
 
 const listElemStyle = {
   width: '100%',

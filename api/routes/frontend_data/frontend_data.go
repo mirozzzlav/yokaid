@@ -17,8 +17,12 @@ type frontEndDataResponse struct {
 func getFrontendData(server common.Server) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
+		lang, ok := ctx.Params.Get("lang")
+		if !ok {
+			lang = common.Config.DefaultLanguage
+		}
 		server.GetQueryRunner(ctx).Begin()
-		professions, err := server.GetStoreHelpers(ctx).GetProfessionalProfessionsForFilter()
+		professions, err := server.GetStoreHelpers(ctx).GetProfessionalProfessionsForFilter(lang)
 		common.CheckErrAndPanic(err)
 		validationRules, err := common.GetRequestsValidationRules()
 		common.CheckErrAndPanic(err)
@@ -40,6 +44,6 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 }
 func GetRoutes(server common.Server) []common.Route {
 	return []common.Route{
-		common.NewRoute("/frontend-data/get", http.MethodGet, getFrontendData(server)),
+		common.NewRoute("/frontend-data/get/:lang", http.MethodGet, getFrontendData(server)),
 	}
 }

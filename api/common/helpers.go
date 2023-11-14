@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"math/rand"
@@ -337,4 +338,11 @@ func GenerateUniqueID() string {
 	uniqueID := fmt.Sprintf("%d-%d", timestamp, randomNum)
 
 	return uniqueID
+}
+func GetLangFromSession(ctx *gin.Context) string {
+	lang := sessions.Default(ctx).Get("lang")
+	if lang == nil {
+		lang = Config.DefaultLanguage
+	}
+	return lang.(string)
 }
