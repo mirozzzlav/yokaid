@@ -56,6 +56,7 @@ function useStyle() {
       top: '-10px',
       height: '60px',
       width: '100%',
+      maxWidth: '100px',
     },
     topContent: {
       padding: '0 2rem',
