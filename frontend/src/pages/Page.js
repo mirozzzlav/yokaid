@@ -52,9 +52,10 @@ function useStyle() {
       lineHeight: 1,
     },
     logo: {
+      position: 'relative',
+      top: '-10px',
+      height: '60px',
       width: '100%',
-      height: '2rem',
-      maxWidth: '8rem',
     },
     topContent: {
       padding: '0 2rem',

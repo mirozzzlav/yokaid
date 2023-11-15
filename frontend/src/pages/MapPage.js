@@ -211,7 +211,7 @@ export default function MapPage() {
   const { navigateAction, action } = useNavigateAction();
   const { T } = useContext(TranslationsContext);
 
-  const { filters: filterInitialItems } = useContext(InitialDataContext);
+  const { lists: filterInitialItems } = useContext(InitialDataContext);
   const { professionals, getFilteredProfessionals } = useFilterProfessionals();
   const { moveMap, setMapAreaRequest } = useContext(MapContext);
   const {
@@ -317,10 +317,10 @@ export default function MapPage() {
                         [filterName]: {
                           value,
                           extraData,
-                          ...(config.filter.APIColumnAliases[filterName]
+                          ...(config.APIColumnAliases[filterName]
                             ? {
                                 columnAlias:
-                                  config.filter.APIColumnAliases[filterName],
+                                  config.APIColumnAliases[filterName],
                               }
                             : null),
                         },

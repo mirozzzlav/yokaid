@@ -3,7 +3,7 @@ const apiUrl = `${window.location.origin}/api`;
 const defaultMapBounds = [47.7311798, 16.8331891, 49.6138162, 22.56571];
 const defaultMapPosition = [48.7411522, 19.4528646];
 
-const mapFilterColumnAlias = 'mapBounds';
+const mapColumnAlias = 'mapBounds';
 
 const filterElements = [
   {
@@ -28,7 +28,7 @@ export default {
       getProfessionalDetail: `${apiUrl}/professionals/get-detail`,
       searchProfessionals: `${apiUrl}/professionals/search`,
       getInitialData: `${apiUrl}/frontend-data/get`,
-      getFilterItems: `${apiUrl}/filter-items/get`,
+      getList: `${apiUrl}/list/get`,
       createProfessionalWithReview: `${apiUrl}/professionals/create-with-review`,
       createReview: `${apiUrl}/reviews/create`,
       getProfessions: `${apiUrl}/professions/get`,
@@ -46,16 +46,16 @@ export default {
       bounds: defaultMapBounds,
     },
   },
+  APIColumnAliases: {
+    profession: 'professionId',
+    location: mapColumnAlias,
+  },
   filter: {
     elements: filterElements,
     getNames: () => filterElements.map(({ name }) => name),
-    APIColumnAliases: {
-      profession: 'professionId',
-      location: mapFilterColumnAlias,
-    },
     defaultFilter: {
       location: {
-        columnAlias: mapFilterColumnAlias,
+        columnAlias: mapColumnAlias,
         value: defaultMapBounds,
         extraData: defaultMapPosition,
       },

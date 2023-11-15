@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"some-app/api/common"
 	"strings"
 )
@@ -33,80 +32,6 @@ func NewStoreHelpers(qRunner common.QueryRunner, qRepo common.QueriesRepo) commo
 
 func (_ *StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) {
 	return handleFilter(filter)
-}
-
-func (sH *StoreHelpers) GetFilterItems(columnAliases []string, searchedItem string, limit int, lang string) (*[]common.FilterItem, error) {
-	type filterMapItem struct {
-		Q       string
-		FilterQ string
-	}
-	var columnAliasesQueries = map[string]filterMapItem{
-		"professionId": {
-			Q:       "SELECT title->>? AS label, id AS value FROM professions ",
-			FilterQ: "WHERE title->>? ILIKE ?",
-		},
-	}
-
-	var queries []string
-	var params []any
-
-	for _, fId := range columnAliases {
-		query, qExists := columnAliasesQueries[fId]
-		if qExists {
-			if searchedItem != "" {
-				queries = append(queries, query.Q+query.FilterQ)
-				params = append(params, lang, lang, fmt.Sprintf("%%%s%%", searchedItem))
-			} else {
-				queries = append(queries, query.Q)
-			}
-		}
-
-	}
-	if len(queries) == 0 {
-		return nil, common.ErrNoRows
-	}
-
-	q := dbQuery{
-		partials: []common.QueryPartial{
-			{
-				Query:  strings.Join(queries, "UNION"),
-				Params: params,
-			},
-			{
-				Query:  "LIMIT ?",
-				Params: []any{limit},
-			},
-		},
-	}
-
-	filterItems, filterItemsModelLoader := common.FilterItemLoader()
-
-	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
-	if err != nil {
-		return nil, err
-	}
-
-	return filterItems, nil
-}
-
-func (sH *StoreHelpers) GetProfessionalProfessionsForFilter(lang string) (*[]common.FilterItem, error) {
-
-	q := dbQuery{
-		partials: []common.QueryPartial{{
-			Query: `SELECT 'professionId' AS filter_column_alias, title->>? AS label, id AS value 
-					 FROM professions LIMIT 10`,
-			Params: []any{lang},
-		}},
-	}
-
-	filterItems, filterItemsModelLoader := common.FilterItemLoader()
-
-	err := sH.QueryRunner.GetRows(q, filterItemsModelLoader)
-	if err != nil {
-		return nil, err
-	}
-
-	return filterItems, nil
 }
 
 func (sH *StoreHelpers) checkProfessionalExist(phone string, email *string) bool {

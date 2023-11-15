@@ -1,50 +1,15 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import usePlacesSearch from 'src/hooks/usePlacesSearch';
-
-function useMapFilterItmes(onSearchFinish) {
-  const getItemsForMapFilter = useCallback(
-    (results) =>
-      results.map((place) => ({
-        label: place.display_name,
-        value: [
-          parseFloat(place.boundingbox[0]),
-          parseFloat(place.boundingbox[2]),
-          parseFloat(place.boundingbox[1]),
-          parseFloat(place.boundingbox[3]),
-        ],
-        extraData: [place.lat, place.lon],
-      })),
-
-    [],
-  );
-
-  return usePlacesSearch(onSearchFinish, getItemsForMapFilter);
-}
+import useProfessionsSearch from 'src/hooks/useProfessionsSearch';
 
 function filterItemsHookCreator(filterName) {
   if (filterName === 'location') {
-    return useMapFilterItmes;
+    return usePlacesSearch;
   }
 
-  return (onSearchFinish = null) => {
-    // hook itself
-    const { call } = useCall((response) => {
-      if (onSearchFinish) {
-        onSearchFinish(response.data);
-      }
-    });
-    return useCallback(
-      (searchedFilterItem) =>
-        call(config.api.endPointsURLs.getFilterItems, [
-          config.filter.APIColumnAliases[filterName],
-          searchedFilterItem,
-        ]),
-      [call],
-    );
-  };
+  return useProfessionsSearch;
 }
 export const FilterContext = React.createContext({});
 
@@ -110,7 +75,7 @@ export default function FilterProvider({ children }) {
       saveFilter: () => {
         setFilter(draft);
       },
-      getFilterUrlParam: (skipFilterColumnAliases = []) =>
+      getFilterSerialized: (skipFilterColumnAliases = []) =>
         Object.values(filter)
           .filter(
             ({ columnAlias }) => !skipFilterColumnAliases.includes(columnAlias),

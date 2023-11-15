@@ -251,13 +251,13 @@ function SearchDropdown({
     handler: () => setIsShown(false),
   });
 
-  const searchCall = searchHook((responseItems) => {
+  const searchCall = searchHook((results) => {
     if (inputVal === '' || !inputFocus) {
       // this is risky, inputVal is uncertain in the callback context, but it works
       return;
     }
 
-    setItems(responseItems || []);
+    setItems(results || []);
     setIsShown(true);
   });
   const onItemClick = useCallback(

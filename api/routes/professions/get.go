@@ -7,7 +7,6 @@ import (
 
 func getProfessions(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		professions, professionsModelLoader := common.ProfessionsModelLoader()
 		var err error
 		searchTitle, _ := ctx.Params.Get("filter")
 
@@ -19,6 +18,7 @@ func getProfessions(server common.Server) gin.HandlerFunc {
 				Query:  "title->>? ILIKE ?",
 				Params: []any{lang, "%" + searchTitle + "%"},
 			}, lang)
+		professions, professionsModelLoader := common.ProfessionsModelLoader()
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionsModelLoader)
 		common.CheckErrAndPanic(err)

@@ -65,7 +65,7 @@ type profession struct {
 	Title string `json:"title"`
 }
 
-type FilterItem struct {
+type ListItem struct {
 	FilterColumnAlias string `json:"filterColumnAlias"`
 	Value             any    `json:"value"`
 	Label             string `json:"label"`
@@ -76,12 +76,12 @@ type Contact struct {
 	Email string `json:"email"`
 }
 
-func FilterItemLoader() (*[]FilterItem, func(rowBytes []byte)) {
-	var filterItems []FilterItem
-	return &filterItems, func(rowBytes []byte) {
-		var filterItem FilterItem
-		_ = json.Unmarshal(rowBytes, &filterItem)
-		filterItems = append(filterItems, filterItem)
+func ListItemLoader() (*[]ListItem, func(rowBytes []byte)) {
+	var listItems []ListItem
+	return &listItems, func(rowBytes []byte) {
+		var listItem ListItem
+		_ = json.Unmarshal(rowBytes, &listItem)
+		listItems = append(listItems, listItem)
 	}
 }
 

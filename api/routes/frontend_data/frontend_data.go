@@ -7,11 +7,11 @@ import (
 )
 
 type frontEndDataResponse struct {
-	Filters         map[string]*[]common.FilterItem `json:"filters"`
-	ValidationRules map[string]map[string]string    `json:"validationRules"`
-	InputFormats    map[string]string               `json:"inputFormats"`
-	SMSPaymentPhone string                          `json:"smsPaymentPhone"`
-	ReviewsPerPage  int                             `json:"reviewsPerPage"`
+	Lists           map[string]any               `json:"lists"`
+	ValidationRules map[string]map[string]string `json:"validationRules"`
+	InputFormats    map[string]string            `json:"inputFormats"`
+	SMSPaymentPhone string                       `json:"smsPaymentPhone"`
+	ReviewsPerPage  int                          `json:"reviewsPerPage"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
@@ -21,21 +21,29 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 		if !ok {
 			lang = common.Config.DefaultLanguage
 		}
-		server.GetQueryRunner(ctx).Begin()
-		professions, err := server.GetStoreHelpers(ctx).GetProfessionalProfessionsForFilter(lang)
+		professions, professionsModelLoader := common.ProfessionsModelLoader()
+		dbQuery := server.GetQueriesRepo().GetProfessionsQuery(common.QueryPartial{Query: ""}, lang)
+
+		err := server.GetQueryRunner(ctx).Begin()
 		common.CheckErrAndPanic(err)
+
+		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionsModelLoader)
+		common.CheckErrAndPanic(err)
+
 		validationRules, err := common.GetRequestsValidationRules()
 		common.CheckErrAndPanic(err)
 
-		server.GetQueryRunner(ctx).Commit()
+		err = server.GetQueryRunner(ctx).Commit()
+		common.CheckErrAndPanic(err)
+
 		common.SetOKJSONResponse(ctx, "", frontEndDataResponse{
-			Filters: map[string]*[]common.FilterItem{
+			Lists: map[string]any{
 				"profession": professions,
 			},
 			ValidationRules: validationRules,
 			InputFormats: map[string]string{
 				"phone":    common.Config.InputFormats["phone"],
-				"fullName": "fullname placeholder",
+				"fullName": "fullName placeholder",
 			},
 			SMSPaymentPhone: common.Config.SMSPaymentPhone,
 			ReviewsPerPage:  common.Config.ReviewsPerPage,

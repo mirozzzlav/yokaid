@@ -47,7 +47,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string, lang string) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string, lang string, limit int) common.Query {
 
 	reviewsColumns := `,reviews_view.reviews, reviews_stats_view.rating, reviews_stats_view.reviews_count `
 	reviewsQuery := fmt.Sprintf(`JOIN (
@@ -150,6 +150,12 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsP
 			},
 		}
 	}
+
+	if limit != -1 {
+		query += " LIMIT ?"
+		params = append(params, limit)
+	}
+
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -243,11 +249,11 @@ func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, re
 }
 
 func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang string) common.Query {
-	query := `SELECT 
-				id, title->>? AS title
-			  FROM
-				professions 
-			  WHERE `
+	query := "SELECT id, title->>? AS title FROM professions"
+
+	if filter.Query != "" {
+		query += " WHERE "
+	}
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
@@ -256,6 +262,10 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang strin
 				Params: []any{lang},
 			},
 			filter,
+			{
+				Query:  " LIMIT 5",
+				Params: []any{},
+			},
 		},
 	}
 	return q

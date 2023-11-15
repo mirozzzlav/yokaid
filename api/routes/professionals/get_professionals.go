@@ -15,7 +15,7 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 
 		lang := common.GetLangFromSession(ctx)
-		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(filterQP, -1, "", lang)
+		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(filterQP, -1, "", lang, -1)
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
 		common.CheckErrAndPanic(err)
@@ -37,7 +37,7 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 			common.QueryPartial{
 				Query:  "full_name ILIKE ?",
 				Params: []any{"%" + searchName + "%"},
-			}, -1, "", lang)
+			}, -1, "", lang, 5)
 		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, infosModelLoader)
 		common.CheckErrAndPanic(err)
@@ -84,6 +84,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			reviewsPage,
 			userId,
 			lang,
+			-1,
 		)
 
 		server.GetQueryRunner(ctx).Begin()

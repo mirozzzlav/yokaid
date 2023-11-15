@@ -29,7 +29,7 @@ type Query interface {
 
 type QueriesRepo interface {
 	GetProfessionalsCountQuery(filter QueryPartial) Query
-	GetProfessionalsQuery(filter QueryPartial, reviewsPage int, userId string, lang string) Query
+	GetProfessionalsQuery(filter QueryPartial, reviewsPage int, userId string, lang string, limit int) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
 	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query
@@ -42,8 +42,6 @@ type QueriesRepo interface {
 
 type StoreHelpers interface {
 	HandleFilter(filter string) (QueryPartial, error)
-	GetFilterItems(columnAliases []string, searchedItem string, limit int, lang string) (*[]FilterItem, error)
-	GetProfessionalProfessionsForFilter(lang string) (*[]FilterItem, error)
 	CreateReviewAndProfessional(paymentId string, req CreateReviewAndProfessionalRequest) (int, error)
 
 	// only for testing

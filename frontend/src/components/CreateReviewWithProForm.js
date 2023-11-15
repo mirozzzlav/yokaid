@@ -20,32 +20,18 @@ import {
 import FormGroup from 'src/components/FormGroup';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import { SearchDropdown } from 'src/components/Dropdown';
-import { useSearchProfessional, usePlacesSearch } from 'src/hooks';
+import {
+  useSearchProfessional,
+  usePlacesSearch,
+  useProfessionsSearch,
+  dropdownResponseMapper as professionsResposneMapper,
+} from 'src/hooks';
 import Icons from 'src/components/Icons';
 import { MultiInput } from 'src/components/MultiItem';
 import PropTypes from 'prop-types';
 import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
-
-function useProfessionsSearch(onSearchFinish) {
-  const { call } = useCall((response) => {
-    onSearchFinish(
-      response.data
-        ? response.data.map((d) => ({
-            label: d.title,
-            value: d,
-          }))
-        : null,
-    );
-  });
-
-  return useCallback(
-    (professionTitle) =>
-      call(config.api.endPointsURLs.getProfessions, [professionTitle]),
-    [call],
-  );
-}
 
 export function CreateReviewWithPro({
   formResult,
@@ -59,21 +45,8 @@ export function CreateReviewWithPro({
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
   const [searchedProfession, setSearchedProfession] = useState('');
-  const { filters, inputFormats, smsPaymentPhone } =
+  const { lists, inputFormats, smsPaymentPhone } =
     useContext(InitialDataContext);
-  const initialProfessions = useMemo(
-    () =>
-      filters?.profession
-        ? filters.profession.map(({ label, value }) => ({
-            label,
-            value: {
-              id: value,
-              title: label,
-            },
-          }))
-        : null,
-    [filters],
-  );
 
   const { T } = useContext(TranslationsContext);
 
@@ -191,7 +164,7 @@ export function CreateReviewWithPro({
           <SearchDropdown
             inputVal={searchedProfession}
             inputValSetter={(v) => setSearchedProfession(v)}
-            initialItems={initialProfessions}
+            initialItems={lists?.profession || null}
             searchHook={useProfessionsSearch}
             onValueSet={({ value }) => {
               if (updateInput('professions', value.id, true)) {

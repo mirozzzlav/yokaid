@@ -1,15 +1,22 @@
 import { useCallback } from 'react';
 import useCall from 'src/hooks/useCall';
 
-function defaultResponseMapper(results) {
-  return results.map(({ display_name: label, lat, lon }) => ({
-    label,
-    value: [lat, lon],
+function dropdownResponseMapper(results) {
+  return results.map((place) => ({
+    label: place.display_name,
+    value: [
+      parseFloat(place.boundingbox[0]),
+      parseFloat(place.boundingbox[2]),
+      parseFloat(place.boundingbox[1]),
+      parseFloat(place.boundingbox[3]),
+    ],
+    extraData: [place.lat, place.lon],
   }));
 }
+
 export default function usePlacesSearch(
   onSearchFinish,
-  responseMapper = defaultResponseMapper,
+  responseMapper = dropdownResponseMapper,
 ) {
   const { call } = useCall((response) => {
     const mapResults = responseMapper(response.data);

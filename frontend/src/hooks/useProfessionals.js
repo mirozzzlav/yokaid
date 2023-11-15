@@ -13,7 +13,7 @@ import { ProfessionalInfoDropdown } from 'src/components/ProfessionalInfo';
 
 export function useFilterProfessionals() {
   const [professionals, setProfessionals] = useState(null);
-  const { getFilterUrlParam } = useContext(FilterContext);
+  const { getFilterSerialized } = useContext(FilterContext);
   const [callId, setCallId] = useState(null);
   const { call } = useCall((response, success) => {
     setProfessionals(success ? response.data : null);
@@ -25,11 +25,11 @@ export function useFilterProfessionals() {
     if (!callId) {
       return;
     }
-    const filterUrlParam = getFilterUrlParam([
-      config.filter.APIColumnAliases.location,
+    const filterUrlParam = getFilterSerialized([
+      config.APIColumnAliases.location,
     ]);
     call(config.api.endPointsURLs.getProfessionals, [
-      `${config.filter.APIColumnAliases.location}=[${mapAreaRequest.bounds}]${
+      `${config.APIColumnAliases.location}=[${mapAreaRequest.bounds}]${
         filterUrlParam ? `;${filterUrlParam}` : ''
       }`,
     ]);
