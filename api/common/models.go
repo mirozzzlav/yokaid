@@ -13,7 +13,7 @@ func (i *imagePath) UnmarshalJSON(b []byte) error {
 	}
 	var path string
 	json.Unmarshal(b, &path)
-	*i = imagePath(Config.Url + Config.AssetsRelativeUrl + "/" + path)
+	*i = imagePath(Config.AssetsRelativeUrl + "/" + path)
 	return nil
 }
 

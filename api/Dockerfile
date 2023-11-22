@@ -1,11 +1,21 @@
 FROM golang:1.21
 WORKDIR /app
 
-RUN apt-get update;\
-    apt-get install -y net-tools;\
-    apt-get install sudo;\
-    curl -s https://packagecloud.io/install/repositories/golang-migrate/migrate/script.deb.sh | sudo bash;\
-    apt-get install -y migrate
+ARG LOGS_TO_SCREEN
+ARG LOGS_TO_FILE
+ARG ENABLE_NOTIFICATIONS
+ARG APP_NAME
+ARG MAIL_FROM
+ARG MAIL_API_KEY
+
+ENV LOGS_TO_SCREEN=${LOGS_TO_SCREEN}
+ENV LOGS_TO_FILE=${LOGS_TO_FILE}
+ENV ENABLE_NOTIFICATIONS=${ENABLE_NOTIFICATIONS}
+ENV APP_NAME=${APP_NAME}
+ENV MAIL_FROM=${MAIL_FROM}
+ENV MAIL_API_KEY=${MAIL_API_KEY}
+
+
 
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify

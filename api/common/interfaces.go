@@ -52,6 +52,4 @@ type StoreHelpers interface {
 
 type Notifier interface {
 	SendNotification(to string, subject string, message string) error
-	SendUserActivation(to string, data map[string]string) error
-	SendPasswordChangeRequest(to string, data map[string]string) error
 }

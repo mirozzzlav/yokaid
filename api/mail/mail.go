@@ -2,7 +2,6 @@ package mail
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"html/template"
@@ -57,28 +56,4 @@ func (notifier Notifier) SendNotification(to string, subject string, message str
 	_, err := client.Send(_mail)
 
 	return err
-}
-
-func (notifier Notifier) SendUserActivation(to string, data map[string]string) error {
-	data["headline"] = "Activate your account"
-	data["activationURL"] = fmt.Sprintf("%s/users/activate/%s", common.Config.Url, data["activationToken"])
-
-	msg, err := templateGetters["userActivation"](data)
-	if err != nil {
-		return err
-	}
-
-	return notifier.SendNotification(to, data["headline"], msg)
-}
-
-func (notifier Notifier) SendPasswordChangeRequest(to string, data map[string]string) error {
-	data["headline"] = "Request for password change"
-	data["passwordChangeURL"] = fmt.Sprintf("%s/users/password-change/%s", common.Config.Url, data["passwordChangeToken"])
-
-	msg, err := templateGetters["userPasswordChange"](data)
-	if err != nil {
-		return err
-	}
-
-	return notifier.SendNotification(to, data["headline"], msg)
 }

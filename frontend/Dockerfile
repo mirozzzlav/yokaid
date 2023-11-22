@@ -1,9 +1,19 @@
 FROM nginx
 
-ARG API_URL
-ARG API_DOCKER_URL
-ARG ADMINER_DOCKER_URL
-ENV VITE_API_URL=${API_URL}
+ARG API_EXPOSED_PORT
+ARG API_DOCKER
+ARG ADMINER_DOCKER
+ARG DOMAIN
+ARG DOMAIN_TEST_PREFIX
+ARG DIGITALOCEAN_API_KEY
+
+ENV VITE_API_PORT=${API_EXPOSED_PORT}
+ENV API_DOCKER=${API_DOCKER}
+ENV ADMINER_DOCKER=${ADMINER_DOCKER}
+ENV DOMAIN=${DOMAIN}
+ENV DOMAIN_TEST_PREFIX=${DOMAIN_TEST_PREFIX}
+ENV DO_API_KEY=${DIGITALOCEAN_API_KEY}
+
 
 WORKDIR /app
 
@@ -11,31 +21,23 @@ RUN apt-get update;\
     apt-get install -y npm
 
 COPY ./ ./
+
 RUN npm update; npm install -y
 RUN npm run build
 RUN mv ./dist/* /usr/share/nginx/html
-RUN echo "server { \
-    listen       80; \
-    listen  [::]:80; \
-    server_name  localhost; \
-    location / { \
-        root   /usr/share/nginx/html; \
-	    try_files \$uri \$uri/ /index.html; \
-    } \
-    location /api { \
-        rewrite ^/api(/.*)$ \$1 break; \
-        proxy_pass ${API_DOCKER_URL}; \
-        proxy_set_header Host api; \
-        proxy_set_header X-Real-IP \$remote_addr; \
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto \$scheme; \
-    } \
-    location /adminer { \
-        rewrite ^/adminer(/.*)$ \$1 break; \
-        proxy_pass ${ADMINER_DOCKER_URL}; \
-        proxy_set_header Host api; \
-        proxy_set_header X-Real-IP \$remote_addr; \
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto \$scheme; \
-    } \
-}" > /etc/nginx/conf.d/default.conf
+
+RUN apt-get install curl -y; apt-get install cron -y
+RUN rm /etc/nginx/conf.d/*
+RUN if [ "$DOMAIN" != "localhost" ]; then \
+    curl https://get.acme.sh | sh -s email=miro.furinda@tuta.io; \
+    cd ~/.acme.sh; \
+    ./acme.sh --issue --dns dns_dgon -d "$DOMAIN" -d "*.$DOMAIN"; \
+    mkdir -p /etc/certs/*.$DOMAIN; \
+    ./acme.sh --install-cert -d *.$DOMAIN \
+    --key-file /etc/certs/*.$DOMAIN/key.pem \
+    --fullchain-file /etc/certs/*.$DOMAIN/cert.pem \
+    --reloadcmd     "nginx -s reload"; \
+    bash -c "envsubst < remote_nginx.conf | sed 's|$%|$|g' > /etc/nginx/conf.d/*.$DOMAIN.conf"; \
+else \
+    bash -c "envsubst < localhost_nginx.conf | sed 's|$%|$|g' > /etc/nginx/conf.d/*.$DOMAIN.conf"; \
+fi

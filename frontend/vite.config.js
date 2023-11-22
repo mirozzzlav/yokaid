@@ -12,7 +12,7 @@ export default () =>
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: process.env.VITE_API_URL,
+          target: `http://0.0.0.0:${process.env.VITE_API_PORT}`,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
           secure: false,

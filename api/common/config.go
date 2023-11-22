@@ -2,7 +2,7 @@ package common
 
 import (
 	"errors"
-	"github.com/joho/godotenv"
+	"flag"
 	"os"
 	"strconv"
 )
@@ -28,8 +28,6 @@ type config struct {
 	EnableNotifications bool
 	DBDriver            string
 	DBSource            string
-	TokenSymmetricKey   string
-	Url                 string
 	AssetsFolder        string
 	AssetsRelativeUrl   string
 	Logs                logsConfig
@@ -40,6 +38,7 @@ type config struct {
 	ReviewsPerPage      int
 	DefaultLanguage     string
 	Session             sessionConfig
+	Port                string
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -69,18 +68,21 @@ func getLogsConfig() logsConfig {
 	return logsConfig{LogsToScreen: logsToScreen, LogsToFile: logsToFile}
 }
 
-var Config, _ = func() (config, error) {
-	sysParams := GetSystemArgs()
-	if envFile, ok := sysParams["envfile"]; ok {
-		err := godotenv.Load(envFile)
-		if err != nil {
-			return config{}, err
-		}
+var Config = func() config {
+
+	var dbUrl string
+
+	// Parse command-line flags
+	flag.StringVar(&dbUrl, "db_url", "", "Database name")
+	flag.Parse()
+
+	if dbUrl == "" {
+		panic(errors.New("missing argument db_url"))
 	}
 
 	enableNotifications, err := strconv.ParseBool(os.Getenv("ENABLE_NOTIFICATIONS"))
 	if err != nil {
-		return config{}, err
+		panic(errors.New("missing ENABLE_NOTIFICATIONS parameter"))
 	}
 
 	return config{
@@ -88,10 +90,8 @@ var Config, _ = func() (config, error) {
 		AppMailFrom:         os.Getenv("MAIL_FROM"),
 		AppMailAPIKey:       os.Getenv("MAIL_API_KEY"),
 		EnableNotifications: enableNotifications,
-		DBDriver:            os.Getenv("DB_DRIVER"),
-		DBSource:            os.Getenv("DB_URL"),
-		TokenSymmetricKey:   os.Getenv("TOKEN_SYMMETRIC_KEY"),
-		Url:                 os.Getenv("API_URL"),
+		DBDriver:            "postgres",
+		DBSource:            dbUrl,
 		AssetsFolder:        "./assets",
 		AssetsRelativeUrl:   "/assets",
 		Logs:                getLogsConfig(),
@@ -106,5 +106,6 @@ var Config, _ = func() (config, error) {
 		ReviewsPerPage:  5,
 		DefaultLanguage: "en_US",
 		Session:         sessionConfig{Name: "superstarSession", Secret: "SecretForSessionStore123"},
-	}, nil
+		Port:            os.Getenv("API_EXPOSED_PORT"),
+	}
 }()

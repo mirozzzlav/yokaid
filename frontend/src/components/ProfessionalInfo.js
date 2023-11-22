@@ -9,6 +9,7 @@ import MultiItem from 'src/components/MultiItem';
 import ProfessionalContact from 'src/components/ProfessionalContact';
 import { GalleryContext, TranslationsContext } from 'src/providers';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import config from 'src/config';
 
 const style = {
   review: {
@@ -116,7 +117,7 @@ export function Review({ review: { id, text, images } }) {
             return (
               <Image
                 key={k}
-                src={src}
+                src={config.api.url + src}
                 sx={style.img}
                 onClick={() => showImage(index)}
               />

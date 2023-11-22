@@ -1,72 +1,99 @@
-include ./.env
+command := $(word 1, $(MAKECMDGOALS))
+mode := $(word 2, $(MAKECMDGOALS))
 
-grantperms_cmd := docker exec postgres psql -U $(POSTGRES_ROOT) -d $(APP_NAME) -c \
-				"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $(POSTGRES_APP_USER);\
-				 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO $(POSTGRES_APP_USER);"
+ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore),)
+ifeq ($(filter $(mode),local live test),)
+$(error Invalid argument mode. Please use local, live, test for example.)
+endif
+endif
 
+ifeq (,$(wildcard .env))
+    $(error .env file does not exist.)
+endif
+include .env
 export
 
-API = $(shell docker ps -aq --filter name=api)
+db_name := someapp_$(mode)
+db_root_pass_encoded := $(shell printf '%s' $(DB_ROOT_PASS) | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
+db_app_pass_encoded := $(shell printf '%s' $(DB_APP_PASSWORD) | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
+db_docker_url_root := postgresql://$(DB_ROOT):$(db_root_pass_encoded)@store:5432/$(db_name)?sslmode=disable
+db_docker_url := postgresql://$(DB_APP_USER):$(db_app_pass_encoded)@store:5432/$(db_name)?sslmode=disable
 
-postgres:
-	docker network ls|grep $(DOCKER_NET) > /dev/null || docker network create $(DOCKER_NET); \
-	docker run -d --rm --name postgres --network $(DOCKER_NET) -p 5432:5432 \
-  		   -e POSTGRES_USER=$(POSTGRES_ROOT) -e POSTGRES_PASSWORD=$(POSTGRES_ROOT_PASS) postgres
+network_cmd = docker network ls|grep $(DOCKER_NET) > /dev/null || docker network create $(DOCKER_NET)
+grantperms_cmd := docker exec store psql -U $(DB_ROOT) -d $(db_name) -c \
+				"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $(DB_APP_USER);\
+				 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO $(DB_APP_USER);"
 
-createdb:
-	docker exec postgres psql --username=$(POSTGRES_ROOT) --command="DROP DATABASE IF EXISTS \"$(APP_NAME)\""; \
-	docker exec postgres createdb --username=$(POSTGRES_ROOT) --owner=$(POSTGRES_ROOT) $(APP_NAME); \
-  	docker exec postgres psql --username=$(POSTGRES_ROOT) --command="\
-  		  DROP ROLE IF EXISTS $(POSTGRES_APP_USER); \
-  		  CREATE USER $(POSTGRES_APP_USER) WITH PASSWORD '$(POSTGRES_APP_PASSWORD)';"
+buildstore:
+	docker build -t store ./store
+
+runstore:
+	$(network_cmd); \
+	docker run -d --rm --name store --network $(DOCKER_NET) -p 5432:5432 \
+  		   -e POSTGRES_USER=$(DB_ROOT) -e POSTGRES_PASSWORD=$(DB_ROOT_PASS) store; \
+  	sleep 3; \
+
+	docker exec store psql --username=$(DB_ROOT) --command="DROP DATABASE IF EXISTS \"$(db_name)\";"; \
+	docker exec store createdb --username=$(DB_ROOT) --owner=$(DB_ROOT) $(db_name); \
+	docker exec store psql --username=$(DB_ROOT) --command="\
+			DROP ROLE IF EXISTS $(DB_APP_USER); \
+			CREATE USER $(DB_APP_USER) WITH PASSWORD '$(DB_APP_PASSWORD)';"; \
+	docker exec store migrate -path ./migrations -database $(db_docker_url_root) -verbose up; \
+  	$(grantperms_cmd)
 
 buildapi:
-	docker build -t api ./api
+	docker build -t api ./api \
+	--build-arg LOGS_TO_SCREEN=$(LOGS_TO_SCREEN) \
+	--build-arg LOGS_TO_FILE=$(LOGS_TO_FILE) \
+	--build-arg ENABLE_NOTIFICATIONS=$(ENABLE_NOTIFICATIONS) \
+	--build-arg APP_NAME=$(APP_NAME) \
+	--build-arg MAIL_FROM=$(MAIL_FROM) \
+	--build-arg MAIL_API_KEY=$(MAIL_API_KEY) \
 
 runapi:
-	docker run -d --rm --name api --network $(DOCKER_NET) -p 8080:8080 --env-file .env api
+	$(network_cmd); \
+	docker run -d --rm --name api --network $(DOCKER_NET) -p $(API_EXPOSED_PORT):8080 api \
+	app -db_url=$(db_docker_url)
 
 buildfe:
-	docker build -t fe --build-arg API_URL=$(API_URL) --build-arg API_DOCKER_URL=$(API_DOCKER_URL) \
- 		--build-arg ADMINER_DOCKER_URL=$(ADMINER_DOCKER_URL) ./frontend
+	docker build -t fe \
+		--build-arg API_EXPOSED_PORT=$(API_EXPOSED_PORT) \
+		--build-arg API_DOCKER=api \
+ 		--build-arg ADMINER_DOCKER=adminer \
+ 		--build-arg DOMAIN=$(DOMAIN) \
+ 		--build-arg DOMAIN_TEST_PREFIX='test' \
+ 		--build-arg DIGITALOCEAN_API_KEY=$(DIGITALOCEAN_API_KEY) \
+ 		./frontend
 
 runfe:
-	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 fe
+	$(network_cmd); \
+	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 -p 443:443 fe
 
-adminer:
+runadminer:
+	$(network_cmd); \
 	docker run -d --rm --name adminer --network $(DOCKER_NET) -p 8088:8080 adminer
 
 dropdb:
-	docker exec postgres dropdb --if-exists --username=$(POSTGRES_ROOT) $(APP_NAME)
+	docker exec store dropdb --if-exists --username=$(DB_ROOT) $(db_name)
 
 grantprivs:
 	$(grantperms_cmd);
 
 migrateup:
-	@if [ "$(API)" ];then \
-  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose up; $(grantperms_cmd);\
-  	fi
+	docker exec -it store migrate -path ./migrations -database $(db_docker_url_root) -verbose up; $(grantperms_cmd);\
 
 migrateup1:
-	@if [ "$(API)" ];then \
-  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose up 1; $(grantperms_cmd);\
-  	fi
+	docker exec -it store migrate -path ./migrations -database $(db_docker_url_root) -verbose up 1; $(grantperms_cmd);\
 
 migratedown:
-	@if [ "$(API)" ];then \
-  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose down;\
-  	fi
+	docker exec -it store migrate -path ./migrations -database $(db_docker_url_root) -verbose down; $(grantperms_cmd);\
 
 migratedown1:
-	@if [ "$(API)" ];then \
-  		docker exec -it api migrate -path db/migrations -database "$(DB_URL_ROOT)" -verbose down 1;\
-  	fi
-
-# this is for local development to create new migrations
-# migrate create -dir api/db/migrations -ext sql -seq -digits 8 __migration_name__
+	docker exec -it store migrate -path ./migrations -database $(db_docker_url_root) -verbose down 1; $(grantperms_cmd);\
 
 cleanup:
 	docker rm -f; \
 	docker image prune -f; \
 	docker network prune -f;\
 	@echo "--- CLEANUP FINISHED ---"
+

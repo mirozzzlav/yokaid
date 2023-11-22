@@ -2,12 +2,12 @@ package server
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
-	"regexp"
 	"some-app/api/common"
 	dbPkg "some-app/api/db"
 	"some-app/api/mail"
@@ -108,8 +108,7 @@ func (s *server) initRouter() {
 
 func (s *server) Start() error {
 	// server needs an url without http/https
-	r := regexp.MustCompile("https?://")
-	return s.router.Run(r.ReplaceAllString(common.Config.Url, ""))
+	return s.router.Run(fmt.Sprintf("0.0.0.0:%s", common.Config.Port))
 }
 
 func (s *server) GetQueriesRepo() common.QueriesRepo {
