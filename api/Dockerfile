@@ -15,8 +15,6 @@ ENV APP_NAME=${APP_NAME}
 ENV MAIL_FROM=${MAIL_FROM}
 ENV MAIL_API_KEY=${MAIL_API_KEY}
 
-
-
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 

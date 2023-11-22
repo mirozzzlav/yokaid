@@ -71,9 +71,10 @@ func getLogsConfig() logsConfig {
 var Config = func() config {
 
 	var dbUrl string
-
+	var apiPort string
 	// Parse command-line flags
 	flag.StringVar(&dbUrl, "db_url", "", "Database name")
+	flag.StringVar(&apiPort, "api_port", "", "API port")
 	flag.Parse()
 
 	if dbUrl == "" {
@@ -106,6 +107,6 @@ var Config = func() config {
 		ReviewsPerPage:  5,
 		DefaultLanguage: "en_US",
 		Session:         sessionConfig{Name: "superstarSession", Secret: "SecretForSessionStore123"},
-		Port:            os.Getenv("API_EXPOSED_PORT"),
+		Port:            apiPort,
 	}
 }()

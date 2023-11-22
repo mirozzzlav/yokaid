@@ -1,17 +1,25 @@
-command := $(word 1, $(MAKECMDGOALS))
-mode := $(word 2, $(MAKECMDGOALS))
-
-ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore),)
-ifeq ($(filter $(mode),local live test),)
-$(error Invalid argument mode. Please use local, live, test for example.)
-endif
-endif
-
 ifeq (,$(wildcard .env))
     $(error .env file does not exist.)
 endif
 include .env
 export
+
+command := $(word 1, $(MAKECMDGOALS))
+mode := $(word 2, $(MAKECMDGOALS))
+
+ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore runstore),)
+ifeq ($(filter $(mode),$(MAIN_SERVER) $(TEST_SERVER)),)
+$(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
+endif
+endif
+
+api_docker := api_$(mode)
+api_port_mode := $(API_PORT)
+
+ifeq ($(mode),$(TEST_SERVER))
+api_port_mode := $(API_PORT_TEST)
+endif
+
 
 db_name := someapp_$(mode)
 db_root_pass_encoded := $(shell printf '%s' $(DB_ROOT_PASS) | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
@@ -30,9 +38,9 @@ buildstore:
 runstore:
 	$(network_cmd); \
 	docker run -d --rm --name store --network $(DOCKER_NET) -p 5432:5432 \
-  		   -e POSTGRES_USER=$(DB_ROOT) -e POSTGRES_PASSWORD=$(DB_ROOT_PASS) store; \
-  	sleep 3; \
+  		   -e POSTGRES_USER=$(DB_ROOT) -e POSTGRES_PASSWORD=$(DB_ROOT_PASS) store
 
+initdb:
 	docker exec store psql --username=$(DB_ROOT) --command="DROP DATABASE IF EXISTS \"$(db_name)\";"; \
 	docker exec store createdb --username=$(DB_ROOT) --owner=$(DB_ROOT) $(db_name); \
 	docker exec store psql --username=$(DB_ROOT) --command="\
@@ -52,22 +60,22 @@ buildapi:
 
 runapi:
 	$(network_cmd); \
-	docker run -d --rm --name api --network $(DOCKER_NET) -p $(API_EXPOSED_PORT):8080 api \
-	app -db_url=$(db_docker_url)
+	docker run -d --rm --name $(api_docker) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
+	app -api_port=$(api_port_mode) -db_url=$(db_docker_url)
 
 buildfe:
 	docker build -t fe \
-		--build-arg API_EXPOSED_PORT=$(API_EXPOSED_PORT) \
-		--build-arg API_DOCKER=api \
- 		--build-arg ADMINER_DOCKER=adminer \
+		--build-arg API_PORT=$(API_PORT) \
+		--build-arg API_PORT_TEST=$(API_PORT_TEST) \
  		--build-arg DOMAIN=$(DOMAIN) \
- 		--build-arg DOMAIN_TEST_PREFIX='test' \
- 		--build-arg DIGITALOCEAN_API_KEY=$(DIGITALOCEAN_API_KEY) \
+ 		--build-arg RUN_TEST_SERVER=$(RUN_TEST_SERVER) \
+ 		--build-arg TEST_SERVER=$(TEST_SERVER) \
+ 		--build-arg MAIN_SERVER=$(MAIN_SERVER) \
  		./frontend
 
 runfe:
 	$(network_cmd); \
-	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 -p 443:443 fe
+	docker run -d --rm --name fe --network $(DOCKER_NET) -p 80:80 fe
 
 runadminer:
 	$(network_cmd); \
