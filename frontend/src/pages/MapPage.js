@@ -101,9 +101,6 @@ function useStyle() {
     addReviewBtn: {
       background: '#0b619e',
     },
-    addReviewBtnMobile: {
-      background: '#0b619e',
-    },
   };
 
   const responsiveStyle = useBreakpointValue({
@@ -111,19 +108,8 @@ function useStyle() {
       filter: {
         flexDirection: 'column',
       },
-      addReviewBtn: {
-        display: 'none',
-      },
-    },
-    sm: {
-      addReviewBtnMobile: {
-        display: 'none',
-      },
     },
     md: {
-      addReviewBtnMobile: {
-        display: 'none',
-      },
       filterBtn: {
         flexBasis: 'auto',
       },
@@ -144,9 +130,6 @@ function useStyle() {
       },
       filterButtons: {
         flexBasis: 'auto',
-      },
-      addReviewBtnMobile: {
-        display: 'none',
       },
       filterInfo: {
         flexGrow: 0,
@@ -401,13 +384,6 @@ export default function MapPage() {
           >
             {T('write review')}
           </Button>
-          <IconButton
-            icon={<AddIcon />}
-            onClick={() => navigateAction('add-review-with-professional')}
-            sx={style.addReviewBtnMobile}
-            colorScheme="blue"
-            aria-label="Add review"
-          />
         </>
       }
     >

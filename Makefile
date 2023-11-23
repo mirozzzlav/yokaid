@@ -13,11 +13,20 @@ $(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
 endif
 endif
 
-api_docker := api_$(mode)
+wip := ""
+server_name := $(DOMAIN)
+api_host := api_$(MAIN_SERVER)
+api_port := $(API_PORT)
+api_docker_mode := api_$(mode)
 api_port_mode := $(API_PORT)
 
 ifeq ($(mode),$(TEST_SERVER))
 api_port_mode := $(API_PORT_TEST)
+server_name := $(TEST_SERVER).$(DOMAIN)
+endif
+
+ifeq ($(word 3, $(MAKECMDGOALS)),wip)
+wip := wip
 endif
 
 
@@ -49,6 +58,16 @@ initdb:
 	docker exec store migrate -path ./migrations -database $(db_docker_url_root) -verbose up; \
   	$(grantperms_cmd)
 
+nginxconf:
+	export SERVER_NAME=$(server_name); \
+	export API_HOST=$(api_docker_mode); \
+	export API_PORT=$(api_port_mode); \
+	envsubst < frontend/nginx_conf/nginx$(wip).conf | sed 's|$$%|$$|g' > nginx.conf; \
+	docker cp nginx.conf fe:/etc/nginx/conf.d/$(server_name).conf; \
+	docker exec rm /etc/nginx/conf.d/default.conf 2> /dev/null; \
+	rm nginx.conf; \
+	docker restart fe
+
 buildapi:
 	docker build -t api ./api \
 	--build-arg LOGS_TO_SCREEN=$(LOGS_TO_SCREEN) \
@@ -60,18 +79,11 @@ buildapi:
 
 runapi:
 	$(network_cmd); \
-	docker run -d --rm --name $(api_docker) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
+	docker run -d --rm --name $(api_docker_mode) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
 	app -api_port=$(api_port_mode) -db_url=$(db_docker_url)
 
 buildfe:
-	docker build -t fe \
-		--build-arg API_PORT=$(API_PORT) \
-		--build-arg API_PORT_TEST=$(API_PORT_TEST) \
- 		--build-arg DOMAIN=$(DOMAIN) \
- 		--build-arg RUN_TEST_SERVER=$(RUN_TEST_SERVER) \
- 		--build-arg TEST_SERVER=$(TEST_SERVER) \
- 		--build-arg MAIN_SERVER=$(MAIN_SERVER) \
- 		./frontend
+	docker build -t fe ./frontend
 
 runfe:
 	$(network_cmd); \

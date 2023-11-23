@@ -53,8 +53,7 @@ function useStyle() {
     },
     logo: {
       position: 'relative',
-      top: '-10px',
-      height: '60px',
+      height: '33px',
       width: '100%',
       maxWidth: '100px',
     },
