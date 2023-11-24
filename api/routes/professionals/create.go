@@ -17,12 +17,17 @@ func create(server common.Server) gin.HandlerFunc {
 		err = server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
-		q := server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "rev")
+		paymentState := common.PaymentStates.New
+		if !common.Config.PayReview {
+			paymentState = common.PaymentStates.Paid
+		}
+
+		q := server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
 		paymentIdAny, err := server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
 		paymentId, _ := paymentIdAny.(string)
 
-		_, err = server.GetStoreHelpers(ctx).CreateReviewAndProfessional(paymentId, req)
+		professionalId, err := server.GetStoreHelpers(ctx).CreateReviewAndProfessional(paymentId, req)
 		if err == common.ErrRecordExist {
 			panic(
 				common.HttpResponse{
@@ -33,13 +38,32 @@ func create(server common.Server) gin.HandlerFunc {
 		}
 		common.CheckErrAndPanic(err)
 
+		if !common.Config.PayContact {
+			_, err = server.GetStoreHelpers(ctx).CreateProfessionalContactWithPayment(
+				common.CreateUserProfessionalContactRequest{
+					ProfessionalId: professionalId,
+					UserIdRequest: common.UserIdRequest{
+						UserId: req.UserId,
+					},
+				}, common.PaymentStates.Paid)
+			common.CheckErrAndPanic(err)
+
+		}
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
 
-		common.SetOKJSONResponse(
-			ctx,
-			"review form success",
-			map[string]string{"smsCode": paymentId},
-		)
+		if common.Config.PayReview {
+			common.SetOKJSONResponse(
+				ctx,
+				"review form success",
+				map[string]string{"smsCode": paymentId},
+			)
+		} else {
+			common.SetOKJSONResponse(
+				ctx,
+				"review form success no pay",
+			)
+		}
+
 	}
 }

@@ -14,6 +14,7 @@ import {
   InitialDataContext,
   TranslationsContext,
   UserIdFormControl,
+  TagTranslation,
 } from 'src/providers';
 import FormGroup from 'src/components/FormGroup';
 import RatingFormControls from 'src/components/RatingFormControls';
@@ -27,18 +28,19 @@ export function CreateReviewForm({
   professional,
   validationRules,
 }) {
-  const { T, TTags } = useContext(TranslationsContext);
-  const { smsPaymentPhone } = useContext(InitialDataContext);
-
+  const { T } = useContext(TranslationsContext);
+  const { smsPaymentPhone, payReview } = useContext(InitialDataContext);
   if (!professional) {
     return null;
   }
 
   return (
     <Box>
-      <FormControl>
-        <InfoMessage message={T('review form info', [smsPaymentPhone])} />
-      </FormControl>
+      {payReview && (
+        <FormControl>
+          <InfoMessage message={T('review form info', [smsPaymentPhone])} />
+        </FormControl>
+      )}
       <FormGroup groupLabel={T('reviewed person')}>
         <ProfessionalInfo data={professional} />
       </FormGroup>
@@ -56,10 +58,19 @@ export function CreateReviewForm({
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={TTags(formResult.msg, [
-            <strong>{formResult?.data.smsCode}</strong>,
-            <strong>{smsPaymentPhone}</strong>,
-          ])}
+          message={
+            <TagTranslation
+              msgId={formResult.msg}
+              msgParts={
+                payReview
+                  ? [
+                      <strong>{formResult.data.smsCode}</strong>,
+                      <strong>{smsPaymentPhone}</strong>,
+                    ]
+                  : null
+              }
+            />
+          }
         />
       ) : null}
     </Box>

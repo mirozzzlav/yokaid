@@ -39,7 +39,8 @@ Message.defaultProps = {
   extraStyle: null,
 };
 Message.propTypes = {
-  message: PropTypes.string.isRequired,
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
+    .isRequired,
   extraStyle: PropTypes.oneOfType([
     unknownObjectValidator,
     PropTypes.oneOf([null]),
@@ -63,7 +64,8 @@ function SuccessMessage({ message }) {
   );
 }
 SuccessMessage.propTypes = {
-  message: PropTypes.string.isRequired,
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
+    .isRequired,
 };
 
 function ErrorMessage({ message }) {
@@ -82,7 +84,8 @@ function ErrorMessage({ message }) {
   );
 }
 ErrorMessage.propTypes = {
-  message: PropTypes.string.isRequired,
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
+    .isRequired,
 };
 
 function InfoMessage({ message, margin }) {
@@ -105,7 +108,8 @@ InfoMessage.defaultProps = {
 
 InfoMessage.propTypes = {
   margin: PropTypes.string,
-  message: PropTypes.string.isRequired,
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
+    .isRequired,
 };
 
 export { SuccessMessage, ErrorMessage, InfoMessage };

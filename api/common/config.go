@@ -39,6 +39,8 @@ type config struct {
 	DefaultLanguage     string
 	Session             sessionConfig
 	Port                string
+	PayReview           bool
+	PayContact          bool
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -72,9 +74,13 @@ var Config = func() config {
 
 	var dbUrl string
 	var apiPort string
+	var payReview bool
+	var payContact bool
 	// Parse command-line flags
 	flag.StringVar(&dbUrl, "db_url", "", "Database name")
 	flag.StringVar(&apiPort, "api_port", "", "API port")
+	flag.BoolVar(&payReview, "pay_review", false, "Flag turn on/off review payments")
+	flag.BoolVar(&payContact, "pay_contact", false, "Flag turn on/off contacts payments")
 	flag.Parse()
 
 	if dbUrl == "" {
@@ -108,5 +114,7 @@ var Config = func() config {
 		DefaultLanguage: "en_US",
 		Session:         sessionConfig{Name: "superstarSession", Secret: "SecretForSessionStore123"},
 		Port:            apiPort,
+		PayReview:       payReview,
+		PayContact:      payContact,
 	}
 }()

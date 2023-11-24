@@ -78,12 +78,41 @@ func (sH *StoreHelpers) CreateReviewAndProfessional(paymentId string, req common
 
 	q = sH.QueriesRepo.CreateReviewQuery(paymentId, professionalId, req.Review)
 
-	reviewIdAny, err := sH.QueryRunner.Exec(q)
+	_, err = sH.QueryRunner.Exec(q)
 	if err != nil {
 		return 0, err
 	}
 
-	reviewId, _ := common.ConvertToInt(reviewIdAny)
-	return reviewId, nil
+	return professionalId, nil
+
+}
+
+func (sH *StoreHelpers) CreateProfessionalContactWithPayment(req common.CreateUserProfessionalContactRequest, paymentState string) (string, error) {
+	q := sH.QueriesRepo.GetProfessionalContactQuery(req.ProfessionalId, req.UserId, "payments.id")
+	paymentIdAny, err := sH.QueryRunner.GetScalar(q)
+	if err != nil && err != common.ErrNoRows {
+		return "", err
+	}
+
+	if err == common.ErrNoRows {
+		q = sH.QueriesRepo.CreatePaymentQuery(
+			common.GenerateUniqueID(), req.UserId, "con", paymentState)
+		paymentIdAny, err = sH.QueryRunner.Exec(q)
+		if err != nil {
+			return "", err
+		}
+
+		paymentId, _ := paymentIdAny.(string)
+		q = sH.QueriesRepo.CreateProfessionalContactQuery(paymentId, req)
+		_, err = sH.QueryRunner.Exec(q)
+		if err != nil {
+			return "", err
+		}
+
+		return paymentId, nil
+	}
+
+	// if contact exist and its paid already
+	return paymentIdAny.(string), common.ErrRecordExist
 
 }

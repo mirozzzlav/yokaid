@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Dropdown } from 'src/components/Dropdown';
 import Icons from 'src/components/Icons';
@@ -61,15 +61,26 @@ LanguageDropdown.prototype.propTypes = {
   selectedLanguage: PropTypes.string.isRequired,
 };
 
-function Translation({ base, parts }) {
-  console.log(base.split(/\$[0-9]+/));
-  return base.split(/\$[0-9]+/).reduce(
+export function TagTranslation({ msgId, msgParts, n }) {
+  const { translations, lang } = useContext(TranslationsContext);
+
+  if (!translations?.[msgId]) {
+    return msgId;
+  }
+
+  const msg = translations[msgId].split(';')[config.pluralFormGetter(lang)(n)];
+
+  if (!msgParts || msgParts.length === 0) {
+    return msg;
+  }
+
+  return msg.split(/\$[0-9]+/).reduce(
     (prev, current, index) =>
-      index < parts.length ? (
+      index < msgParts.length ? (
         <>
           {prev}
           {current}
-          {parts[index]}
+          {msgParts[index]}
         </>
       ) : (
         <>
@@ -80,6 +91,20 @@ function Translation({ base, parts }) {
     '',
   );
 }
+
+TagTranslation.defaultProps = {
+  msgParts: null,
+  n: 1,
+};
+
+TagTranslation.prototype.propTypes = {
+  msgId: PropTypes.string.isRequired,
+  msgParts: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.element),
+    PropTypes.oneOf([null]),
+  ]),
+  n: PropTypes.number,
+};
 
 export default function TranslationsProvider({ children }) {
   const [lang, setLang] = useState(
@@ -102,20 +127,6 @@ export default function TranslationsProvider({ children }) {
         return sprintf(
           translations[msgId].split(';')[config.pluralFormGetter(lang)(n)],
           msgParts,
-        );
-      },
-      TTags: (msgId, msgParts = [], n = 1) => {
-        if (!translations?.[msgId]) {
-          return msgId;
-        }
-
-        return (
-          <Translation
-            base={
-              translations[msgId].split(';')[config.pluralFormGetter(lang)(n)]
-            }
-            parts={msgParts}
-          />
         );
       },
     }),

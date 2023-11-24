@@ -19,6 +19,8 @@ api_host := api_$(MAIN_SERVER)
 api_port := $(API_PORT)
 api_docker_mode := api_$(mode)
 api_port_mode := $(API_PORT)
+pay_review := false
+pay_contact := false
 
 ifeq ($(mode),$(TEST_SERVER))
 api_port_mode := $(API_PORT_TEST)
@@ -27,6 +29,14 @@ endif
 
 ifeq ($(word 3, $(MAKECMDGOALS)),wip)
 wip := wip
+endif
+
+ifeq ($(word 3, $(MAKECMDGOALS)),pay_review)
+pay_review := true
+endif
+
+ifeq ($(word 4, $(MAKECMDGOALS)),pay_contact)
+pay_contact := true
 endif
 
 
@@ -80,7 +90,7 @@ buildapi:
 runapi:
 	$(network_cmd); \
 	docker run -d --rm --name $(api_docker_mode) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
-	app -api_port=$(api_port_mode) -db_url=$(db_docker_url)
+	app -api_port=$(api_port_mode) -db_url=$(db_docker_url) -pay_review=$(pay_review) -pay_contact=$(pay_contact)
 
 buildfe:
 	docker build -t fe ./frontend

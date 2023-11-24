@@ -32,9 +32,10 @@ type QueriesRepo interface {
 	GetProfessionalsQuery(filter QueryPartial, reviewsPage int, userId string, lang string, limit int) Query
 	CreateProfessionalQuery(req CreateProfessionalRequest) Query
 	CreateProfessionalProfessionsQuery(professionalId int, professionId []int) Query
+	GetProfessionalContactQueryByPaymentIdQuery(paymentId string) Query
 	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial, lang string) Query
-	CreatePaymentQuery(id string, userId string, productId string) Query
+	CreatePaymentQuery(id string, userId string, productId string, paymentState string) Query
 	GetProfessionalContactQuery(professionalId int, userId string, columns ...string) Query
 	CreateProfessionalContactQuery(paymentId string, req CreateUserProfessionalContactRequest) Query
 	MakePaymentQuery(code string) Query
@@ -43,6 +44,7 @@ type QueriesRepo interface {
 type StoreHelpers interface {
 	HandleFilter(filter string) (QueryPartial, error)
 	CreateReviewAndProfessional(paymentId string, req CreateReviewAndProfessionalRequest) (int, error)
+	CreateProfessionalContactWithPayment(req CreateUserProfessionalContactRequest, paymentState string) (string, error)
 
 	// only for testing
 	Insert() int

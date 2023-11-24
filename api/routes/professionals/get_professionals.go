@@ -64,6 +64,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		userId, _ := ctx.Params.Get("userId")
 
 		dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userId, "1")
+		server.GetQueryRunner(ctx).Begin()
 		_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
 		if err == common.ErrNoRows {
 			userId = ""
@@ -87,7 +88,6 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			-1,
 		)
 
-		server.GetQueryRunner(ctx).Begin()
 		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()

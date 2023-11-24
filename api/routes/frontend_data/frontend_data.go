@@ -12,6 +12,8 @@ type frontEndDataResponse struct {
 	InputFormats    map[string]string            `json:"inputFormats"`
 	SMSPaymentPhone string                       `json:"smsPaymentPhone"`
 	ReviewsPerPage  int                          `json:"reviewsPerPage"`
+	PayReview       bool                         `json:"payReview"`
+	PayContact      bool                         `json:"payContact"`
 }
 
 func getFrontendData(server common.Server) gin.HandlerFunc {
@@ -47,6 +49,8 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 			},
 			SMSPaymentPhone: common.Config.SMSPaymentPhone,
 			ReviewsPerPage:  common.Config.ReviewsPerPage,
+			PayReview:       common.Config.PayReview,
+			PayContact:      common.Config.PayContact,
 		})
 	}
 }

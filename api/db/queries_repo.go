@@ -271,10 +271,9 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang strin
 	return q
 }
 
-func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId string) common.Query {
+func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId string, paymentState string) common.Query {
 
 	query := `INSERT INTO payments ("id", "user_id", "product_id", "state") VALUES(?, ?, ?, ?)`
-	paymentState := common.PaymentStates.New
 
 	q := dbQuery{
 		partials: []common.QueryPartial{
@@ -303,6 +302,22 @@ func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId str
     					WHERE professionals.id = ? AND payments.user_id = ? 
     					AND payments.product_id='con' AND payments.state='%s'`, columnsStr, common.PaymentStates.Paid),
 				Params: []any{professionalId, userId},
+			},
+		},
+	}
+	return q
+}
+
+func (qr QueriesRepo) GetProfessionalContactQueryByPaymentIdQuery(paymentId string) common.Query {
+
+	q := dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: `SELECT email, phone FROM professionals JOIN user_professional_contacts 
+    					ON professionals.id = user_professional_contacts.professional_id
+    					JOIN payments ON user_professional_contacts.id = payments.id 
+    					WHERE payments.id = ? AND payments.product_id='con' AND payments.state=?`,
+				Params: []any{paymentId, common.PaymentStates.Paid},
 			},
 		},
 	}

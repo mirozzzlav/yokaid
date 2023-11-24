@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import {
   InitialDataContext,
+  TagTranslation,
   TranslationsContext,
   UserIdFormControl,
 } from 'src/providers';
@@ -44,16 +45,18 @@ export function CreateReviewWithPro({
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
   const [searchedProfession, setSearchedProfession] = useState('');
-  const { lists, inputFormats, smsPaymentPhone } =
+  const { lists, inputFormats, smsPaymentPhone, payReview } =
     useContext(InitialDataContext);
 
-  const { T, TTags } = useContext(TranslationsContext);
+  const { T } = useContext(TranslationsContext);
 
   return (
     <Box>
-      <FormControl>
-        <InfoMessage message={T('review form info', [smsPaymentPhone])} />
-      </FormControl>
+      {payReview && (
+        <FormControl>
+          <InfoMessage message={T('review form info', [smsPaymentPhone])} />
+        </FormControl>
+      )}
       <FormGroup groupLabel={T('reviewed person')}>
         <FormControl
           isInvalid={inputsErrors?.fullName}
@@ -208,10 +211,19 @@ export function CreateReviewWithPro({
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={TTags(formResult.msg, [
-            <strong>{formResult.data.smsCode}</strong>,
-            <strong>{smsPaymentPhone}</strong>,
-          ])}
+          message={
+            <TagTranslation
+              msgId={formResult.msg}
+              msgParts={
+                payReview
+                  ? [
+                      <strong>{formResult.data.smsCode}</strong>,
+                      <strong>{smsPaymentPhone}</strong>,
+                    ]
+                  : null
+              }
+            />
+          }
         />
       ) : null}
     </Box>

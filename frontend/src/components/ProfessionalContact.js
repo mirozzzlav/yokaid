@@ -14,7 +14,7 @@ import { UserIdContext, UserIdFormControl } from 'src/providers/UserIdProvider';
 import MultiItem from 'src/components/MultiItem';
 import theme from 'src/style';
 import { getStringFirstCaps } from 'src/helpers';
-import { TranslationsContext } from 'src/providers';
+import { TagTranslation, TranslationsContext } from 'src/providers';
 
 export default function ProfessionalContact({
   professionalId,
@@ -68,7 +68,16 @@ export default function ProfessionalContact({
       </FormControl>
       <FormControl>
         {error ? <ErrorMessage message={error} /> : null}
-        {code ? <SuccessMessage message={T('your sms code', [code])} /> : null}
+        {code ? (
+          <SuccessMessage
+            message={
+              <TagTranslation
+                msgId="your sms code"
+                msgParts={[<strong>{code}</strong>]}
+              />
+            }
+          />
+        ) : null}
       </FormControl>
       <UserIdFormControl />
       <FormControl>
