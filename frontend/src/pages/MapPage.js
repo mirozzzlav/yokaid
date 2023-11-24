@@ -369,22 +369,14 @@ export default function MapPage() {
         ) : null
       }
       footer={
-        <>
-          <Button
-            onClick={() => navigateAction('send-sms')}
-            sx={{ marginRight: theme.space[2] }}
-          >
-            {T('SMS')}
-          </Button>
-          <Button
-            onClick={() => navigateAction('add-review-with-professional')}
-            sx={style.addReviewBtn}
-            colorScheme="blue"
-            leftIcon={<AddIcon />}
-          >
-            {T('write review')}
-          </Button>
-        </>
+        <Button
+          onClick={() => navigateAction('add-review-with-professional')}
+          sx={style.addReviewBtn}
+          colorScheme="blue"
+          leftIcon={<AddIcon />}
+        >
+          {T('write review')}
+        </Button>
       }
     >
       <Map

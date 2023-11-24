@@ -34,7 +34,6 @@ export default {
       getProfessions: `${apiUrl}/professions/get`,
       handleProfessionalContact: `${apiUrl}/professionals/handle-contact`,
       getTranslations: `${apiUrl}/translations/get`,
-      makePayment: `${apiUrl}/payments/make`,
     },
   },
   map: {
