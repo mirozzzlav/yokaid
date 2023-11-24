@@ -10,7 +10,7 @@ import {
   LoaderProvider,
   MapProvider,
   UserIdProvider,
-  WindowScrollProvider,
+  WindowProvider,
 } from 'src/providers';
 
 function App() {
@@ -20,7 +20,7 @@ function App() {
         <TranslationsProvider>
           <IntervalProvider>
             <InitialDataProvider>
-              <WindowScrollProvider>
+              <WindowProvider>
                 <FilterProvider>
                   <MapProvider>
                     <UserIdProvider>
@@ -30,7 +30,7 @@ function App() {
                     </UserIdProvider>
                   </MapProvider>
                 </FilterProvider>
-              </WindowScrollProvider>
+              </WindowProvider>
             </InitialDataProvider>
           </IntervalProvider>
         </TranslationsProvider>

@@ -27,7 +27,7 @@ export function CreateReviewForm({
   professional,
   validationRules,
 }) {
-  const { T } = useContext(TranslationsContext);
+  const { T, TTags } = useContext(TranslationsContext);
   const { smsPaymentPhone } = useContext(InitialDataContext);
 
   if (!professional) {
@@ -56,9 +56,9 @@ export function CreateReviewForm({
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={T(formResult.msg, [
-            formResult?.data.smsCode,
-            smsPaymentPhone,
+          message={TTags(formResult.msg, [
+            <strong>{formResult?.data.smsCode}</strong>,
+            <strong>{smsPaymentPhone}</strong>,
           ])}
         />
       ) : null}

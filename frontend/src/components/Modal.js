@@ -10,7 +10,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { buttonPropType } from 'src/constants';
-import { TranslationsContext, WindowScrollContext } from 'src/providers';
+import { TranslationsContext, WindowContext } from 'src/providers';
 
 const style = {};
 export default function Modal({
@@ -23,8 +23,9 @@ export default function Modal({
   onScrolledDown,
 }) {
   const bodyRef = useRef();
-  const { isScrolledDown } = useContext(WindowScrollContext);
+  const { isScrolledDown, screenHeight } = useContext(WindowContext);
   const { T } = useContext(TranslationsContext);
+  const controlElmRef = useRef(null);
 
   useEffect(() => {
     if (isScrolledDown && isShown) {
@@ -33,17 +34,23 @@ export default function Modal({
   }, [isScrolledDown]);
 
   useEffect(() => {
+    if (!controlElmRef.current) {
+      return;
+    }
+    controlElmRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest',
+    });
+  }, [screenHeight]);
+
+  useEffect(() => {
     const inputFocusListener = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        setTimeout(() => {
-          const controlElm = e.target.closest('.chakra-form-control');
-          controlElm.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'nearest',
-          });
-        }, 200);
+        controlElmRef.current = e.target.closest('.chakra-form-control');
+        return;
       }
+      controlElmRef.current = null;
     };
     if (bodyRef.current) {
       bodyRef.current.addEventListener('focus', inputFocusListener, true);

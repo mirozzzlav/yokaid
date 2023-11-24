@@ -1,10 +1,19 @@
-import React, { createContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 
 const thinScreenHeight = 350;
-export const WindowScrollContext = createContext({});
-export default function WindowScrollProvider({ children }) {
+export const WindowContext = createContext({});
+export default function WindowProvider({ children }) {
   const [isScrolledDown, setIsScrolledDown] = useState(false);
+  const lastHeightRef = useRef(null);
+  const [screenHeight, setScreenHeight] = useState(-1);
+  const effectExecutedRef = useRef(false);
   const [thinScreen, setThinScreen] = useState(
     window.innerHeight < thinScreenHeight,
   );
@@ -12,32 +21,37 @@ export default function WindowScrollProvider({ children }) {
     () => ({
       isScrolledDown,
       thinScreen,
+      screenHeight,
     }),
-    [isScrolledDown, thinScreen],
+    [isScrolledDown, thinScreen, screenHeight],
   );
   useEffect(() => {
+    if (effectExecutedRef.current) {
+      return;
+    }
+    effectExecutedRef.current = true;
+
     const onWindowScrolled = (e) => {
       setIsScrolledDown(
         e.target.scrollTop + e.target.clientHeight === e.target.scrollHeight,
       );
     };
-    const onWindowResized = () =>
+
+    const onWindowResized = () => {
       setThinScreen(window.innerHeight < thinScreenHeight);
+      setScreenHeight(window.innerHeight);
+    };
     window.addEventListener('scroll', onWindowScrolled, true);
     window.addEventListener('resize', onWindowResized);
-    return () => {
-      window.removeEventListener('scroll', onWindowScrolled);
-      window.removeEventListener('resize', onWindowResized);
-    };
-  }, []);
+  }, [lastHeightRef.current]);
 
   return (
-    <WindowScrollContext.Provider value={contextVal}>
+    <WindowContext.Provider value={contextVal}>
       {children}
-    </WindowScrollContext.Provider>
+    </WindowContext.Provider>
   );
 }
 
-WindowScrollProvider.prototype.propTypes = {
+WindowProvider.prototype.propTypes = {
   children: PropTypes.node.isRequired,
 };

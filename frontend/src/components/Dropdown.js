@@ -21,7 +21,7 @@ import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
-import { WindowScrollContext } from 'src/providers/WindowScrollProvider';
+import { WindowContext } from 'src/providers/WindowProvider';
 
 const listElemStyle = {
   width: '100%',
@@ -81,7 +81,7 @@ function DropdownList({
   position,
   width,
 }) {
-  const { thinScreen } = useContext(WindowScrollContext);
+  const { thinScreen } = useContext(WindowContext);
   return (
     <Box
       sx={{

@@ -61,6 +61,26 @@ LanguageDropdown.prototype.propTypes = {
   selectedLanguage: PropTypes.string.isRequired,
 };
 
+function Translation({ base, parts }) {
+  console.log(base.split(/\$[0-9]+/));
+  return base.split(/\$[0-9]+/).reduce(
+    (prev, current, index) =>
+      index < parts.length ? (
+        <>
+          {prev}
+          {current}
+          {parts[index]}
+        </>
+      ) : (
+        <>
+          {prev}
+          {current}
+        </>
+      ),
+    '',
+  );
+}
+
 export default function TranslationsProvider({ children }) {
   const [lang, setLang] = useState(
     getLocalDataValue('languages', 'currentLang') || config.defaultLanguage,
@@ -79,10 +99,23 @@ export default function TranslationsProvider({ children }) {
         if (!translations?.[msgId]) {
           return msgId;
         }
-
         return sprintf(
           translations[msgId].split(';')[config.pluralFormGetter(lang)(n)],
           msgParts,
+        );
+      },
+      TTags: (msgId, msgParts = [], n = 1) => {
+        if (!translations?.[msgId]) {
+          return msgId;
+        }
+
+        return (
+          <Translation
+            base={
+              translations[msgId].split(';')[config.pluralFormGetter(lang)(n)]
+            }
+            parts={msgParts}
+          />
         );
       },
     }),

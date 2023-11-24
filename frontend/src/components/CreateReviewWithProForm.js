@@ -24,7 +24,6 @@ import {
   useSearchProfessional,
   usePlacesSearch,
   useProfessionsSearch,
-  dropdownResponseMapper as professionsResposneMapper,
 } from 'src/hooks';
 import Icons from 'src/components/Icons';
 import { MultiInput } from 'src/components/MultiItem';
@@ -48,7 +47,7 @@ export function CreateReviewWithPro({
   const { lists, inputFormats, smsPaymentPhone } =
     useContext(InitialDataContext);
 
-  const { T } = useContext(TranslationsContext);
+  const { T, TTags } = useContext(TranslationsContext);
 
   return (
     <Box>
@@ -209,9 +208,9 @@ export function CreateReviewWithPro({
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
         <SuccessMessage
-          message={T(formResult.msg, [
-            formResult.data.smsCode,
-            smsPaymentPhone,
+          message={TTags(formResult.msg, [
+            <strong>{formResult.data.smsCode}</strong>,
+            <strong>{smsPaymentPhone}</strong>,
           ])}
         />
       ) : null}
