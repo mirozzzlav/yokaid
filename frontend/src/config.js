@@ -7,16 +7,16 @@ const mapColumnAlias = 'mapBounds';
 
 const filterElements = [
   {
-    name: 'location',
-    placeholder: 'location',
-    infoPlaceholder: 'anywhere',
-    iconName: 'LocationIcon',
-  },
-  {
     name: 'profession',
     placeholder: 'profession',
     infoPlaceholder: 'any profession',
     iconName: 'WorkerIcon',
+  },
+  {
+    name: 'location',
+    placeholder: 'location',
+    infoPlaceholder: 'anywhere',
+    iconName: 'LocationIcon',
   },
 ];
 

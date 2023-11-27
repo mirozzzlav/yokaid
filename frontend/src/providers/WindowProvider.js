@@ -11,7 +11,6 @@ const thinScreenHeight = 350;
 export const WindowContext = createContext({});
 export default function WindowProvider({ children }) {
   const [isScrolledDown, setIsScrolledDown] = useState(false);
-  const lastHeightRef = useRef(null);
   const [screenHeight, setScreenHeight] = useState(-1);
   const effectExecutedRef = useRef(false);
   const [thinScreen, setThinScreen] = useState(
@@ -39,11 +38,11 @@ export default function WindowProvider({ children }) {
 
     const onWindowResized = () => {
       setThinScreen(window.innerHeight < thinScreenHeight);
-      setScreenHeight(window.innerHeight);
+      setScreenHeight(window.visualViewport.height);
     };
     window.addEventListener('scroll', onWindowScrolled, true);
-    window.addEventListener('resize', onWindowResized);
-  }, [lastHeightRef.current]);
+    window.visualViewport.onresize = onWindowResized;
+  }, []);
 
   return (
     <WindowContext.Provider value={contextVal}>

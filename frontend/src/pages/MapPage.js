@@ -1,12 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  IconButton,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Input, useBreakpointValue } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 import theme from 'src/style';
 
@@ -56,39 +49,35 @@ function useStyle() {
     filterInfo: {
       alignItems: 'center',
       cursor: 'pointer',
-      padding: 0,
-      flexGrow: 1,
+      paddingLeft: theme.space[3],
       border: `1px solid ${theme.colors.gray[200]}`,
       borderRadius: theme.radii.md,
+      flexGrow: 1,
     },
     filterInfoIcon: {
       boxSizing: 'content-box',
-      padding: '0 0.4rem',
+      padding: '0.2rem',
+      margin: '0.3rem 0.3rem 0.3rem 0.3rem',
       border: 'none',
-      background: theme.colors.gray[200],
-      height: '100%',
+      background: 'none',
+      marginLeft: 'auto',
     },
     filterInfoBlock: {
-      borderLeft: `1px solid ${theme.colors.gray[200]}`,
-      padding: '0.4rem',
-      flexGrow: 1,
-      fontSize: '0.8rem',
       flexShrink: 0,
+      borderRight: `1px solid ${theme.colors.gray[200]}`,
+      paddingRight: theme.space[2],
+      marginRight: theme.space[2],
       overflowX: 'hidden',
-    },
-    filterInfoName: {
+      ':last-of-type': {
+        border: 'none',
+        paddingRight: 0,
+      },
       lineHeight: '0.8rem',
-      fontWeight: theme.fontWeights.bold,
-      flexShrink: 0,
-    },
-    filterInfoVal: {
-      lineHeight: '0.8rem',
-      fontWeight: theme.fontWeights.light,
+      color: theme.colors.gray[400],
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
-      width: '120px',
-      flexShrink: 0,
+      maxWidth: '220px',
     },
     mainSearch: {
       flexGrow: 1,
@@ -100,6 +89,16 @@ function useStyle() {
     },
     addReviewBtn: {
       background: '#0b619e',
+    },
+    fakeFocus: {
+      width: 0,
+      height: 0,
+      margin: 0,
+      padding: 0,
+      ':focus': {
+        border: 'none',
+        boxShadow: 'none',
+      },
     },
   };
 
@@ -116,12 +115,6 @@ function useStyle() {
       filterButtons: {
         flexBasis: 'auto',
       },
-      filterInfoBlock: {
-        padding: '0.4rem 1rem 0.4rem 1rem',
-      },
-      filterInfoVal: {
-        width: '160px',
-      },
     },
     lg: {
       filter: { flexDirection: 'row' },
@@ -134,12 +127,6 @@ function useStyle() {
       filterInfo: {
         flexGrow: 0,
       },
-      filterInfoBlock: {
-        padding: '0.4rem 1rem 0.4rem 1rem',
-      },
-      filterInfoVal: {
-        width: '160px',
-      },
       mainSearch: { flexGrow: 0 },
     },
   });
@@ -150,7 +137,6 @@ function useStyle() {
 function FilterInfo({
   filterInputValues: filterInputValuesFromProps,
   onClick,
-  sx,
 }) {
   const { T } = useContext(TranslationsContext);
   const data = useMemo(
@@ -168,11 +154,10 @@ function FilterInfo({
   const style = useStyle();
 
   return (
-    <Flex sx={sx} onClick={onClick}>
+    <Flex sx={style.filterInfo} onClick={onClick}>
       {Object.entries(data).map(([fName, value]) => (
         <Box sx={style.filterInfoBlock} key={fName}>
-          <Text sx={style.filterInfoName}>{T(fName)}</Text>
-          <Text sx={style.filterInfoVal}>{value}</Text>
+          {value}
         </Box>
       ))}
       <Icons.FilterIcon sx={style.filterInfoIcon} />
@@ -268,7 +253,6 @@ export default function MapPage() {
             filterInputValues={filterInputValues}
             onClick={showFilter}
             onOutsideClick={hideFilter}
-            sx={style.filterInfo}
           />
           <SearchDropdown
             searchHook={useSearchProfessional}
@@ -341,6 +325,7 @@ export default function MapPage() {
                   } else {
                     setNextInterval(); // calling professionals by setting next interval
                   }
+                  hideFilter();
                 }}
                 sx={style.filterBtn}
                 isDisabled={!isFilterChanged}
@@ -360,6 +345,7 @@ export default function MapPage() {
                   } else {
                     setNextInterval(); // calling professionals by setting next interval
                   }
+                  hideFilter();
                 }}
               >
                 {T('reset filter')}
@@ -395,6 +381,7 @@ export default function MapPage() {
         title={T('professional info')}
         onScrolledDown={nextPage}
       >
+        <Box tabIndex={0} sx={style.fakeFocus} />
         <ProfessionalInfo
           data={professionalDetail || null}
           showRating

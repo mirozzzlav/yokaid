@@ -22,43 +22,14 @@ export default function Modal({
   children,
   onScrolledDown,
 }) {
-  const bodyRef = useRef();
-  const { isScrolledDown, screenHeight } = useContext(WindowContext);
+  const { isScrolledDown } = useContext(WindowContext);
   const { T } = useContext(TranslationsContext);
-  const controlElmRef = useRef(null);
 
   useEffect(() => {
     if (isScrolledDown && isShown) {
       onScrolledDown();
     }
   }, [isScrolledDown]);
-
-  useEffect(() => {
-    if (!controlElmRef.current) {
-      return;
-    }
-    controlElmRef.current.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-      inline: 'nearest',
-    });
-  }, [screenHeight]);
-
-  useEffect(() => {
-    const inputFocusListener = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        controlElmRef.current = e.target.closest('.chakra-form-control');
-        return;
-      }
-      controlElmRef.current = null;
-    };
-    if (bodyRef.current) {
-      bodyRef.current.addEventListener('focus', inputFocusListener, true);
-    }
-    return () =>
-      bodyRef.current &&
-      bodyRef.current.removeEventListener('focus', inputFocusListener);
-  }, [bodyRef.current]);
 
   useEffect(() => {
     if (isShown) {
@@ -69,11 +40,9 @@ export default function Modal({
   return (
     <ModalChakra isOpen={isShown} onClose={close}>
       <ModalOverlay />
-      <ModalContent sx={style.modalContent}>
+      <ModalContent>
         <ModalHeader>{title}</ModalHeader>
-        <ModalBody sx={style.modalBody} ref={bodyRef}>
-          {children}
-        </ModalBody>
+        <ModalBody>{children}</ModalBody>
         <ModalFooter>
           {submitButton && (
             <Button

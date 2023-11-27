@@ -93,7 +93,7 @@ export function CreateReviewWithPro({
             inputVal={getInput('location')}
             inputValSetter={(v) => updateInput('location', v)}
             searchHook={usePlacesSearch}
-            onValueSet={({ value: [lat, lng], label }) => {
+            onValueSet={({ extraData: [lat, lng], label }) => {
               updateInput('locationLat', parseFloat(lat));
               updateInput('locationLng', parseFloat(lng));
               updateInput('location', label);
