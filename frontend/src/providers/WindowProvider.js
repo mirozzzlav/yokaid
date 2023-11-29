@@ -14,8 +14,9 @@ export default function WindowProvider({ children }) {
   const [screenHeight, setScreenHeight] = useState(-1);
   const effectExecutedRef = useRef(false);
   const [thinScreen, setThinScreen] = useState(
-    window.innerHeight < thinScreenHeight,
+    window.visualViewport.height < thinScreenHeight,
   );
+
   const contextVal = useMemo(
     () => ({
       isScrolledDown,
@@ -37,7 +38,7 @@ export default function WindowProvider({ children }) {
     };
 
     const onWindowResized = () => {
-      setThinScreen(window.innerHeight < thinScreenHeight);
+      setThinScreen(window.visualViewport.height < thinScreenHeight);
       setScreenHeight(window.visualViewport.height);
     };
     window.addEventListener('scroll', onWindowScrolled, true);

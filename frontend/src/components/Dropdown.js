@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -37,7 +36,7 @@ const style = {
     overflowX: 'hidden',
     overflowY: 'auto',
     ...(!isShown ? { display: 'none' } : null),
-    ...(thinScreen ? { maxHeight: '150px' } : null),
+    ...(thinScreen ? { maxHeight: '160px' } : null),
     boxShadow: theme.shadows.base,
   }),
   closeList: {
@@ -87,9 +86,11 @@ function DropdownList({
   isShown,
   position,
   width,
-  isCloseableByButton,
 }) {
   const { thinScreen } = useContext(WindowContext);
+  if (items.length === 0) {
+    return null;
+  }
   return (
     <Box
       sx={{
@@ -97,51 +98,36 @@ function DropdownList({
         ...theme.styles.global.contextMenuLikeChild(position, width),
       }}
     >
-      {isCloseableByButton && (
-        <IconButton
-          size="xs"
-          sx={style.closeList}
-          onClick={() => {
-            setIsShown(false);
-          }}
-          aria-label="close dropdown"
-          icon={<SmallCloseIcon />}
-        />
-      )}
-      {items.length === 0 ? (
-        <Box sx={style.noResults}>no results</Box>
-      ) : (
-        <Box>
-          {items.map(({ label, value, ...restItem }, i) => (
-            <Box
-              sx={style.listElem}
-              onBlur={() => i === items.length - 1 && setIsShown(false)}
-              variant="ghost"
-              key={`${label}${
-                typeof value === 'object' ? JSON.stringify(value) : value
-              }`}
-              onClick={() => {
-                if (restItem.onClick) {
-                  restItem.onClick({
-                    label,
-                    value,
-                    ...restItem,
-                  });
-                } else if (onItemClick) {
-                  onItemClick({
-                    label,
-                    value,
-                    ...restItem,
-                  });
-                }
-                setIsShown(false);
-              }}
-            >
-              <Box>{restItem.content || `${label}`}</Box>
-            </Box>
-          ))}
-        </Box>
-      )}
+      <Box>
+        {items.map(({ label, value, ...restItem }, i) => (
+          <Box
+            sx={style.listElem}
+            onBlur={() => i === items.length - 1 && setIsShown(false)}
+            variant="ghost"
+            key={`${label}${
+              typeof value === 'object' ? JSON.stringify(value) : value
+            }`}
+            onClick={() => {
+              if (restItem.onClick) {
+                restItem.onClick({
+                  label,
+                  value,
+                  ...restItem,
+                });
+              } else if (onItemClick) {
+                onItemClick({
+                  label,
+                  value,
+                  ...restItem,
+                });
+              }
+              setIsShown(false);
+            }}
+          >
+            <Box>{restItem.content || `${label}`}</Box>
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 }
@@ -173,7 +159,6 @@ DropdownList.propTypes = {
   position: PropTypes.string.isRequired,
   isShown: PropTypes.bool.isRequired,
   width: PropTypes.string.isRequired,
-  isCloseableByButton: PropTypes.bool.isRequired,
 };
 
 function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
@@ -202,7 +187,6 @@ function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
         position={position}
         isShown={isShown}
         width={width}
-        isCloseableByButton={false}
       />
     </Box>
   );
@@ -253,7 +237,6 @@ function SearchDropdown({
   showCloseIcon,
   dropdownWidth,
   sx,
-  isCloseableByButton,
 }) {
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
@@ -270,7 +253,7 @@ function SearchDropdown({
 
   useOutsideClick({
     ref: wrapperRef,
-    handler: () => !isCloseableByButton && setIsShown(false),
+    handler: () => setIsShown(false),
   });
 
   const searchCall = searchHook((results) => {
@@ -339,6 +322,7 @@ function SearchDropdown({
           onClick={() => {
             inputValSetter('');
             onValueEmpty();
+            setIsShown(false);
           }}
         />
       );
@@ -381,7 +365,6 @@ function SearchDropdown({
         isShown={isShown}
         position={position}
         width={dropdownWidth}
-        isCloseableByButton={isCloseableByButton}
       />
     </Box>
   );
@@ -400,7 +383,6 @@ SearchDropdown.defaultProps = {
   dropdownWidth: '300px',
   onValueEmpty: () => {},
   sx: null,
-  isCloseableByButton: false,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -420,7 +402,6 @@ SearchDropdown.propTypes = {
   showCloseIcon: PropTypes.bool,
   dropdownWidth: PropTypes.string,
   sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
-  isCloseableByButton: PropTypes.bool,
 };
 
 export { Dropdown, SearchDropdown };

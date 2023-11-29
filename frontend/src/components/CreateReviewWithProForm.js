@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   InitialDataContext,
   TagTranslation,
@@ -12,6 +12,7 @@ import {
   FormLabel,
   Input,
   InputGroup,
+  useOutsideClick,
 } from '@chakra-ui/react';
 import {
   ErrorMessage,
@@ -36,6 +37,100 @@ import PropTypes from 'prop-types';
 import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
+import theme from 'src/style';
+
+const style = {
+  header: {
+    display: 'flex',
+  },
+  close: {
+    margin: `${theme.space[1]} 0 ${theme.space[1]} auto`,
+  },
+  container: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    background: theme.colors.blackAlpha[800],
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: `${theme.space[8]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
+  },
+  content: {
+    width: '90vw',
+    maxWidth: '300px',
+    input: {
+      borderColor: 'inherit !important',
+      boxShadow: 'none !important',
+    },
+  },
+};
+function FixedPositionControl({ children, footer, inputVal, forceClose }) {
+  const [isShown, setIsShown] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    if (forceClose) {
+      setIsShown(false);
+    }
+  }, [forceClose]);
+
+  if (!isTouchDevice()) {
+    return (
+      <>
+        {children}
+        {footer}
+      </>
+    );
+  }
+  if (!isShown) {
+    return (
+      <>
+        <Input
+          variant="outline"
+          onClick={() => setIsShown(true)}
+          value={inputVal}
+          onChange={() => {}}
+        />
+        {footer}
+      </>
+    );
+  }
+
+  return (
+    <Box
+      sx={style.container}
+      tabIndex={0}
+      onClick={(e) => {
+        if (e.target === ref.current) {
+          setIsShown(false);
+        }
+      }}
+      ref={ref}
+    >
+      <Box sx={style.content}>
+        {children}
+        {footer}
+      </Box>
+    </Box>
+  );
+}
+
+FixedPositionControl.defaultProps = {
+  footer: null,
+  inputVal: '',
+  forceClose: false,
+};
+
+FixedPositionControl.prototype.propTypes = {
+  children: PropTypes.node.isRequired,
+  footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
+  inputVal: PropTypes.string,
+  forceClose: PropTypes.bool,
+};
 
 export function CreateReviewWithPro({
   formResult,
@@ -71,16 +166,17 @@ export function CreateReviewWithPro({
             searchHook={useSearchProfessional}
             inputVal={getInput('fullName')}
             inputValSetter={(v) => updateInput('fullName', v)}
-            onValueSet={({ value }) =>
-              onProfessionalFound && onProfessionalFound(value)
-            }
+            onValueSet={({ value }) => {
+              if (onProfessionalFound) {
+                onProfessionalFound(value);
+              }
+            }}
             onValueEmpty={() => {
               updateInput('fullName', '');
             }}
             position="left"
             dropdownWidth="100%"
             placeholder={T(inputFormats?.fullName)}
-            isCloseableByButton={isTouchDevice()}
           />
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
@@ -94,25 +190,29 @@ export function CreateReviewWithPro({
           isRequired={isFieldRequired(validationRules?.location)}
         >
           <FormLabel>{T('location')}</FormLabel>
-          <SearchDropdown
+          <FixedPositionControl
             inputVal={getInput('location')}
-            inputValSetter={(v) => updateInput('location', v)}
-            searchHook={usePlacesSearch}
-            onValueSet={({ extraData: [lat, lng], label }) => {
-              updateInput('locationLat', parseFloat(lat));
-              updateInput('locationLng', parseFloat(lng));
-              updateInput('location', label);
-            }}
-            onValueEmpty={() => {
-              updateInput('locationLat', '');
-              updateInput('locationLng', '');
-              updateInput('location', '');
-            }}
-            position="left"
-            dropdownWidth="100%"
-            icon={<Icons.LocationIcon />}
-            isCloseableByButton={isTouchDevice()}
-          />
+            forceClose={!!getInput('locationLat')}
+          >
+            <SearchDropdown
+              inputVal={getInput('location')}
+              inputValSetter={(v) => updateInput('location', v)}
+              searchHook={usePlacesSearch}
+              onValueSet={({ extraData: [lat, lng], label }) => {
+                updateInput('locationLat', parseFloat(lat));
+                updateInput('locationLng', parseFloat(lng));
+                updateInput('location', label);
+              }}
+              onValueEmpty={() => {
+                updateInput('locationLat', '');
+                updateInput('locationLng', '');
+                updateInput('location', '');
+              }}
+              position="left"
+              dropdownWidth="100%"
+              icon={<Icons.LocationIcon />}
+            />
+          </FixedPositionControl>
           <FormErrorMessage>
             {inputsErrors?.location ||
               inputsErrors?.locationLat ||
@@ -169,36 +269,40 @@ export function CreateReviewWithPro({
           isRequired={isFieldRequired(validationRules?.professions)}
         >
           <FormLabel>{T('profession', [], 2)}</FormLabel>
-          <SearchDropdown
-            inputVal={searchedProfession}
-            inputValSetter={(v) => setSearchedProfession(v)}
-            initialItems={lists?.profession || null}
-            searchHook={useProfessionsSearch}
-            onValueSet={({ value }) => {
-              if (updateInput('professions', value.id, true)) {
-                setProfessionTitles((prevTitles) =>
-                  prevTitles ? [...prevTitles, value.title] : [value.title],
-                );
-              }
-            }}
-            setInputValOnValSet={false}
-            showCloseIcon={false}
-            position="left"
-            dropdownWidth="100%"
-            icon={<Icons.WorkerIcon />}
-            isCloseableByButton={isTouchDevice()}
-          />
-          <MultiInput
-            values={getInput('professions', true)}
-            labels={professionTitles}
-            onItemRemove={(professions, titles) => {
-              updateInput(
-                'professions',
-                professions ? professions.join(',') : '',
-              );
-              setProfessionTitles(titles || null);
-            }}
-          />
+          <FixedPositionControl
+            footer={
+              <MultiInput
+                values={getInput('professions', true)}
+                labels={professionTitles}
+                onItemRemove={(professions, titles) => {
+                  updateInput(
+                    'professions',
+                    professions ? professions.join(',') : '',
+                  );
+                  setProfessionTitles(titles || null);
+                }}
+              />
+            }
+          >
+            <SearchDropdown
+              inputVal={searchedProfession}
+              inputValSetter={(v) => setSearchedProfession(v)}
+              initialItems={lists?.profession || null}
+              searchHook={useProfessionsSearch}
+              onValueSet={({ value }) => {
+                if (updateInput('professions', value.id, true)) {
+                  setProfessionTitles((prevTitles) =>
+                    prevTitles ? [...prevTitles, value.title] : [value.title],
+                  );
+                }
+              }}
+              setInputValOnValSet={false}
+              showCloseIcon={false}
+              position="left"
+              dropdownWidth="100%"
+              icon={<Icons.WorkerIcon />}
+            />
+          </FixedPositionControl>
           <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
         </FormControl>
       </FormGroup>
