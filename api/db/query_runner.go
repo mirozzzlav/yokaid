@@ -137,9 +137,9 @@ func (qr *queryRunner) GetScalar(q common.Query) (any, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, common.ErrNoRows
+			return nil, common.ErrNoRows
 		}
-		return 0, err
+		return nil, err
 	}
 
 	return scalar, nil

@@ -61,15 +61,17 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 		}
 
+		server.GetQueryRunner(ctx).Begin()
 		userId, _ := ctx.Params.Get("userId")
 
-		dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userId, "1")
-		server.GetQueryRunner(ctx).Begin()
-		_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
-		if err == common.ErrNoRows {
-			userId = ""
-		} else {
-			common.CheckErrAndPanic(err)
+		if common.Config.PayContact {
+			dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userId, "1")
+			_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
+			if err == common.ErrNoRows {
+				userId = ""
+			} else {
+				common.CheckErrAndPanic(err)
+			}
 		}
 
 		reviewsPage := 1

@@ -2,6 +2,7 @@ package reviews
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"some-app/api/common"
 )
 
@@ -19,6 +20,22 @@ func create(server common.Server) gin.HandlerFunc {
 			paymentState = common.PaymentStates.Paid
 		}
 
+		if common.Config.PayReview {
+			q := server.GetQueriesRepo().CheckPaymentExist(req.UserId, "rev")
+			_, err := server.GetQueryRunner(ctx).GetScalar(q)
+			if err != common.ErrNoRows {
+				common.CheckErrAndPanic(err)
+			}
+			if err == nil {
+				panic(
+					common.HttpResponse{
+						Code: http.StatusBadRequest,
+						Msg:  "review form user already reviewed pro",
+					},
+				)
+			}
+		}
+
 		q := server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
 		paymentIdAny, err := server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
@@ -28,18 +45,6 @@ func create(server common.Server) gin.HandlerFunc {
 		_, err = server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
 
-		if !common.Config.PayContact {
-			_, err = server.GetStoreHelpers(ctx).CreateProfessionalContactWithPayment(
-				common.CreateUserProfessionalContactRequest{
-					ProfessionalId: req.ProfessionalId,
-					UserIdRequest: common.UserIdRequest{
-						UserId: req.UserId,
-					},
-				}, common.PaymentStates.Paid)
-			if err != common.ErrRecordExist {
-				common.CheckErrAndPanic(err)
-			}
-		}
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
 

@@ -36,6 +36,7 @@ type QueriesRepo interface {
 	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial, lang string) Query
 	CreatePaymentQuery(id string, userId string, productId string, paymentState string) Query
+	CheckPaymentExist(userId string, productId string) Query
 	GetProfessionalContactQuery(professionalId int, userId string, columns ...string) Query
 	CreateProfessionalContactQuery(paymentId string, req CreateUserProfessionalContactRequest) Query
 	MakePaymentQuery(code string) Query

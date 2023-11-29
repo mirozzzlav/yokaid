@@ -105,12 +105,16 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsP
 	contactObj := ""
 	contactQuery := ""
 	var params []any = []any{lang}
-	if userId != "" {
+	if common.Config.PayContact && userId != "" {
 		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
 		contactQuery = fmt.Sprintf(`JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
 						JOIN payments ON user_professional_contacts.id = payments.id 
 						AND payments.user_id = ? AND payments.product_id='con' AND payments.state='%s'`, common.PaymentStates.Paid)
 		params = append(params, userId)
+	}
+
+	if !common.Config.PayContact {
+		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
 	}
 
 	query := fmt.Sprintf(`SELECT 
@@ -284,6 +288,20 @@ func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId str
 		},
 	}
 	return q
+}
+
+func (qr QueriesRepo) CheckPaymentExist(userId string, productId string) common.Query {
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query: fmt.Sprintf(
+					"SELECT id FROM payments WHERE user_id = ? AND product_id = ? AND state = '%s'",
+					common.PaymentStates.Paid,
+				),
+				Params: []any{userId, productId},
+			},
+		},
+	}
 }
 
 func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId string, columns ...string) common.Query {

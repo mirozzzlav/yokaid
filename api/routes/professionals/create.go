@@ -27,7 +27,7 @@ func create(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		paymentId, _ := paymentIdAny.(string)
 
-		professionalId, err := server.GetStoreHelpers(ctx).CreateReviewAndProfessional(paymentId, req)
+		_, err = server.GetStoreHelpers(ctx).CreateReviewAndProfessional(paymentId, req)
 		if err == common.ErrRecordExist {
 			panic(
 				common.HttpResponse{
@@ -38,17 +38,6 @@ func create(server common.Server) gin.HandlerFunc {
 		}
 		common.CheckErrAndPanic(err)
 
-		if !common.Config.PayContact {
-			_, err = server.GetStoreHelpers(ctx).CreateProfessionalContactWithPayment(
-				common.CreateUserProfessionalContactRequest{
-					ProfessionalId: professionalId,
-					UserIdRequest: common.UserIdRequest{
-						UserId: req.UserId,
-					},
-				}, common.PaymentStates.Paid)
-			common.CheckErrAndPanic(err)
-
-		}
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
 
