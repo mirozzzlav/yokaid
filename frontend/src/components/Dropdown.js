@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -39,6 +40,12 @@ const style = {
     ...(thinScreen ? { maxHeight: '150px' } : null),
     boxShadow: theme.shadows.base,
   }),
+  closeList: {
+    position: 'absolute',
+    right: '4px',
+    top: '8px',
+    padding: '4px',
+  },
   noResults: {
     ...listElemStyle,
     display: 'flex',
@@ -48,9 +55,6 @@ const style = {
   listElem: {
     ...listElemStyle,
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
     display: 'block',
     fontWeight: theme.fontWeights.normal,
     ':hover': {
@@ -63,6 +67,9 @@ const style = {
     '> *': {
       padding: '0.5rem 0',
       margin: '0 1rem',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
     },
     ':last-child > *': {
       border: 'none',
@@ -80,6 +87,7 @@ function DropdownList({
   isShown,
   position,
   width,
+  isCloseableByButton,
 }) {
   const { thinScreen } = useContext(WindowContext);
   return (
@@ -89,6 +97,17 @@ function DropdownList({
         ...theme.styles.global.contextMenuLikeChild(position, width),
       }}
     >
+      {isCloseableByButton && (
+        <IconButton
+          size="xs"
+          sx={style.closeList}
+          onClick={() => {
+            setIsShown(false);
+          }}
+          aria-label="close dropdown"
+          icon={<SmallCloseIcon />}
+        />
+      )}
       {items.length === 0 ? (
         <Box sx={style.noResults}>no results</Box>
       ) : (
@@ -154,6 +173,7 @@ DropdownList.propTypes = {
   position: PropTypes.string.isRequired,
   isShown: PropTypes.bool.isRequired,
   width: PropTypes.string.isRequired,
+  isCloseableByButton: PropTypes.bool.isRequired,
 };
 
 function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
@@ -182,6 +202,7 @@ function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
         position={position}
         isShown={isShown}
         width={width}
+        isCloseableByButton={false}
       />
     </Box>
   );
@@ -232,6 +253,7 @@ function SearchDropdown({
   showCloseIcon,
   dropdownWidth,
   sx,
+  isCloseableByButton,
 }) {
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
@@ -248,7 +270,7 @@ function SearchDropdown({
 
   useOutsideClick({
     ref: wrapperRef,
-    handler: () => setIsShown(false),
+    handler: () => !isCloseableByButton && setIsShown(false),
   });
 
   const searchCall = searchHook((results) => {
@@ -359,6 +381,7 @@ function SearchDropdown({
         isShown={isShown}
         position={position}
         width={dropdownWidth}
+        isCloseableByButton={isCloseableByButton}
       />
     </Box>
   );
@@ -377,6 +400,7 @@ SearchDropdown.defaultProps = {
   dropdownWidth: '300px',
   onValueEmpty: () => {},
   sx: null,
+  isCloseableByButton: false,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -396,6 +420,7 @@ SearchDropdown.propTypes = {
   showCloseIcon: PropTypes.bool,
   dropdownWidth: PropTypes.string,
   sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
+  isCloseableByButton: PropTypes.bool,
 };
 
 export { Dropdown, SearchDropdown };

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   InitialDataContext,
   TagTranslation,
@@ -19,7 +19,11 @@ import {
   SuccessMessage,
 } from 'src/components/Messages';
 import FormGroup from 'src/components/FormGroup';
-import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
+import {
+  isFieldRequired,
+  isTouchDevice,
+  unknownObjectValidator,
+} from 'src/helpers';
 import { SearchDropdown } from 'src/components/Dropdown';
 import {
   useSearchProfessional,
@@ -76,6 +80,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             placeholder={T(inputFormats?.fullName)}
+            isCloseableByButton={isTouchDevice()}
           />
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
@@ -106,6 +111,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.LocationIcon />}
+            isCloseableByButton={isTouchDevice()}
           />
           <FormErrorMessage>
             {inputsErrors?.location ||
@@ -180,6 +186,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.WorkerIcon />}
+            isCloseableByButton={isTouchDevice()}
           />
           <MultiInput
             values={getInput('professions', true)}

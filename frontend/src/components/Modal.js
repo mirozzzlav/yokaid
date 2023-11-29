@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal as ModalChakra,
@@ -12,7 +12,6 @@ import {
 import { buttonPropType } from 'src/constants';
 import { TranslationsContext, WindowContext } from 'src/providers';
 
-const style = {};
 export default function Modal({
   isShown,
   onShow,

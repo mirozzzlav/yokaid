@@ -97,6 +97,13 @@ function sprintf(string, textParts) {
     string,
   );
 }
+function isTouchDevice() {
+  return (
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
+}
 
 export {
   unknownObjectValidator,
@@ -111,4 +118,5 @@ export {
   getLocalDataValue,
   getHexSHA256,
   sprintf,
+  isTouchDevice,
 };
