@@ -24,7 +24,7 @@ const style = {
     },
   },
   reviewContent: (isShown, contentTooBig) => ({
-    maxHeight: !isShown ? '150px' : '10000px',
+    maxHeight: !isShown ? '160px' : '10000px',
     overflowY: 'hidden',
     position: 'relative',
     ':after': {
@@ -88,7 +88,6 @@ export function Review({ review: { id, text, images } }) {
   const reviewRef = useRef();
   const [contentTooBig, setContentTooBig] = useState(false);
   const [reviewFullyShown, setReviewFullyShown] = useState(false);
-
   const { showImage, initGallery } = useContext(GalleryContext);
 
   useEffect(() => {
