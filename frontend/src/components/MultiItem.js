@@ -77,6 +77,7 @@ export function MultiInput({ labels, values, onItemRemove, padding }) {
           <Box sx={style.label}>{labels[i]}</Box>
           {onItemRemove && (
             <IconButton
+              tabIndex={-1}
               sx={style.iconBtn}
               variant="link"
               onClick={() => onItemRemove(...removeItem(v))}

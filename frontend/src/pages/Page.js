@@ -9,13 +9,13 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import { FormModals } from 'src/components';
+import { FormModals, LanguageDropdown } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { useNavigateAction } from 'src/hooks';
 import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
-import { TranslationsContext, LanguageDropdown } from 'src/providers';
+import { TranslationsContext } from 'src/providers';
 import config from 'src/config';
 
 const loaderAnim = keyframes(`

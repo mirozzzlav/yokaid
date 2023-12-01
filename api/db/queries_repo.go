@@ -23,125 +23,42 @@ type dbQuery struct {
 }
 
 func (q dbQuery) GetQuery() (string, []any) {
-
 	var params []any
 	var qStrings []string
 	for _, partial := range q.partials {
 		qStrings = append(qStrings, partial.Query)
 		params = append(params, partial.Params...)
 	}
-	//for i, param := range params {
-	//	paramStr := param.(string)
-	//
-	//	if common.IsFloat(paramStr) {
-	//		params[i], _ = strconv.ParseFloat(paramStr, 64)
-	//		continue
-	//	}
-	//	if common.IsNumeric(paramStr) {
-	//		params[i], _ = common.ConvertToInt(paramStr)
-	//	}
-	//}
 
 	return prepareQueryString(strings.Join(qStrings, " ")), params
 }
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsPage int, userId string, lang string, limit int) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang string, limit int) common.Query {
 
-	reviewsColumns := `,reviews_view.reviews, reviews_stats_view.rating, reviews_stats_view.reviews_count `
-	reviewsQuery := fmt.Sprintf(`JOIN (
-		SELECT 
-			professional_id,
-			JSON_AGG(
-				JSON_BUILD_OBJECT(
-				  'id', id, 'text', text, 'rating', rating, 
-				  'images', images
-				)
-			) AS reviews 
-		FROM (
-			SELECT reviews.id, professional_id, reviews.text, reviews.rating, review_images_view.images
-			FROM 
-			  reviews
-			  JOIN payments ON reviews.id = payments.id
-			  LEFT JOIN (
-				SELECT 
-				  review_id, 
-				  JSON_AGG(images.path) AS images 
-				FROM 
-				  review_images 
-				  JOIN images ON review_images.image_id = images.id 
-				GROUP BY 
-				  review_images.review_id
-			  ) AS review_images_view ON reviews.id = review_images_view.review_id 
-			WHERE payments.state='%s' 
-			ORDER BY reviews.created_at DESC
-			LIMIT %d 
-		) AS reviews_ordered
-		GROUP BY professional_id
-	) AS reviews_view ON professionals.id = reviews_view.professional_id
-	JOIN (
-	  SELECT COUNT(reviews.id) AS reviews_count, ROUND(AVG(reviews.rating)) AS rating, reviews.professional_id 
-	  FROM reviews JOIN payments ON reviews.id = payments.id
-	  WHERE payments.state='%s'
-	  GROUP BY reviews.professional_id
-	) AS reviews_stats_view
-	ON professionals.id = reviews_stats_view.professional_id`,
-		common.PaymentStates.Paid, common.Config.ReviewsPerPage*reviewsPage, common.PaymentStates.Paid)
-
-	if reviewsPage < 1 {
-		reviewsQuery = fmt.Sprintf(
-			`JOIN (
-			  SELECT reviews.professional_id 
-			  FROM reviews JOIN payments ON reviews.id = payments.id
-			  WHERE payments.state='%s'
-			  GROUP BY reviews.professional_id
-			) AS reviews_stats_view
-			ON professionals.id = reviews_stats_view.professional_id`,
-			common.PaymentStates.Paid,
-		)
-		reviewsColumns = ""
-	}
-	contactObj := ""
-	contactQuery := ""
-	var params []any = []any{lang}
-	if common.Config.PayContact && userId != "" {
-		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
-		contactQuery = fmt.Sprintf(`JOIN user_professional_contacts ON professionals.id = user_professional_contacts.professional_id 
-						JOIN payments ON user_professional_contacts.id = payments.id 
-						AND payments.user_id = ? AND payments.product_id='con' AND payments.state='%s'`, common.PaymentStates.Paid)
-		params = append(params, userId)
-	}
-
-	if !common.Config.PayContact {
-		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
-	}
-
-	query := fmt.Sprintf(`SELECT 
+	query := `SELECT 
 	  professionals.id, 
 	  professionals.full_name,
-	  %s
 	  professionals.business_id, 
 	  professionals.location, 
 	  professionals.location_lat, 
 	  professionals.location_lng,
 	  professions_view.professions 
-	  %s
 	FROM 
-	  professionals
-	  JOIN (
-	      SELECT JSON_AGG(
+	  professionals JOIN (
+		  SELECT JSON_AGG(
 			JSON_BUILD_OBJECT(
 			  'id', professions.id, 'title', title->>?
 			)
-	  	  ) AS professions, professional_professions.professional_id 
-	      FROM
-	        professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
-	      GROUP BY
-	        professional_professions.professional_id
-	  ) AS professions_view ON professions_view.professional_id = professionals.id %s %s `,
-		contactObj, reviewsColumns, reviewsQuery, contactQuery,
-	)
+		  ) AS professions, professional_professions.professional_id 
+		  FROM
+			professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
+		  GROUP BY
+			professional_professions.professional_id
+	  ) AS professions_view ON professions_view.professional_id = professionals.id`
+
+	params := []any{lang}
 
 	if filter.Query != "" {
 		return dbQuery{
@@ -170,6 +87,88 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, reviewsP
 	}
 
 }
+func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int, userId string, lang string) common.Query {
+
+	contactObj := "NULL AS contact, "
+	var params []any = []any{lang, professionalId, professionalId, professionalId}
+
+	if userId != "" || !common.Config.PayContact {
+		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
+	}
+
+	query := fmt.Sprintf(`SELECT 
+	  professionals.id, 
+	  professionals.full_name,
+	  %s
+	  professionals.business_id, 
+	  professionals.location, 
+	  professionals.location_lat, 
+	  professionals.location_lng,
+	  professions_view.professions,
+	  reviews_view.reviews,
+      reviews_stats_view.rating, 
+      reviews_stats_view.reviews_count
+	FROM professionals
+	JOIN (
+	 SELECT 
+		professional_professions.professional_id,
+		JSON_AGG(JSON_BUILD_OBJECT('id', professions.id, 'title', title->>?)) AS professions
+	 FROM 
+		professional_professions JOIN professions ON professional_professions.profession_id = professions.id
+	 GROUP BY 
+		professional_professions.professional_id
+	) AS professions_view ON professions_view.professional_id = professionals.id
+	JOIN (
+		SELECT 
+			professional_id,
+			JSON_AGG(
+				JSON_BUILD_OBJECT(
+				  'id', id, 'text', text, 'rating', rating, 
+				  'images', images
+				)
+			) AS reviews 
+		FROM (
+			SELECT reviews.id, professional_id, reviews.text, reviews.rating, review_images_view.images
+			FROM 
+			  reviews
+			  JOIN payments ON reviews.id = payments.id
+			  LEFT JOIN (
+				SELECT 
+				  review_id, 
+				  JSON_AGG(images.path) AS images 
+				FROM 
+				  review_images 
+				  JOIN images ON review_images.image_id = images.id 
+				GROUP BY 
+				  review_images.review_id
+			  ) AS review_images_view ON reviews.id = review_images_view.review_id 
+			WHERE payments.state='%s' AND professional_id = ?
+			ORDER BY reviews.created_at DESC
+	    	LIMIT %d 
+		) AS reviews_ordered GROUP BY reviews_ordered.professional_id
+	) AS reviews_view ON professionals.id = reviews_view.professional_id
+	JOIN (
+	  SELECT COUNT(reviews.id) AS reviews_count, ROUND(AVG(reviews.rating)) AS rating, reviews.professional_id 
+	  FROM reviews JOIN payments ON reviews.id = payments.id
+	  WHERE payments.state='%s' AND reviews.professional_id = ?
+	  GROUP BY reviews.professional_id
+	) AS reviews_stats_view 
+	ON professionals.id = reviews_stats_view.professional_id
+	WHERE professionals.id =?`,
+		contactObj, common.PaymentStates.Paid, common.Config.ReviewsPerPage*reviewsPage, common.PaymentStates.Paid,
+	)
+
+	return dbQuery{
+		partials: []common.QueryPartial{
+			{
+				Query:  query,
+				Params: params,
+			},
+		},
+	}
+
+}
+
 func (qr QueriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) common.Query {
 	q := "SELECT count(id) FROM professionals WHERE "
 	return dbQuery{

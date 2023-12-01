@@ -11,6 +11,7 @@ const filterElements = [
     placeholder: 'profession',
     infoPlaceholder: 'any profession',
     iconName: 'WorkerIcon',
+    valueMapper: ({ id }) => id,
   },
   {
     name: 'location',

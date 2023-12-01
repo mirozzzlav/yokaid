@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Flex, Input, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Button, Flex, useBreakpointValue } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 import theme from 'src/style';
 
@@ -53,6 +53,7 @@ function useStyle() {
       border: `1px solid ${theme.colors.gray[200]}`,
       borderRadius: theme.radii.md,
       flexGrow: 1,
+      overflowX: 'hidden',
     },
     filterInfoIcon: {
       boxSizing: 'content-box',
@@ -89,16 +90,6 @@ function useStyle() {
     },
     addReviewBtn: {
       background: '#0b619e',
-    },
-    fakeFocus: {
-      width: 0,
-      height: 0,
-      margin: 0,
-      padding: 0,
-      ':focus': {
-        border: 'none',
-        boxShadow: 'none',
-      },
     },
   };
 
@@ -165,14 +156,11 @@ function FilterInfo({
   );
 }
 
-FilterInfo.defaultProps = {
-  sx: null,
-};
+FilterInfo.defaultProps = {};
 
 FilterInfo.prototype.propTypes = {
   filterInputValues: unknownObjectValidator.isRequired,
   onClick: PropTypes.func.isRequired,
-  sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
 };
 
 export default function MapPage() {
@@ -271,7 +259,7 @@ export default function MapPage() {
         isFilterShown ? (
           <Flex sx={style.filter}>
             {config.filter.elements.map(
-              ({ name: filterName, iconName, placeholder }) => {
+              ({ name: filterName, iconName, placeholder, valueMapper }) => {
                 const useFilterItems = filterItemsHookCreator(filterName);
                 const setInputVal = getFilterInputValSetter(filterName);
                 return (
@@ -282,7 +270,7 @@ export default function MapPage() {
                     onValueSet={({ value, extraData }) => {
                       updateFilter({
                         [filterName]: {
-                          value,
+                          value: valueMapper ? valueMapper(value) : value,
                           extraData,
                           ...(config.APIColumnAliases[filterName]
                             ? {
@@ -381,7 +369,6 @@ export default function MapPage() {
         title={T('professional info')}
         onScrolledDown={nextPage}
       >
-        <Box tabIndex={0} sx={style.fakeFocus} />
         <ProfessionalInfo
           data={professionalDetail || null}
           showRating

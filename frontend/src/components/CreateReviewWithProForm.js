@@ -38,6 +38,7 @@ import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import theme from 'src/style';
+import Overlay from 'src/components/Overlay';
 
 const style = {
   header: {
@@ -67,69 +68,6 @@ const style = {
       boxShadow: 'none !important',
     },
   },
-};
-function FixedPositionControl({ children, footer, inputVal, forceClose }) {
-  const [isShown, setIsShown] = useState(false);
-  const ref = useRef();
-
-  useEffect(() => {
-    if (forceClose) {
-      setIsShown(false);
-    }
-  }, [forceClose]);
-
-  if (!isTouchDevice()) {
-    return (
-      <>
-        {children}
-        {footer}
-      </>
-    );
-  }
-  if (!isShown) {
-    return (
-      <>
-        <Input
-          variant="outline"
-          onClick={() => setIsShown(true)}
-          value={inputVal}
-          onChange={() => {}}
-        />
-        {footer}
-      </>
-    );
-  }
-
-  return (
-    <Box
-      sx={style.container}
-      tabIndex={0}
-      onClick={(e) => {
-        if (e.target === ref.current) {
-          setIsShown(false);
-        }
-      }}
-      ref={ref}
-    >
-      <Box sx={style.content}>
-        {children}
-        {footer}
-      </Box>
-    </Box>
-  );
-}
-
-FixedPositionControl.defaultProps = {
-  footer: null,
-  inputVal: '',
-  forceClose: false,
-};
-
-FixedPositionControl.prototype.propTypes = {
-  children: PropTypes.node.isRequired,
-  footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
-  inputVal: PropTypes.string,
-  forceClose: PropTypes.bool,
 };
 
 export function CreateReviewWithPro({
@@ -177,6 +115,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             placeholder={T(inputFormats?.fullName)}
+            showWithOverlay={isTouchDevice()}
           />
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
@@ -190,29 +129,26 @@ export function CreateReviewWithPro({
           isRequired={isFieldRequired(validationRules?.location)}
         >
           <FormLabel>{T('location')}</FormLabel>
-          <FixedPositionControl
+          <SearchDropdown
             inputVal={getInput('location')}
-            forceClose={!!getInput('locationLat')}
-          >
-            <SearchDropdown
-              inputVal={getInput('location')}
-              inputValSetter={(v) => updateInput('location', v)}
-              searchHook={usePlacesSearch}
-              onValueSet={({ extraData: [lat, lng], label }) => {
-                updateInput('locationLat', parseFloat(lat));
-                updateInput('locationLng', parseFloat(lng));
-                updateInput('location', label);
-              }}
-              onValueEmpty={() => {
-                updateInput('locationLat', '');
-                updateInput('locationLng', '');
-                updateInput('location', '');
-              }}
-              position="left"
-              dropdownWidth="100%"
-              icon={<Icons.LocationIcon />}
-            />
-          </FixedPositionControl>
+            inputValSetter={(v) => updateInput('location', v)}
+            searchHook={usePlacesSearch}
+            onValueSet={({ extraData: [lat, lng], label }) => {
+              updateInput('locationLat', parseFloat(lat));
+              updateInput('locationLng', parseFloat(lng));
+              updateInput('location', label);
+            }}
+            onValueEmpty={() => {
+              updateInput('locationLat', '');
+              updateInput('locationLng', '');
+              updateInput('location', '');
+            }}
+            position="left"
+            dropdownWidth="100%"
+            icon={<Icons.LocationIcon />}
+            showWithOverlay={isTouchDevice()}
+            showInputConfirmBtn={false}
+          />
           <FormErrorMessage>
             {inputsErrors?.location ||
               inputsErrors?.locationLat ||
@@ -269,40 +205,40 @@ export function CreateReviewWithPro({
           isRequired={isFieldRequired(validationRules?.professions)}
         >
           <FormLabel>{T('profession', [], 2)}</FormLabel>
-          <FixedPositionControl
-            footer={
-              <MultiInput
-                values={getInput('professions', true)}
-                labels={professionTitles}
-                onItemRemove={(professions, titles) => {
-                  updateInput(
-                    'professions',
-                    professions ? professions.join(',') : '',
-                  );
-                  setProfessionTitles(titles || null);
-                }}
-              />
-            }
-          >
-            <SearchDropdown
-              inputVal={searchedProfession}
-              inputValSetter={(v) => setSearchedProfession(v)}
-              initialItems={lists?.profession || null}
-              searchHook={useProfessionsSearch}
-              onValueSet={({ value }) => {
-                if (updateInput('professions', value.id, true)) {
-                  setProfessionTitles((prevTitles) =>
-                    prevTitles ? [...prevTitles, value.title] : [value.title],
-                  );
-                }
-              }}
-              setInputValOnValSet={false}
-              showCloseIcon={false}
-              position="left"
-              dropdownWidth="100%"
-              icon={<Icons.WorkerIcon />}
-            />
-          </FixedPositionControl>
+
+          <SearchDropdown
+            inputVal={searchedProfession}
+            inputValSetter={(v) => setSearchedProfession(v)}
+            initialItems={lists?.profession || null}
+            searchHook={useProfessionsSearch}
+            onValueSet={({ value: profession }) => {
+              if (updateInput('professions', profession.id, true)) {
+                setProfessionTitles((prevTitles) =>
+                  prevTitles
+                    ? [...prevTitles, profession.title]
+                    : [profession.title],
+                );
+              }
+            }}
+            setInputValOnValSet={false}
+            showCloseIcon={false}
+            position="left"
+            dropdownWidth="100%"
+            icon={<Icons.WorkerIcon />}
+            showWithOverlay={isTouchDevice()}
+            showInputConfirmBtn={false}
+          />
+          <MultiInput
+            values={getInput('professions', true)}
+            labels={professionTitles}
+            onItemRemove={(professions, titles) => {
+              updateInput(
+                'professions',
+                professions ? professions.join(',') : '',
+              );
+              setProfessionTitles(titles || null);
+            }}
+          />
           <FormErrorMessage>{inputsErrors?.professions}</FormErrorMessage>
         </FormControl>
       </FormGroup>

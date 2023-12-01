@@ -93,7 +93,8 @@
             ".jsx"
           ]
         }
-      ]
+      ],
+      "jsx-a11y/tabindex-no-positive": "off"
     }
   }
 }

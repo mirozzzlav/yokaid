@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -8,6 +9,7 @@ import {
   useOutsideClick,
 } from '@chakra-ui/react';
 import React, {
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -16,12 +18,19 @@ import React, {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { ChevronDownIcon, SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  SearchIcon,
+  SmallCloseIcon,
+} from '@chakra-ui/icons';
 import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { WindowContext } from 'src/providers/WindowProvider';
+import Overlay from 'src/components/Overlay';
+import { TranslationsContext } from 'src/providers/TranslationsProvider';
 
 const listElemStyle = {
   width: '100%',
@@ -60,6 +69,7 @@ const style = {
       background: theme.colors.gray[50],
     },
     ':focus-visible': {
+      outline: 'none',
       boxShadow: 'none',
       fontWeight: theme.fontWeights.bold,
     },
@@ -101,9 +111,10 @@ function DropdownList({
       <Box>
         {items.map(({ label, value, ...restItem }, i) => (
           <Box
+            aria-roledescription="dropdown-item"
             sx={style.listElem}
+            tabIndex={0}
             onBlur={() => i === items.length - 1 && setIsShown(false)}
-            variant="ghost"
             key={`${label}${
               typeof value === 'object' ? JSON.stringify(value) : value
             }`}
@@ -222,6 +233,27 @@ Dropdown.propTypes = {
   onItemClick: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
 };
 
+const SearchDropdownWrapper = forwardRef(({ sx, children }, ref) => (
+  <Box
+    sx={{
+      ...theme.styles.global.contextMenuLikeWrapper,
+      ...style.searchDropdownWrapper,
+      ...sx,
+    }}
+    ref={ref}
+  >
+    {children}
+  </Box>
+));
+
+SearchDropdownWrapper.defaultProps = {
+  sx: null,
+};
+SearchDropdownWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
+  sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
+};
+
 function SearchDropdown({
   placeholder,
   searchHook,
@@ -237,9 +269,12 @@ function SearchDropdown({
   showCloseIcon,
   dropdownWidth,
   sx,
+  showWithOverlay,
+  showInputConfirmBtn,
 }) {
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
+  const inputRef = useRef();
   const [isShown, setIsShown] = useState(false);
   const [items, setItems] = useState(initialItems || []);
   const delayedCall = useDelayedAction();
@@ -249,15 +284,9 @@ function SearchDropdown({
     inputVal = inputValFromProps;
     inputValSetter = inputValSetterFromProps;
   }
-  const [inputFocus, setInputFocus] = useState(false);
-
-  useOutsideClick({
-    ref: wrapperRef,
-    handler: () => setIsShown(false),
-  });
 
   const searchCall = searchHook((results) => {
-    if (inputVal === '' || !inputFocus) {
+    if (inputVal === '') {
       // this is risky, inputVal is uncertain in the callback context, but it works
       return;
     }
@@ -278,7 +307,6 @@ function SearchDropdown({
   );
 
   const onInputFocus = useCallback(() => {
-    setInputFocus(true);
     setItems((prevItems) => {
       if (prevItems.length > 0) {
         return prevItems;
@@ -288,12 +316,12 @@ function SearchDropdown({
       }
       return [];
     });
-    setIsShown(!!initialItems);
-  }, [initialItems]);
+
+    setIsShown(!!initialItems || showWithOverlay);
+  }, [initialItems, showWithOverlay]);
 
   const resetDropdown = useCallback(() => {
     setItems(initialItems || []);
-    setIsShown(!!initialItems);
     onValueEmpty();
   }, [initialItems, onValueEmpty]);
 
@@ -318,11 +346,13 @@ function SearchDropdown({
     if (inputVal !== '' && showCloseIcon) {
       return (
         <SmallCloseIcon
+          tabIndex={9999}
+          aria-roledescription="clear-input"
           sx={{ cursor: 'pointer' }}
           onClick={() => {
             inputValSetter('');
-            onValueEmpty();
-            setIsShown(false);
+            resetDropdown();
+            inputRef.current.focus();
           }}
         />
       );
@@ -331,42 +361,77 @@ function SearchDropdown({
   }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
 
   useEffect(() => {
-    if (!inputFocus && items.length === 0) {
-      // hide dropdown only when 0 results, it is hidden on different place when >0 items
-      setIsShown(false);
+    if (isShown && showWithOverlay && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [inputFocus, items]);
+  }, [isShown, inputRef.current]);
 
-  return (
-    <Box
-      sx={{
-        ...theme.styles.global.contextMenuLikeWrapper,
-        ...style.searchDropdownWrapper,
-        ...sx,
-      }}
-      ref={wrapperRef}
-    >
-      <InputGroup>
-        <Input
-          placeholder={placeholder}
-          onChange={onInputChange}
-          onFocus={onInputFocus}
-          value={inputVal}
-          onBlur={() => setInputFocus(false)}
-        />
-
-        <InputRightElement>{inputIcon}</InputRightElement>
-      </InputGroup>
-
-      <DropdownList
-        items={items}
-        onItemClick={onItemClick}
-        setIsShown={setIsShown}
-        isShown={isShown}
-        position={position}
-        width={dropdownWidth}
+  const inputGroup = (
+    <InputGroup>
+      <Input
+        ref={inputRef}
+        placeholder={placeholder}
+        onChange={onInputChange}
+        onFocus={onInputFocus}
+        value={inputVal}
+        onBlur={(e) => {
+          if (
+            e.relatedTarget?.ariaRoleDescription !== 'dropdown-item' &&
+            e.relatedTarget?.ariaRoleDescription !== 'clear-input'
+          ) {
+            setIsShown(false);
+          }
+        }}
       />
-    </Box>
+
+      <InputRightElement>
+        {isShown && showInputConfirmBtn ? (
+          <IconButton
+            colorScheme="blue"
+            aria-label="confirm"
+            icon={<CheckIcon />}
+            sx={{ outline: 'none', margin: '2px' }}
+          />
+        ) : (
+          inputIcon
+        )}
+      </InputRightElement>
+    </InputGroup>
+  );
+
+  const dropdownList = (
+    <DropdownList
+      items={items}
+      onItemClick={onItemClick}
+      setIsShown={setIsShown}
+      isShown={isShown}
+      position={position}
+      width={dropdownWidth}
+    />
+  );
+
+  if (showWithOverlay) {
+    if (isShown) {
+      return (
+        <Overlay isShown={isShown} isShownSetter={setIsShown}>
+          <SearchDropdownWrapper sx={sx} ref={wrapperRef}>
+            <>
+              {inputGroup}
+              {dropdownList}
+            </>
+          </SearchDropdownWrapper>
+        </Overlay>
+      );
+    }
+    return inputGroup;
+  }
+  return (
+    <SearchDropdownWrapper sx={sx} ref={wrapperRef}>
+      <>
+        {inputGroup}
+        {dropdownList}
+      </>
+    </SearchDropdownWrapper>
   );
 }
 
@@ -383,6 +448,8 @@ SearchDropdown.defaultProps = {
   dropdownWidth: '300px',
   onValueEmpty: () => {},
   sx: null,
+  showWithOverlay: false,
+  showInputConfirmBtn: true,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -402,6 +469,8 @@ SearchDropdown.propTypes = {
   showCloseIcon: PropTypes.bool,
   dropdownWidth: PropTypes.string,
   sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
+  showWithOverlay: PropTypes.bool,
+  showInputConfirmBtn: PropTypes.bool,
 };
 
 export { Dropdown, SearchDropdown };

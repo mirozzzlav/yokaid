@@ -18,6 +18,8 @@ import DataContent from 'src/components/DataContent';
 import FormGroup from 'src/components/FormGroup';
 import ProfessionalContact from 'src/components/ProfessionalContact';
 import RatingFormControls from 'src/components/RatingFormControls';
+import Overlay from 'src/components/Overlay';
+import LanguageDropdown from 'src/components/LanguageDropdown';
 
 export {
   createReviewFormConfigFactory,
@@ -40,4 +42,6 @@ export {
   FormGroup,
   ProfessionalContact,
   RatingFormControls,
+  Overlay,
+  LanguageDropdown,
 };

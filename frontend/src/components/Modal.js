@@ -8,10 +8,20 @@ import {
   ModalBody,
   ModalFooter,
   Button,
+  Box,
 } from '@chakra-ui/react';
 import { buttonPropType } from 'src/constants';
 import { TranslationsContext, WindowContext } from 'src/providers';
 
+const style = {
+  fakeFocus: {
+    width: 0,
+    height: 0,
+    margin: 0,
+    padding: 0,
+    outline: 'none !important',
+  },
+};
 export default function Modal({
   isShown,
   onShow,
@@ -41,7 +51,10 @@ export default function Modal({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{title}</ModalHeader>
-        <ModalBody>{children}</ModalBody>
+        <ModalBody>
+          <Box tabIndex={0} sx={style.fakeFocus} />
+          {children}
+        </ModalBody>
         <ModalFooter>
           {submitButton && (
             <Button

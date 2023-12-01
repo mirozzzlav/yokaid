@@ -87,6 +87,10 @@ function getHexSHA256(inputString) {
   return Sha256(inputString).toString(encHex);
 }
 
+function generateUUID() {
+  return getHexSHA256(new Date().getTime());
+}
+
 function sprintf(string, textParts) {
   if (textParts.length === 0) {
     return string;
@@ -119,4 +123,5 @@ export {
   getHexSHA256,
   sprintf,
   isTouchDevice,
+  generateUUID,
 };

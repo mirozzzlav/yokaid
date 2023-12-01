@@ -11,6 +11,7 @@ function filterItemsHookCreator(filterName) {
 
   return useProfessionsSearch;
 }
+
 export const FilterContext = React.createContext({});
 
 function filtersEqual(f1, f2) {
@@ -56,10 +57,10 @@ export default function FilterProvider({ children }) {
           ? Object.keys(draft)
           : Object.keys(filter);
 
-      return keys.every((filterName) =>
+      return keys.every((iterFilterName) =>
         filtersEqual(
-          config.filter.defaultFilter[filterName],
-          filter[filterName],
+          config.filter.defaultFilter[iterFilterName],
+          filter[iterFilterName],
         ),
       );
     };
