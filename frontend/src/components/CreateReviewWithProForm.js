@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   InitialDataContext,
   TagTranslation,
@@ -12,7 +12,6 @@ import {
   FormLabel,
   Input,
   InputGroup,
-  useOutsideClick,
 } from '@chakra-ui/react';
 import {
   ErrorMessage,
@@ -20,11 +19,7 @@ import {
   SuccessMessage,
 } from 'src/components/Messages';
 import FormGroup from 'src/components/FormGroup';
-import {
-  isFieldRequired,
-  isTouchDevice,
-  unknownObjectValidator,
-} from 'src/helpers';
+import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import { SearchDropdown } from 'src/components/Dropdown';
 import {
   useSearchProfessional,
@@ -37,38 +32,6 @@ import PropTypes from 'prop-types';
 import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
-import theme from 'src/style';
-import Overlay from 'src/components/Overlay';
-
-const style = {
-  header: {
-    display: 'flex',
-  },
-  close: {
-    margin: `${theme.space[1]} 0 ${theme.space[1]} auto`,
-  },
-  container: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    background: theme.colors.blackAlpha[800],
-    zIndex: 9999,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: `${theme.space[8]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
-  },
-  content: {
-    width: '90vw',
-    maxWidth: '300px',
-    input: {
-      borderColor: 'inherit !important',
-      boxShadow: 'none !important',
-    },
-  },
-};
 
 export function CreateReviewWithPro({
   formResult,
@@ -115,7 +78,6 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             placeholder={T(inputFormats?.fullName)}
-            showWithOverlay={isTouchDevice()}
           />
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
@@ -146,7 +108,6 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.LocationIcon />}
-            showWithOverlay={isTouchDevice()}
             showInputConfirmBtn={false}
           />
           <FormErrorMessage>
@@ -225,7 +186,6 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.WorkerIcon />}
-            showWithOverlay={isTouchDevice()}
             showInputConfirmBtn={false}
           />
           <MultiInput

@@ -17,13 +17,22 @@ export default function WindowProvider({ children }) {
     window.visualViewport.height < thinScreenHeight,
   );
 
+  const isTouchDevice = useMemo(
+    () =>
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0,
+    [],
+  );
+
   const contextVal = useMemo(
     () => ({
       isScrolledDown,
       thinScreen,
       screenHeight,
+      isTouchDevice,
     }),
-    [isScrolledDown, thinScreen, screenHeight],
+    [isScrolledDown, thinScreen, screenHeight, isTouchDevice],
   );
   useEffect(() => {
     if (effectExecutedRef.current) {

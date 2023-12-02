@@ -30,7 +30,6 @@ import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { WindowContext } from 'src/providers/WindowProvider';
 import Overlay from 'src/components/Overlay';
-import { TranslationsContext } from 'src/providers/TranslationsProvider';
 
 const listElemStyle = {
   width: '100%',
@@ -269,7 +268,6 @@ function SearchDropdown({
   showCloseIcon,
   dropdownWidth,
   sx,
-  showWithOverlay,
   showInputConfirmBtn,
 }) {
   const { isLoading } = useContext(LoaderContext);
@@ -279,6 +277,7 @@ function SearchDropdown({
   const [items, setItems] = useState(initialItems || []);
   const delayedCall = useDelayedAction();
   let [inputVal, inputValSetter] = useState('');
+  const { isTouchDevice } = useContext(WindowContext);
 
   if (inputValFromProps !== null && inputValSetterFromProps !== null) {
     inputVal = inputValFromProps;
@@ -317,8 +316,8 @@ function SearchDropdown({
       return [];
     });
 
-    setIsShown(!!initialItems || showWithOverlay);
-  }, [initialItems, showWithOverlay]);
+    setIsShown(!!initialItems || isTouchDevice);
+  }, [initialItems, isTouchDevice]);
 
   const resetDropdown = useCallback(() => {
     setItems(initialItems || []);
@@ -361,10 +360,10 @@ function SearchDropdown({
   }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
 
   useEffect(() => {
-    if (isShown && showWithOverlay && inputRef.current) {
+    if (isShown && isTouchDevice && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isShown, inputRef.current]);
+  }, [isShown, inputRef.current, isTouchDevice]);
 
   const inputGroup = (
     <InputGroup>
@@ -385,7 +384,7 @@ function SearchDropdown({
       />
 
       <InputRightElement>
-        {isShown && showInputConfirmBtn ? (
+        {isShown && isTouchDevice && showInputConfirmBtn ? (
           <IconButton
             colorScheme="blue"
             aria-label="confirm"
@@ -410,7 +409,7 @@ function SearchDropdown({
     />
   );
 
-  if (showWithOverlay) {
+  if (isTouchDevice) {
     if (isShown) {
       return (
         <Overlay isShown={isShown} isShownSetter={setIsShown}>
@@ -448,7 +447,6 @@ SearchDropdown.defaultProps = {
   dropdownWidth: '300px',
   onValueEmpty: () => {},
   sx: null,
-  showWithOverlay: false,
   showInputConfirmBtn: true,
 };
 SearchDropdown.propTypes = {
@@ -469,7 +467,6 @@ SearchDropdown.propTypes = {
   showCloseIcon: PropTypes.bool,
   dropdownWidth: PropTypes.string,
   sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
-  showWithOverlay: PropTypes.bool,
   showInputConfirmBtn: PropTypes.bool,
 };
 
