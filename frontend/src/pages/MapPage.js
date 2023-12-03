@@ -30,7 +30,7 @@ import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 
-function useStyle() {
+function useStyle(showFullWidthInput) {
   const style = {
     filter: {
       gap: '0.4rem',
@@ -52,7 +52,7 @@ function useStyle() {
       paddingLeft: theme.space[3],
       border: `1px solid ${theme.colors.gray[200]}`,
       borderRadius: theme.radii.md,
-      flexGrow: 1,
+      flexGrow: 0,
       overflowX: 'hidden',
     },
     filterInfoIcon: {
@@ -64,7 +64,6 @@ function useStyle() {
       marginLeft: 'auto',
     },
     filterInfoBlock: {
-      flexShrink: 0,
       borderRight: `1px solid ${theme.colors.gray[200]}`,
       paddingRight: theme.space[2],
       marginRight: theme.space[2],
@@ -81,11 +80,11 @@ function useStyle() {
       maxWidth: '220px',
     },
     mainSearch: {
-      flexGrow: 1,
+      flexGrow: 0,
+      width: 'auto',
     },
     topContent: {
       justifyContent: 'center',
-      flexWrap: 'wrap',
       gap: '0.5rem',
     },
     addReviewBtn: {
@@ -99,6 +98,15 @@ function useStyle() {
         flexDirection: 'column',
         justifyContent: 'flex-start',
       },
+      topContent: {
+        flexWrap: 'wrap',
+      },
+      filterInfo: {
+        flexGrow: 1,
+      },
+      mainSearch: {
+        flexGrow: 1,
+      },
     },
     md: {
       filterDropdown: {
@@ -107,9 +115,6 @@ function useStyle() {
     },
     lg: {
       filter: { justifyContent: 'center' },
-      filterInfo: {
-        flexGrow: 0,
-      },
       mainSearch: { flexGrow: 0 },
     },
   });
@@ -243,6 +248,7 @@ export default function MapPage() {
             placeholder={T('find person by name')}
             sx={style.mainSearch}
             setInputValOnValSet={false}
+            showWithOverlay
           />
         </Flex>
       }

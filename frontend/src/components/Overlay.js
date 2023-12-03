@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import theme from 'src/style';
 import PropTypes from 'prop-types';
 
@@ -12,12 +12,8 @@ const style = {
     height: '100vh',
     background: theme.colors.blackAlpha[800],
     zIndex: 9999,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
   },
   content: {
-    width: '100%',
     background: '#fff',
     padding: `${theme.space[4]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
   },

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -18,12 +17,7 @@ import React, {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  SearchIcon,
-  SmallCloseIcon,
-} from '@chakra-ui/icons';
+import { ChevronDownIcon, SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
@@ -85,9 +79,11 @@ const style = {
       overflow: 'hidden',
     },
   },
-  searchDropdownWrapper: {
+  searchDropdownWrapper: (center) => ({
+    maxWidth: theme.breakpoints.md,
     flexGrow: 1,
-  },
+    ...(center ? { margin: '0 auto' } : null),
+  }),
 };
 
 function DropdownList({
@@ -238,7 +234,6 @@ const SearchDropdownWrapper = forwardRef(({ sx, children }, ref) => (
   <Box
     sx={{
       ...theme.styles.global.contextMenuLikeWrapper,
-      ...style.searchDropdownWrapper,
       ...sx,
     }}
     ref={ref}
@@ -306,26 +301,18 @@ function SearchDropdown({
     [onValueSet],
   );
 
-  const onInputFocus = useCallback(
-    (e) => {
-      setItems((prevItems) => {
-        if (prevItems.length > 0) {
-          return prevItems;
-        }
-        if (initialItems?.length) {
-          return initialItems;
-        }
-        return [];
-      });
-      setIsShown(
-        !!items,
-        // ||
-        // (showWithOverlay &&
-        //   e.relatedTarget?.ariaRoleDescription !== 'clear-input'),
-      );
-    },
-    [items, showWithOverlay],
-  );
+  const onInputFocus = useCallback(() => {
+    setItems((prevItems) => {
+      if (prevItems.length > 0) {
+        return prevItems;
+      }
+      if (initialItems?.length) {
+        return initialItems;
+      }
+      return [];
+    });
+    setIsShown(!!items);
+  }, [items]);
 
   const resetDropdown = useCallback(() => {
     setItems(initialItems || []);
@@ -378,7 +365,7 @@ function SearchDropdown({
   }, [initialItems]);
 
   const inputGroup = (
-    <InputGroup>
+    <InputGroup sx={!isShown && showWithOverlay ? sx : null}>
       <Input
         ref={inputRef}
         placeholder={placeholder}
@@ -414,7 +401,13 @@ function SearchDropdown({
     if (isShown) {
       return (
         <Overlay isShown={isShown} isShownSetter={setIsShown}>
-          <SearchDropdownWrapper sx={sx} ref={wrapperRef}>
+          <SearchDropdownWrapper
+            sx={{
+              ...style.searchDropdownWrapper(isShown && showWithOverlay),
+              ...sx,
+            }}
+            ref={wrapperRef}
+          >
             <>
               {inputGroup}
               {dropdownList}

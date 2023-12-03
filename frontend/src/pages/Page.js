@@ -53,7 +53,7 @@ function useStyle() {
     logo: {
       position: 'relative',
       height: '33px',
-      width: '100%',
+      width: '100px',
       maxWidth: '100px',
     },
     topContent: {
@@ -103,9 +103,12 @@ function useStyle() {
   const responsiveStyle = useBreakpointValue({
     base: {
       topInner: { flexWrap: 'wrap' },
-      topContent: { order: 3, padding: '1rem 0 0 0', width: '100%' },
+      topContent: {
+        order: 3,
+        padding: '1rem 0 0 0',
+      },
     },
-    lg: {
+    md: {
       topContent: { order: 2 },
       topRight: { order: 3 },
     },
