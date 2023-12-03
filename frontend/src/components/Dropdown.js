@@ -75,12 +75,14 @@ const style = {
     '> *': {
       padding: '0.5rem 0',
       margin: '0 1rem',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
     },
     ':last-child > *': {
       border: 'none',
+    },
+    '*': {
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
     },
   },
   searchDropdownWrapper: {
@@ -205,7 +207,7 @@ function Dropdown({ items, buttonMeta, position, width, onItemClick }) {
 Dropdown.defaultProps = {
   items: null,
   position: 'right',
-  width: '300px',
+  width: '250px',
   onItemClick: null,
 };
 Dropdown.propTypes = {
@@ -268,16 +270,15 @@ function SearchDropdown({
   showCloseIcon,
   dropdownWidth,
   sx,
-  showInputConfirmBtn,
+  showWithOverlay,
 }) {
   const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
   const inputRef = useRef();
   const [isShown, setIsShown] = useState(false);
-  const [items, setItems] = useState(initialItems || []);
+  const [items, setItems] = useState([]);
   const delayedCall = useDelayedAction();
   let [inputVal, inputValSetter] = useState('');
-  const { isTouchDevice } = useContext(WindowContext);
 
   if (inputValFromProps !== null && inputValSetterFromProps !== null) {
     inputVal = inputValFromProps;
@@ -305,19 +306,26 @@ function SearchDropdown({
     [onValueSet],
   );
 
-  const onInputFocus = useCallback(() => {
-    setItems((prevItems) => {
-      if (prevItems.length > 0) {
-        return prevItems;
-      }
-      if (initialItems?.length) {
-        return initialItems;
-      }
-      return [];
-    });
-
-    setIsShown(!!initialItems || isTouchDevice);
-  }, [initialItems, isTouchDevice]);
+  const onInputFocus = useCallback(
+    (e) => {
+      setItems((prevItems) => {
+        if (prevItems.length > 0) {
+          return prevItems;
+        }
+        if (initialItems?.length) {
+          return initialItems;
+        }
+        return [];
+      });
+      setIsShown(
+        !!items,
+        // ||
+        // (showWithOverlay &&
+        //   e.relatedTarget?.ariaRoleDescription !== 'clear-input'),
+      );
+    },
+    [items, showWithOverlay],
+  );
 
   const resetDropdown = useCallback(() => {
     setItems(initialItems || []);
@@ -360,10 +368,14 @@ function SearchDropdown({
   }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
 
   useEffect(() => {
-    if (isShown && isTouchDevice && inputRef.current) {
+    if (isShown && showWithOverlay && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isShown, inputRef.current, isTouchDevice]);
+  }, [isShown, inputRef.current]);
+
+  useEffect(() => {
+    setItems(initialItems || []);
+  }, [initialItems]);
 
   const inputGroup = (
     <InputGroup>
@@ -383,18 +395,7 @@ function SearchDropdown({
         }}
       />
 
-      <InputRightElement>
-        {isShown && isTouchDevice && showInputConfirmBtn ? (
-          <IconButton
-            colorScheme="blue"
-            aria-label="confirm"
-            icon={<CheckIcon />}
-            sx={{ outline: 'none', margin: '2px' }}
-          />
-        ) : (
-          inputIcon
-        )}
-      </InputRightElement>
+      <InputRightElement>{inputIcon}</InputRightElement>
     </InputGroup>
   );
 
@@ -409,7 +410,7 @@ function SearchDropdown({
     />
   );
 
-  if (isTouchDevice) {
+  if (showWithOverlay) {
     if (isShown) {
       return (
         <Overlay isShown={isShown} isShownSetter={setIsShown}>
@@ -444,10 +445,10 @@ SearchDropdown.defaultProps = {
   inputVal: null,
   inputValSetter: null,
   setInputValOnValSet: true,
-  dropdownWidth: '300px',
+  dropdownWidth: '250px',
   onValueEmpty: () => {},
   sx: null,
-  showInputConfirmBtn: true,
+  showWithOverlay: false,
 };
 SearchDropdown.propTypes = {
   placeholder: PropTypes.string,
@@ -467,7 +468,7 @@ SearchDropdown.propTypes = {
   showCloseIcon: PropTypes.bool,
   dropdownWidth: PropTypes.string,
   sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
-  showInputConfirmBtn: PropTypes.bool,
+  showWithOverlay: PropTypes.bool,
 };
 
 export { Dropdown, SearchDropdown };

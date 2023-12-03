@@ -36,15 +36,15 @@ function useStyle() {
       gap: '0.4rem',
       flexWrap: 'wrap',
     },
+    filterDropdown: {
+      flexGrow: 0,
+    },
     filterButtons: {
-      flexBasis: '100%',
       gap: '0.4rem',
       flexWrap: 'wrap',
     },
     filterBtn: {
       flexShrink: 0,
-      flexGrow: 1,
-      flexBasis: '100%',
     },
     filterInfo: {
       alignItems: 'center',
@@ -73,7 +73,7 @@ function useStyle() {
         border: 'none',
         paddingRight: 0,
       },
-      lineHeight: '0.8rem',
+      lineHeight: 1,
       color: theme.colors.gray[400],
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
@@ -97,24 +97,16 @@ function useStyle() {
     base: {
       filter: {
         flexDirection: 'column',
+        justifyContent: 'flex-start',
       },
     },
     md: {
-      filterBtn: {
-        flexBasis: 'auto',
-      },
-      filterButtons: {
-        flexBasis: 'auto',
+      filterDropdown: {
+        flexGrow: 1,
       },
     },
     lg: {
-      filter: { flexDirection: 'row' },
-      filterBtn: {
-        flexBasis: 'auto',
-      },
-      filterButtons: {
-        flexBasis: 'auto',
-      },
+      filter: { justifyContent: 'center' },
       filterInfo: {
         flexGrow: 0,
       },
@@ -181,6 +173,7 @@ export default function MapPage() {
     getIsFilterEqual,
     draft,
     isFilterShown,
+    isFilterShownSetter,
     showFilter,
     hideFilter,
     filterInputValues,
@@ -240,7 +233,6 @@ export default function MapPage() {
           <FilterInfo
             filterInputValues={filterInputValues}
             onClick={showFilter}
-            onOutsideClick={hideFilter}
           />
           <SearchDropdown
             searchHook={useSearchProfessional}
@@ -255,92 +247,91 @@ export default function MapPage() {
         </Flex>
       }
       onFilterOverlayClick={hideFilter}
+      isFilterShown={isFilterShown}
+      isFilterShownSetter={isFilterShownSetter}
       filterContent={
-        isFilterShown ? (
-          <Flex sx={style.filter}>
-            {config.filter.elements.map(
-              ({ name: filterName, iconName, placeholder, valueMapper }) => {
-                const useFilterItems = filterItemsHookCreator(filterName);
-                const setInputVal = getFilterInputValSetter(filterName);
-                return (
-                  <SearchDropdown
-                    initialItems={filterInitialItems[filterName]}
-                    key={filterName}
-                    searchHook={useFilterItems}
-                    onValueSet={({ value, extraData }) => {
-                      updateFilter({
-                        [filterName]: {
-                          value: valueMapper ? valueMapper(value) : value,
-                          extraData,
-                          ...(config.APIColumnAliases[filterName]
-                            ? {
-                                columnAlias:
-                                  config.APIColumnAliases[filterName],
-                              }
-                            : null),
-                        },
-                      });
-                    }}
-                    onValueEmpty={() => resetDraft(filterName)}
-                    position="left"
-                    placeholder={T(placeholder)}
-                    inputVal={
-                      (filterInputValues && filterInputValues[filterName]) || ''
-                    }
-                    inputValSetter={setInputVal}
-                    dropdownWidth="100%"
-                    {...(iconName
-                      ? { icon: React.createElement(Icons[iconName]) }
-                      : null)}
-                    sx={style.filterDropdown}
-                  />
-                );
-              },
-            )}
-            <Flex sx={style.filterButtons}>
-              <Button
-                onClick={() => {
-                  if (!isFilterChanged) {
-                    return;
-                  }
-                  saveFilter();
-                  if (!getIsFilterEqual('location')) {
-                    // if location search, moving map and then getting pros on different place
-                    moveMap({
-                      position: draft.location.extraData,
-                      bounds: draft.location.value,
+        <Flex sx={style.filter}>
+          {config.filter.elements.map(
+            ({ name: filterName, iconName, placeholder, valueMapper }) => {
+              const useFilterItems = filterItemsHookCreator(filterName);
+              const setInputVal = getFilterInputValSetter(filterName);
+              return (
+                <SearchDropdown
+                  initialItems={filterInitialItems[filterName]}
+                  key={filterName}
+                  searchHook={useFilterItems}
+                  onValueSet={({ value, extraData }) => {
+                    updateFilter({
+                      [filterName]: {
+                        value: valueMapper ? valueMapper(value) : value,
+                        extraData,
+                        ...(config.APIColumnAliases[filterName]
+                          ? {
+                              columnAlias: config.APIColumnAliases[filterName],
+                            }
+                          : null),
+                      },
                     });
-                  } else {
-                    setNextInterval(); // calling professionals by setting next interval
+                  }}
+                  onValueEmpty={() => resetDraft(filterName)}
+                  position="left"
+                  placeholder={T(placeholder)}
+                  inputVal={
+                    (filterInputValues && filterInputValues[filterName]) || ''
                   }
-                  hideFilter();
-                }}
-                sx={style.filterBtn}
-                isDisabled={!isFilterChanged}
-                colorScheme="blue"
-              >
-                {T('apply filter')}
-              </Button>
+                  inputValSetter={setInputVal}
+                  dropdownWidth="100%"
+                  {...(iconName
+                    ? { icon: React.createElement(Icons[iconName]) }
+                    : null)}
+                  sx={style.filterDropdown}
+                />
+              );
+            },
+          )}
+          <Flex sx={style.filterButtons}>
+            <Button
+              onClick={() => {
+                if (!isFilterChanged) {
+                  return;
+                }
+                saveFilter();
+                if (!getIsFilterEqual('location')) {
+                  // if location search, moving map and then getting pros on different place
+                  moveMap({
+                    position: draft.location.extraData,
+                    bounds: draft.location.value,
+                  });
+                } else {
+                  setNextInterval(); // calling professionals by setting next interval
+                }
+                hideFilter();
+              }}
+              sx={style.filterBtn}
+              isDisabled={!isFilterChanged}
+              colorScheme="blue"
+            >
+              {T('apply filter')}
+            </Button>
 
-              <Button
-                isDisabled={getIsFilterDefault()}
-                sx={style.filterBtn}
-                variant="ghost"
-                onClick={() => {
-                  resetFilter();
-                  if (!getIsFilterDefault('location')) {
-                    moveMap(config.map.defaultArea);
-                  } else {
-                    setNextInterval(); // calling professionals by setting next interval
-                  }
-                  hideFilter();
-                }}
-              >
-                {T('reset filter')}
-              </Button>
-            </Flex>
+            <Button
+              isDisabled={getIsFilterDefault()}
+              sx={style.filterBtn}
+              variant="solid"
+              onClick={() => {
+                resetFilter();
+                if (!getIsFilterDefault('location')) {
+                  moveMap(config.map.defaultArea);
+                } else {
+                  setNextInterval(); // calling professionals by setting next interval
+                }
+                hideFilter();
+              }}
+            >
+              {T('reset filter')}
+            </Button>
           </Flex>
-        ) : null
+        </Flex>
       }
       footer={
         <Button

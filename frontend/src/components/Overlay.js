@@ -15,11 +15,11 @@ const style = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: `${theme.space[8]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
   },
   content: {
-    width: '90vw',
-    maxWidth: '300px',
+    width: '100%',
+    background: '#fff',
+    padding: `${theme.space[4]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
   },
 };
 

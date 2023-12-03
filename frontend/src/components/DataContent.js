@@ -23,11 +23,6 @@ const style = {
       },
       compact && {
         marginBottom: theme.space[2],
-        '> *': {
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-        },
       },
     ),
 };

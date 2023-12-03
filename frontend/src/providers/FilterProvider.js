@@ -107,6 +107,7 @@ export default function FilterProvider({ children }) {
         setFilterInputValues(null);
       },
       isFilterShown: isShown,
+      isFilterShownSetter: setIsShown,
       showFilter: () => setIsShown(true),
       hideFilter: () => setIsShown(false),
       filterInputValues,

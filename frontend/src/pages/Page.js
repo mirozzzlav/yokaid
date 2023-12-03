@@ -9,7 +9,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ReactComponent as Logo } from 'src/assets/logo.svg';
-import { FormModals, LanguageDropdown } from 'src/components';
+import { FormModals, LanguageDropdown, Overlay } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { useNavigateAction } from 'src/hooks';
@@ -119,7 +119,8 @@ function Page({
   topContent,
   filterContent,
   footer,
-  onFilterOverlayClick,
+  isFilterShown,
+  isFilterShownSetter,
   modalsConfig: modalsConfigFromProps,
 }) {
   const { isLoading } = useContext(LoaderContext);
@@ -133,8 +134,6 @@ function Page({
     [action, actionParams, modalsConfigFromProps],
   );
   const { lang, setLang } = useContext(TranslationsContext);
-
-  const filterRef = useRef();
 
   return (
     <Box sx={style.container(mode)}>
@@ -157,17 +156,11 @@ function Page({
           </Box>
         </Flex>
       </Box>
-      {filterContent && (
-        <Box
-          sx={style.filter}
-          ref={filterRef}
-          onClick={(e) =>
-            e.target === filterRef.current && onFilterOverlayClick()
-          }
-        >
-          {filterContent}
-        </Box>
-      )}
+
+      <Overlay isShown={isFilterShown} isShownSetter={isFilterShownSetter}>
+        {filterContent}
+      </Overlay>
+
       <Box sx={style.content}>
         {children}
         <FormModals
@@ -184,7 +177,6 @@ Page.defaultProps = {
   mode: 'scroll',
   filterContent: null,
   footer: null,
-  onFilterOverlayClick: () => {},
   modalsConfig: null,
 };
 
@@ -194,7 +186,8 @@ Page.propTypes = {
   topContent: PropTypes.node.isRequired,
   filterContent: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
-  onFilterOverlayClick: PropTypes.func,
+  isFilterShown: PropTypes.bool.isRequired,
+  isFilterShownSetter: PropTypes.func.isRequired,
   modalsConfig: PropTypes.oneOfType([
     PropTypes.objectOf(formModalsConfigPropType),
     PropTypes.oneOf([null]),

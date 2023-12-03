@@ -4,6 +4,7 @@ import {
   TagTranslation,
   TranslationsContext,
   UserIdFormControl,
+  WindowContext,
 } from 'src/providers';
 import {
   Box,
@@ -40,15 +41,15 @@ export function CreateReviewWithPro({
   inputs,
   getInput,
   updateInput,
-  onProfessionalFound,
+  onExistingProSelected,
   validationRules,
 }) {
   const [professionTitles, setProfessionTitles] = useState(null);
   const [searchedProfession, setSearchedProfession] = useState('');
   const { lists, inputFormats, smsPaymentPhone, payReview } =
     useContext(InitialDataContext);
-
   const { T } = useContext(TranslationsContext);
+  const { isTouchDevice } = useContext(WindowContext);
 
   return (
     <Box>
@@ -57,28 +58,37 @@ export function CreateReviewWithPro({
           <InfoMessage message={T('review form info', [smsPaymentPhone])} />
         </FormControl>
       )}
-      <FormGroup groupLabel={T('reviewed person')}>
+      <FormControl>
+        <SearchDropdown
+          searchHook={useSearchProfessional}
+          onValueSet={({ value }) => {
+            if (onExistingProSelected) {
+              onExistingProSelected(value);
+            }
+          }}
+          position="left"
+          dropdownWidth="100%"
+          showWithOverlay={isTouchDevice}
+          placeholder={T('find person by name')}
+        />
+      </FormControl>
+
+      <FormGroup>
         <FormControl
           isInvalid={inputsErrors?.fullName}
           isRequired={isFieldRequired(validationRules?.fullName)}
         >
           <FormLabel>{T('full name')}</FormLabel>
-          <SearchDropdown
-            searchHook={useSearchProfessional}
-            inputVal={getInput('fullName')}
-            inputValSetter={(v) => updateInput('fullName', v)}
-            onValueSet={({ value }) => {
-              if (onProfessionalFound) {
-                onProfessionalFound(value);
-              }
-            }}
-            onValueEmpty={() => {
-              updateInput('fullName', '');
-            }}
-            position="left"
-            dropdownWidth="100%"
-            placeholder={T(inputFormats?.fullName)}
-          />
+          <InputGroup>
+            <Input
+              type="text"
+              value={getInput('fullName')}
+              onChange={(e) => {
+                updateInput('fullName', e.target.value);
+              }}
+              placeholder={T(inputFormats?.fullName)}
+            />
+          </InputGroup>
           <FormErrorMessage>{inputsErrors?.fullName}</FormErrorMessage>
         </FormControl>
 
@@ -108,7 +118,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.LocationIcon />}
-            showInputConfirmBtn={false}
+            showWithOverlay={isTouchDevice}
           />
           <FormErrorMessage>
             {inputsErrors?.location ||
@@ -186,7 +196,7 @@ export function CreateReviewWithPro({
             position="left"
             dropdownWidth="100%"
             icon={<Icons.WorkerIcon />}
-            showInputConfirmBtn={false}
+            showWithOverlay={isTouchDevice}
           />
           <MultiInput
             values={getInput('professions', true)}
@@ -251,11 +261,11 @@ CreateReviewWithPro.prototype.propTypes = {
   inputs: unknownObjectValidator.isRequired,
   getInput: PropTypes.func.isRequired,
   updateInput: PropTypes.func.isRequired,
-  onProfessionalFound: PropTypes.func.isRequired,
+  onExistingProSelected: PropTypes.func.isRequired,
   validationRules: unknownObjectValidator.isRequired,
 };
 
-export function formConfigFactory(onProfessionalFound) {
+export function formConfigFactory(onExistingProSelected) {
   return {
     validationGroup: 'createReviewAndProfessionalRequest',
     hook: (onCallFinish) => {
@@ -265,7 +275,7 @@ export function formConfigFactory(onProfessionalFound) {
         callPost(config.api.endPointsURLs.createProfessionalWithReview, inputs);
     },
     formUI: CreateReviewWithPro,
-    onProfessionalFound,
+    onExistingProSelected,
     inputsToRequestMapper: (inputs) => ({
       professional: {
         location: inputs?.location || '',
