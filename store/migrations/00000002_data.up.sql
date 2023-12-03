@@ -44,7 +44,7 @@ INSERT INTO "professions" ("title") VALUES
   ('{"sk_SK": "Obchodný manažér", "en_US": "Business Manager"}'::JSONB),
   ('{"sk_SK": "Ekonóm", "en_US": "Economist"}'::JSONB),
   ('{"sk_SK": "Chemik", "en_US": "Chemist"}'::JSONB),
-  ('{"sk_SK": "Auto mechanic", "en_US": "Mechanic"}'::JSONB),
+  ('{"sk_SK": "Auto mechanik", "en_US": "Mechanic"}'::JSONB),
   ('{"sk_SK": "Dekoratér interiérov", "en_US": "Interior Decorator"}'::JSONB),
   ('{"sk_SK": "Lingvista", "en_US": "Linguist"}'::JSONB),
   ('{"sk_SK": "Meteorológ", "en_US": "Meteorologist"}'::JSONB),
