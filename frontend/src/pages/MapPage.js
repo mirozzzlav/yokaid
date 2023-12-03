@@ -249,6 +249,7 @@ export default function MapPage() {
             sx={style.mainSearch}
             setInputValOnValSet={false}
             showWithOverlay
+            dropdownWidth="100%"
           />
         </Flex>
       }
