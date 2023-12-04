@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func panicMiddleware(s *server) gin.HandlerFunc {

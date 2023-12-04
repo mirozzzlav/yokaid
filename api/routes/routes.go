@@ -1,14 +1,14 @@
 package routes
 
 import (
-	"some-app/api/common"
-	"some-app/api/routes/examples"
-	frontendData "some-app/api/routes/frontend_data"
-	"some-app/api/routes/payments"
-	"some-app/api/routes/professionals"
-	"some-app/api/routes/professions"
-	"some-app/api/routes/reviews"
-	"some-app/api/routes/translations"
+	"yokaid/api/common"
+	"yokaid/api/routes/examples"
+	frontendData "yokaid/api/routes/frontend_data"
+	"yokaid/api/routes/payments"
+	"yokaid/api/routes/professionals"
+	"yokaid/api/routes/professions"
+	"yokaid/api/routes/reviews"
+	"yokaid/api/routes/translations"
 )
 
 var routes []common.Route // private variable, not to use directly

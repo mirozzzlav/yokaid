@@ -3,7 +3,7 @@ package main
 import (
 	_ "github.com/lib/pq"
 	"log"
-	serverPkg "some-app/api/server"
+	serverPkg "yokaid/api/server"
 )
 
 func main() {

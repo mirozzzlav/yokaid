@@ -2,7 +2,7 @@ package professions
 
 import (
 	"github.com/gin-gonic/gin"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func getProfessions(server common.Server) gin.HandlerFunc {

@@ -6,8 +6,8 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"net/http"
 	"regexp"
-	"some-app/api/common"
 	"strings"
+	"yokaid/api/common"
 )
 
 func getTranslation(trs map[int]string) string {

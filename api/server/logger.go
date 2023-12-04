@@ -8,9 +8,9 @@ import (
 	"os"
 	"regexp"
 	"runtime"
-	"some-app/api/common"
 	"strings"
 	"time"
+	"yokaid/api/common"
 )
 
 func createLogFile() (*os.File, error) {

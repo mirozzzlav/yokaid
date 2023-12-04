@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
-	"some-app/api/common"
-	dbPkg "some-app/api/db"
-	"some-app/api/mail"
-	"some-app/api/routes"
+	"yokaid/api/common"
+	dbPkg "yokaid/api/db"
+	"yokaid/api/mail"
+	"yokaid/api/routes"
 )
 
 type server struct {

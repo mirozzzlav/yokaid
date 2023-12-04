@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"some-app/api/common"
 	"strings"
+	"yokaid/api/common"
 )
 
 var filterError = errors.New("wrong filter specified")

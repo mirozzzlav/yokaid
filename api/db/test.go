@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func (sH StoreHelpers) Insert() int {

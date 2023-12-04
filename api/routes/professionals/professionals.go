@@ -2,7 +2,7 @@ package professionals
 
 import (
 	"net/http"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func GetRoutes(server common.Server) []common.Route {

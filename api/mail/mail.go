@@ -6,7 +6,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"html/template"
 	"log"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 type templateGetter func(data map[string]string) (string, error)

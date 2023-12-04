@@ -1,8 +1,8 @@
 package db
 
 import (
-	"some-app/api/common"
 	"strings"
+	"yokaid/api/common"
 )
 
 func columnNameToObjName(colName string) string {

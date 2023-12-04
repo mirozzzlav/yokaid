@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 	"regexp"
-	"some-app/api/common"
 	"strings"
+	"yokaid/api/common"
 )
 
 func prepareQueryString(q string) string {

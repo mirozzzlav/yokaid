@@ -2,7 +2,7 @@ package examples
 
 import (
 	"github.com/gin-gonic/gin"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func submitEmail(server common.Server) gin.HandlerFunc {

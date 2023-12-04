@@ -3,7 +3,7 @@ package frontendData
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 type frontEndDataResponse struct {

@@ -2,7 +2,7 @@ package professionals
 
 import (
 	"github.com/gin-gonic/gin"
-	"some-app/api/common"
+	"yokaid/api/common"
 )
 
 func handleProfessionalContact(server common.Server) gin.HandlerFunc {
