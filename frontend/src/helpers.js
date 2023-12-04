@@ -102,6 +102,25 @@ function sprintf(string, textParts) {
   );
 }
 
+function formatPhoneNumber(inputNumber) {
+  let phoneNumber;
+  if (
+    inputNumber.length === 0 ||
+    (inputNumber.length === 1 && inputNumber !== '+')
+  ) {
+    phoneNumber = '';
+  } else {
+    phoneNumber = `+${inputNumber.substring(1).replaceAll(/[^\d]/g, '')}`
+      .replace(/(\d{3})/g, '$1 ')
+      .trim();
+  }
+
+  if (phoneNumber.length > 16) {
+    phoneNumber = phoneNumber.substring(0, 16);
+  }
+  return phoneNumber;
+}
+
 export {
   unknownObjectValidator,
   toSnakeCase,
@@ -116,4 +135,5 @@ export {
   getHexSHA256,
   sprintf,
   generateUUID,
+  formatPhoneNumber,
 };

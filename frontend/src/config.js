@@ -1,3 +1,5 @@
+import { formatPhoneNumber } from 'src/helpers';
+
 const apiUrl = `${window.location.origin}/api`;
 
 const defaultMapBounds = [47.7311798, 16.8331891, 49.6138162, 22.56571];
@@ -70,6 +72,7 @@ export default {
     inputFormat: '+421 9xx xxx xxx',
     validationRules: 'required,phone',
     inputType: 'tel',
+    inputFormatter: formatPhoneNumber,
   },
   defaultLanguage: 'en_US',
   languages: [

@@ -20,7 +20,11 @@ import {
   SuccessMessage,
 } from 'src/components/Messages';
 import FormGroup from 'src/components/FormGroup';
-import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
+import {
+  formatPhoneNumber,
+  isFieldRequired,
+  unknownObjectValidator,
+} from 'src/helpers';
 import { SearchDropdown } from 'src/components/Dropdown';
 import {
   useSearchProfessional,
@@ -151,7 +155,7 @@ export function CreateReviewWithPro({
             type="tel"
             value={getInput('phone')}
             onChange={(e) => {
-              updateInput('phone', e.target.value);
+              updateInput('phone', formatPhoneNumber(e.target.value));
             }}
             placeholder={inputFormats?.phone}
           />

@@ -24,7 +24,8 @@ import useValidationErrors from 'src/hooks/useValidationErrors';
 export const UserIdContext = React.createContext({});
 
 export function UserIdFormControl({ error }) {
-  const { label, inputFormat, validationRules, inputType } = config.userIdMeta;
+  const { label, inputFormat, validationRules, inputType, inputFormatter } =
+    config.userIdMeta;
   const { userId, setUserId, loadUserId } = useContext(UserIdContext);
   const { T } = useContext(TranslationsContext);
 
@@ -38,7 +39,7 @@ export function UserIdFormControl({ error }) {
       <Input
         isRequired={isFieldRequired(validationRules)}
         value={userId}
-        onChange={(e) => setUserId(e.target.value)}
+        onChange={(e) => setUserId(inputFormatter(e.target.value))}
         placeholder={inputFormat}
         type={inputType}
       />
