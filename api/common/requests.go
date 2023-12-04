@@ -6,18 +6,18 @@ type CreateReviewRequest struct {
 }
 
 type CreateProfessionalRequest struct {
-	FullName    string  `json:"fullName" validate:"required,multiWords"`
-	Location    string  `json:"location" validate:"required,string"`
-	LocationLat float64 `json:"locationLat" validate:"required,numeric"`
-	LocationLng float64 `json:"locationLng" validate:"required,numeric"`
-	BusinessId  *string `json:"businessId" validate:"omitempty,string"`
-	Phone       string  `json:"phone" validate:"required,phone"`
-	Email       *string `json:"email" validate:"omitempty,email"`
+	FullName    string      `json:"fullName" validate:"required,multiWords"`
+	Location    string      `json:"location" validate:"required,string"`
+	LocationLat float64     `json:"locationLat" validate:"required,numeric"`
+	LocationLng float64     `json:"locationLng" validate:"required,numeric"`
+	BusinessId  *string     `json:"businessId" validate:"omitempty,string"`
+	Phone       PhoneNumber `json:"phone" validate:"required,phone"`
+	Email       *string     `json:"email" validate:"omitempty,email"`
 	// either email or phone has to be filled in
 }
 
 type UserIdRequest struct {
-	UserId string `json:"userId" validate:"required,phone"`
+	UserId UserId `json:"userId" validate:"required,phone"`
 }
 
 type CreateReviewAndProfessionalRequest struct {

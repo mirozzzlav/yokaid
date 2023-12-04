@@ -148,7 +148,7 @@ export function CreateReviewWithPro({
         >
           <FormLabel>{T('phone')}</FormLabel>
           <Input
-            type="text"
+            type="tel"
             value={getInput('phone')}
             onChange={(e) => {
               updateInput('phone', e.target.value);

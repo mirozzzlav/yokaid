@@ -17,6 +17,30 @@ func (i *imagePath) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type PhoneNumber string
+
+func (phoneNumberIn *PhoneNumber) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	var num string
+	json.Unmarshal(b, &num)
+	*phoneNumberIn = PhoneNumber(getNumberSanitized(num))
+	return nil
+}
+
+type UserId string
+
+func (userIdIn *UserId) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	var num string
+	json.Unmarshal(b, &num)
+	*userIdIn = UserId(getNumberSanitized(num))
+	return nil
+}
+
 type timeCustom struct {
 	time.Time
 }
@@ -37,6 +61,23 @@ func (t *timeCustom) UnmarshalJSON(b []byte) error {
 type contact struct {
 	Phone string `json:"phone"`
 	Email string `json:"email"`
+}
+
+func (contactIn *contact) UnmarshalJSON(b []byte) error {
+
+	var c map[string]any
+	if string(b) == "null" {
+		return nil
+	}
+	json.Unmarshal(b, &c)
+	if c["email"] == nil {
+		(*contactIn).Email = ""
+	} else {
+		(*contactIn).Email = c["email"].(string)
+	}
+	(*contactIn).Phone = GetPhoneNumber(c["phone"].(string))
+
+	return nil
 }
 
 type professional struct {
@@ -71,11 +112,6 @@ type ListItem struct {
 	Label             string `json:"label"`
 }
 
-type Contact struct {
-	Phone string `json:"phone"`
-	Email string `json:"email"`
-}
-
 func ListItemLoader() (*[]ListItem, func(rowBytes []byte)) {
 	var listItems []ListItem
 	return &listItems, func(rowBytes []byte) {
@@ -104,10 +140,10 @@ func ProfessionsModelLoader() (*[]profession, func(rowBytes []byte)) {
 	}
 }
 
-func ContactsModelLoader() (*[]Contact, func(rowBytes []byte)) {
-	var contacts []Contact
+func ContactsModelLoader() (*[]contact, func(rowBytes []byte)) {
+	var contacts []contact
 	return &contacts, func(rowBytes []byte) {
-		var req Contact
+		var req contact
 		_ = json.Unmarshal(rowBytes, &req)
 		contacts = append(contacts, req)
 	}

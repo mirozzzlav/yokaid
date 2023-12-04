@@ -69,6 +69,7 @@ export default {
     label: 'your phone',
     inputFormat: '+421 9xx xxx xxx',
     validationRules: 'required,phone',
+    inputType: 'tel',
   },
   defaultLanguage: 'en_US',
   languages: [

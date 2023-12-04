@@ -55,7 +55,6 @@ INSERT INTO "professions" ("title") VALUES
   ('{"sk_SK": "Model", "en_US": "Model"}'::JSONB),
   ('{"sk_SK": "Gurmán", "en_US": "Food Critic"}'::JSONB),
   ('{"sk_SK": "Zvukový inžinier", "en_US": "Sound Engineer"}'::JSONB),
-  ('{"sk_SK": "Záhradný architekt", "en_US": "Landscape Architect"}'::JSONB),
   ('{"sk_SK": "Letový inštruktor", "en_US": "Flight Instructor"}'::JSONB),
   ('{"sk_SK": "Tanečník", "en_US": "Dancer"}'::JSONB),
   ('{"sk_SK": "Redaktor", "en_US": "Editor"}'::JSONB),
@@ -89,6 +88,10 @@ INSERT INTO "professions" ("title") VALUES
   ('{"sk_SK": "Zlatník", "en_US": "Goldsmith"}'::JSONB),
   ('{"sk_SK": "Šička", "en_US": "Seamstress"}'::JSONB),
   ('{"sk_SK": "Keramik", "en_US": "Ceramicist"}'::JSONB),
-  ('{"sk_SK": "Tkáč", "en_US": "Tiler"}'::JSONB),
+  ('{"sk_SK": "Obkladač", "en_US": "Tiler"}'::JSONB),
   ('{"sk_SK": "Stolár", "en_US": "Joiner"}'::JSONB),
-  ('{"sk_SK": "Krajčír", "en_US": "Tailor"}'::JSONB);
+  ('{"sk_SK": "Krajčír", "en_US": "Tailor"}'::JSONB),
+  ('{"sk_SK": "Kaderník", "en_US": "Hairdresser"}'::JSONB),
+  ('{"sk_SK": "Maliar", "en_US": "Painter"}'::JSONB);
+
+CREATE EXTENSION IF NOT EXISTS unaccent;

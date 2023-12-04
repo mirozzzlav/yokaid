@@ -15,7 +15,7 @@ func getProfessions(server common.Server) gin.HandlerFunc {
 
 		dbQuery := server.GetQueriesRepo().GetProfessionsQuery(
 			common.QueryPartial{
-				Query:  "title->>? ILIKE ?",
+				Query:  "unaccent(title->>?) ILIKE unaccent(?)",
 				Params: []any{lang, "%" + searchTitle + "%"},
 			}, lang)
 		professions, professionsModelLoader := common.ProfessionsModelLoader()

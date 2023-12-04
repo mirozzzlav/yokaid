@@ -1,1 +1,2 @@
 DELETE FROM professions;
+DROP EXTENSION IF EXISTS unaccent;

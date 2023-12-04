@@ -27,7 +27,7 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 
 func searchProfessional(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		infos, infosModelLoader := common.ProfessionalsModelLoader()
+		professionals, professionalsModelLoader := common.ProfessionalsModelLoader()
 		var err error
 		searchName, _ := ctx.Params.Get("searchName")
 
@@ -35,15 +35,15 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 		lang := common.GetLangFromSession(ctx)
 		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(
 			common.QueryPartial{
-				Query:  "full_name ILIKE ?",
+				Query:  "unaccent(full_name) ILIKE unaccent(?)",
 				Params: []any{"%" + searchName + "%"},
 			}, lang, 5)
 		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, infosModelLoader)
+		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionalsModelLoader)
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		common.SetOKJSONResponse(ctx, "", infos)
+		common.SetOKJSONResponse(ctx, "", professionals)
 	}
 }
 
@@ -66,7 +66,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 
 		if common.Config.PayContact {
 			userId, _ = ctx.Params.Get("userId")
-			dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, userId, "1")
+			dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, common.UserId(userId), "1")
 			_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
 			if err == common.ErrNoRows {
 				userId = ""

@@ -274,7 +274,7 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang strin
 	return q
 }
 
-func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId string, paymentState string) common.Query {
+func (qr QueriesRepo) CreatePaymentQuery(id string, userId common.UserId, productId string, paymentState string) common.Query {
 
 	query := `INSERT INTO payments ("id", "user_id", "product_id", "state") VALUES(?, ?, ?, ?)`
 
@@ -289,7 +289,7 @@ func (qr QueriesRepo) CreatePaymentQuery(id string, userId string, productId str
 	return q
 }
 
-func (qr QueriesRepo) CheckPaymentExist(userId string, productId string) common.Query {
+func (qr QueriesRepo) CheckPaymentExist(userId common.UserId, productId string) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
@@ -303,7 +303,7 @@ func (qr QueriesRepo) CheckPaymentExist(userId string, productId string) common.
 	}
 }
 
-func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId string, columns ...string) common.Query {
+func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId common.UserId, columns ...string) common.Query {
 
 	columnsStr := "email, phone"
 	if len(columns) > 0 {

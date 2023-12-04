@@ -183,12 +183,16 @@ func MultiWordsValidator(fl validator.FieldLevel) bool {
 	return len(textSplits) >= 2
 }
 
-func ValidatePhoneNumber(number string) bool {
-	return regexp.MustCompile(`\+[0-9]{2,3}\s(?:[0-9]{2,4}\s){2}[0-9]{2,4}`).MatchString(number) && len(number) == 16
+func getNumberSanitized(number string) string {
+	numberSanitized := regexp.MustCompile(`[\/)(\- ]`).ReplaceAllString(number, "")
+	return regexp.MustCompile(`^00|\+`).ReplaceAllString(numberSanitized, "")
+}
+func validatePhoneNumber(number string) bool {
+	return regexp.MustCompile(`^[0-9]{12}$`).MatchString(number)
 }
 
 func PhoneNumberValidator(fl validator.FieldLevel) bool {
-	return ValidatePhoneNumber(fl.Field().String())
+	return validatePhoneNumber(fl.Field().String())
 }
 
 func ConvertToInt(val any) (int, error) {
@@ -330,4 +334,17 @@ func GetLangFromSession(ctx *gin.Context) string {
 		lang = Config.DefaultLanguage
 	}
 	return lang.(string)
+}
+
+func GetPhoneNumber(storedPhoneNumber string) string {
+	var result strings.Builder
+
+	for i, char := range storedPhoneNumber {
+		if i > 0 && i%3 == 0 {
+			result.WriteRune(' ') // Add a space after every 3rd character
+		}
+		result.WriteRune(char)
+	}
+
+	return fmt.Sprintf("+%s", result.String())
 }

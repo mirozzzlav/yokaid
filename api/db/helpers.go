@@ -34,7 +34,7 @@ func (_ *StoreHelpers) HandleFilter(filter string) (common.QueryPartial, error) 
 	return handleFilter(filter)
 }
 
-func (sH *StoreHelpers) checkProfessionalExist(phone string, email *string) bool {
+func (sH *StoreHelpers) checkProfessionalExist(phone common.PhoneNumber, email *string) bool {
 	filter := common.QueryPartial{Query: "", Params: []any{}}
 
 	if email != nil {

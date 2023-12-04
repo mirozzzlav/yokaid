@@ -26,6 +26,13 @@ const mapClusterStyle = {
   justifyContent: 'center',
   fontSize: '1.1rem',
 };
+const style = {
+  filter: {
+    '.leaflet-tile-pane': {
+      filter: 'contrast(1.3) saturate(0)',
+    },
+  },
+};
 
 export default function Map({
   markers,
@@ -150,7 +157,7 @@ export default function Map({
     });
   }, [markers, mapLayersRef, clusterGroupRef]);
 
-  return <Box w="100%" h="100%" ref={mapElementRef} />;
+  return <Box w="100%" h="100%" ref={mapElementRef} sx={style.filter} />;
 }
 
 Map.defaultProps = {
