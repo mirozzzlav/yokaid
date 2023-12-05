@@ -187,6 +187,38 @@ FullScreenIcon.prototype.propTypes = {
   exit: PropTypes.bool,
 };
 
+function GhostIcon({ sx }) {
+  return (
+    <Icon viewBox="0 0 146 146" sx={{ fontSize: '1.4rem', ...sx }}>
+      <defs>
+        <clipPath id="a">
+          <use xlinkHref="#g1909" />
+        </clipPath>
+        <clipPath id="b">
+          <path
+            className="powerclip"
+            d="M14.62 9.29H131.3v127.33H14.62zm53.65 42.53c0-7.32-2.69-13.26-6.01-13.26s-6.02 5.94-6.02 13.26c0 7.31 2.7 13.25 6.02 13.25s6.01-5.94 6.01-13.25zm-6.01 11.94c-20.753-21.253-41.507-42.507 0 0zm27.67-11.94c0-7.32-2.69-13.26-6.01-13.26-3.33 0-6.02 5.94-6.02 13.26 0 7.31 2.69 13.25 6.02 13.25 3.32 0 6.01-5.94 6.01-13.25zm-6.01 11.94c-55.947-42.507-27.973-21.253 0 0z"
+          />
+        </clipPath>
+      </defs>
+      <path fill="none" d="M0 0h145.92v145.92H0z" />
+      <path
+        d="M126.28 108.55c.43-8.42-7.23-25.21-14.15-43.48-3.04-8.04-4.96-13.93-7.78-21.55-1.45-3.93-3.18-10.03-5.33-13.5-8.85-14.22-19.15-15.73-26.1-15.73-6.58 0-17.47 2.49-25.82 15.51-5.03 7.84-7.74 20.58-12.13 31.84-7.48 19.16-15.35 37.66-15.35 46.8 0 7.02 6.96 13.85 11.16 10.72 2.71-2.02 3.95-4.68 7.29-5.82 1.16-.4 2.19-.07 2.72 1.08 12.49 27.18 19.25 16.44 24.65 6.37 2.66-4.96 4.69-10.07 7.51-10.07 4.47 0 9.33 17.45 14.86 19.59 1.41.55 4.32 2.68 9.57-2.55 1.04-1.03 2.89-3.06 4.14-5.66 1.88-3.93 3.87-8.28 5.44-8.87 2.24-.85 6.74 5.54 7.89 6.31 5.06 3.35 11.04-3.53 11.43-10.99z"
+        clipPath="url(#b)"
+        fill={sx?.color || '#ffffff'}
+      />
+    </Icon>
+  );
+}
+
+GhostIcon.defaultProps = {
+  sx: null,
+};
+
+GhostIcon.prototype.propTypes = {
+  sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
+};
+
 export default {
   FilterIcon,
   FilterBarsIcon,
@@ -195,4 +227,5 @@ export default {
   LocationIcon,
   WorkerIcon,
   FullScreenIcon,
+  GhostIcon,
 };

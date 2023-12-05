@@ -62,6 +62,7 @@ export default function Modal({
               colorScheme="blue"
               mr={3}
               onClick={submitButton.onClick}
+              leftIcon={submitButton.icon || null}
             >
               {submitButton.label}
             </Button>

@@ -345,7 +345,7 @@ export default function MapPage() {
           onClick={() => navigateAction('add-review-with-professional')}
           sx={style.addReviewBtn}
           colorScheme="blue"
-          leftIcon={<AddIcon />}
+          leftIcon={<Icons.GhostIcon />}
         >
           {T('write review')}
         </Button>
@@ -366,6 +366,11 @@ export default function MapPage() {
         close={() => navigateAction(null)}
         title={T('professional info')}
         onScrolledDown={nextPage}
+        submitButton={{
+          label: T('write review'),
+          icon: <Icons.GhostIcon />,
+          onClick: () => professionalDetail.id && navigateAction('add-review', professionalDetail?.id),
+        }}
       >
         <ProfessionalInfo
           data={professionalDetail || null}

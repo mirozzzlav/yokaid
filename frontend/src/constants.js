@@ -10,6 +10,7 @@ const callStates = {
 const buttonPropType = PropTypes.shape({
   label: PropTypes.string,
   onClick: PropTypes.func,
+  icon: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
 });
 
 const formModalsConfigPropType = PropTypes.shape({
