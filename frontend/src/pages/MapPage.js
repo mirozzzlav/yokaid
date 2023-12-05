@@ -77,7 +77,7 @@ function useStyle() {
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
-      maxWidth: '220px',
+      maxWidth: '130px',
     },
     mainSearch: {
       flexGrow: 0,
@@ -112,6 +112,7 @@ function useStyle() {
       filterDropdown: {
         flexGrow: 1,
       },
+      filterInfoBlock: { maxWidth: '220px' },
     },
     lg: {
       filter: { justifyContent: 'center' },
