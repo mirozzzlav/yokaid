@@ -29,7 +29,7 @@ const mapClusterStyle = {
 const style = {
   filter: {
     '.leaflet-tile-pane': {
-      filter: 'contrast(1.3) saturate(0)',
+      filter: 'contrast(1.1) saturate(0.8)',
     },
   },
 };

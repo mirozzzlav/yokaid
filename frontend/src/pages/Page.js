@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useRef } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -17,6 +17,7 @@ import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
 import { TranslationsContext } from 'src/providers';
 import config from 'src/config';
+import Icons from 'src/components/Icons';
 
 const loaderAnim = keyframes(`
   from {
@@ -46,6 +47,7 @@ function useStyle() {
       justifyContent: 'space-between',
       padding: '1rem 1rem',
       background: '#fff',
+      transition: 'padding ease-in .1s',
     },
     logoBtn: {
       lineHeight: 1,
@@ -59,6 +61,23 @@ function useStyle() {
     topContent: {
       padding: '0 2rem',
       flexGrow: 1,
+    },
+    topContentHidden: (isHidden) => ({
+      ...(
+        isHidden ?
+        {
+          padding: '3px 1rem 5px 1rem',
+          '> [aria-roledescription="top-content"]': {
+            display: 'none',
+          },
+        } : null
+      ),
+    }),
+    fullScreenBtn: {
+      background: '#fff',
+      ':hover, :focus, :visited': {
+        background: '#fff',
+      },
     },
     loader: (isLoading) => ({
       width: '100%',
@@ -98,6 +117,8 @@ function useStyle() {
       left: 0,
       padding: '0 12px 28px 52px',
       justifyContent: 'right',
+      display: 'flex',
+      gap: theme.space[2],
     },
   };
   const responsiveStyle = useBreakpointValue({
@@ -137,19 +158,22 @@ function Page({
     [action, actionParams, modalsConfigFromProps],
   );
   const { lang, setLang } = useContext(TranslationsContext);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   return (
     <Box sx={style.container(mode)}>
       <Box sx={style.top}>
         <Box sx={style.loader(isLoading)} />
-        <Flex sx={style.topInner}>
+        <Flex sx={{ ...style.topInner, ...style.topContentHidden(isFullScreen) }}>
           <IconButton
             aria-label="Company Logo"
             variant="unstyled"
             sx={style.logoBtn}
             icon={<Icon as={Logo} sx={style.logo} />}
           />
-          <Box sx={style.topContent}>{topContent}</Box>
+          <Box sx={style.topContent} aria-roledescription="top-content">
+            {topContent}
+          </Box>
           <Box sx={style.topRight}>
             <LanguageDropdown
               selectedLanguage={lang}
@@ -172,7 +196,15 @@ function Page({
           setShownModalId={navigateAction}
         />
       </Box>
-      {footer && <Flex sx={style.footer}>{footer}</Flex>}
+      <Flex sx={style.footer}>
+        {footer}
+        <IconButton
+          aria-label="full screen switch"
+          sx={style.fullScreenBtn}
+          onClick={() => setIsFullScreen((prev) => !prev)}
+          icon={<Icons.FullScreenIcon exit={isFullScreen} />}
+        />
+      </Flex>
     </Box>
   );
 }

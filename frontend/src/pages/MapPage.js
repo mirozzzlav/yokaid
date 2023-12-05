@@ -30,7 +30,7 @@ import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 
-function useStyle(showFullWidthInput) {
+function useStyle() {
   const style = {
     filter: {
       gap: '0.4rem',
