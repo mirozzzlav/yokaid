@@ -23,7 +23,6 @@ import {
   useSearchProfessional,
   useProfessionalDetail,
 } from 'src/hooks';
-import { AddIcon } from '@chakra-ui/icons';
 import Icons from 'src/components/Icons';
 import { unknownObjectValidator, getMergedStyle } from 'src/helpers';
 import PropTypes from 'prop-types';
@@ -73,11 +72,10 @@ function useStyle() {
         paddingRight: 0,
       },
       lineHeight: 1,
-      color: theme.colors.gray[400],
+      color: theme.colors.black,
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
-      maxWidth: '130px',
     },
     mainSearch: {
       flexGrow: 0,
@@ -107,12 +105,6 @@ function useStyle() {
       mainSearch: {
         flexGrow: 1,
       },
-    },
-    md: {
-      filterDropdown: {
-        flexGrow: 1,
-      },
-      filterInfoBlock: { maxWidth: '220px' },
     },
     lg: {
       filter: { justifyContent: 'center' },

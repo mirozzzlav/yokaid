@@ -93,4 +93,5 @@ msgid "payment successful"
 msgstr "Payment with code $1 is successful."
 msgid "review form user already reviewed pro"
 msgstr "You have previously evaluated this professional, and only one review is allowed per individual."
-
+msgid "no results"
+msgstr "No results found"

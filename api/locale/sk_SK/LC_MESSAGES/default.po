@@ -95,4 +95,6 @@ msgid "payment successful"
 msgstr "Platba s kódom $1 prebehla supersky úspešne."
 msgid "review form user already reviewed pro"
 msgstr "Tohto človeka si už hodnotil, je možne pridať iba jedno hodnotenie na jedného človeka."
+msgid "no results"
+msgstr "Nenašli sa žiadne výsledky"
 

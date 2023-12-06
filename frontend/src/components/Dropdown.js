@@ -24,6 +24,7 @@ import useDelayedAction from 'src/hooks/useDelayedAction';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { WindowContext } from 'src/providers/WindowProvider';
 import Overlay from 'src/components/Overlay';
+import { TranslationsContext } from 'src/providers';
 
 const listElemStyle = {
   width: '100%',
@@ -94,28 +95,22 @@ function DropdownList({
   position,
   width,
 }) {
+  const { T } = useContext(TranslationsContext);
   const { thinScreen } = useContext(WindowContext);
-  if (items.length === 0) {
-    return null;
-  }
-  return (
-    <Box
-      sx={{
-        ...style.list(isShown, thinScreen),
-        ...theme.styles.global.contextMenuLikeChild(position, width),
-      }}
-    >
-      <Box>
-        {items.map(({ label, value, ...restItem }, i) => (
-          <Box
-            aria-roledescription="dropdown-item"
-            sx={style.listElem}
-            tabIndex={0}
-            onBlur={() => i === items.length - 1 && setIsShown(false)}
-            key={`${label}${
+
+  let listItems = <Box sx={style.noResults}>{T('no results')}</Box>;
+
+  if (items.length > 0) {
+    listItems = items.map(({ label, value, ...restItem }, i) => (
+      <Box
+        aria-roledescription="dropdown-item"
+        sx={style.listElem}
+        tabIndex={0}
+        onBlur={() => i === items.length - 1 && setIsShown(false)}
+        key={`${label}${
               typeof value === 'object' ? JSON.stringify(value) : value
             }`}
-            onClick={() => {
+        onClick={() => {
               if (restItem.onClick) {
                 restItem.onClick({
                   label,
@@ -131,11 +126,20 @@ function DropdownList({
               }
               setIsShown(false);
             }}
-          >
-            <Box>{restItem.content || `${label}`}</Box>
-          </Box>
-        ))}
+      >
+        <Box>{restItem.content || `${label}`}</Box>
       </Box>
+        ));
+  }
+  return (
+    <Box
+      sx={{
+        ...style.list(isShown, thinScreen),
+        ...theme.styles.global.contextMenuLikeChild(position, width),
+      }}
+    >
+      {listItems}
+
     </Box>
   );
 }
@@ -267,13 +271,13 @@ function SearchDropdown({
   sx,
   showWithOverlay,
 }) {
-  const { isLoading } = useContext(LoaderContext);
   const wrapperRef = useRef();
   const inputRef = useRef();
   const [isShown, setIsShown] = useState(false);
   const [items, setItems] = useState([]);
   const delayedCall = useDelayedAction();
   let [inputVal, inputValSetter] = useState('');
+  const [isLoading, setIsLoading] = useState(null); // isLoading is specific to current dropdown
 
   if (inputValFromProps !== null && inputValSetterFromProps !== null) {
     inputVal = inputValFromProps;
@@ -281,6 +285,7 @@ function SearchDropdown({
   }
 
   const searchCall = searchHook((results) => {
+    setIsLoading(false);
     if (inputVal === '') {
       // this is risky, inputVal is uncertain in the callback context, but it works
       return;
@@ -325,6 +330,7 @@ function SearchDropdown({
       if (v === '') {
         resetDropdown();
       } else {
+        setIsLoading(true);
         delayedCall(searchCall, v);
       }
       inputValSetter(v);
@@ -333,10 +339,6 @@ function SearchDropdown({
   );
 
   const inputIcon = useMemo(() => {
-    if (showLoader && isLoading) {
-      return <Spinner />;
-    }
-
     if (inputVal !== '' && showCloseIcon) {
       return (
         <SmallCloseIcon
@@ -352,7 +354,7 @@ function SearchDropdown({
       );
     }
     return icon;
-  }, [showLoader, isLoading, icon, onValueEmpty, inputVal, showCloseIcon]);
+  }, [showLoader, icon, onValueEmpty, inputVal, showCloseIcon]);
 
   useEffect(() => {
     if (isShown && showWithOverlay && inputRef.current) {
@@ -387,14 +389,14 @@ function SearchDropdown({
   );
 
   const dropdownList = (
-    <DropdownList
+    (inputVal !== '' || !!initialItems) && !isLoading ? <DropdownList
       items={items}
       onItemClick={onItemClick}
       setIsShown={setIsShown}
       isShown={isShown}
       position={position}
       width={dropdownWidth}
-    />
+    /> : null
   );
 
   if (showWithOverlay) {

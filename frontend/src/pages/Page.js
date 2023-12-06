@@ -61,6 +61,8 @@ function useStyle() {
     topContent: {
       padding: '0 2rem',
       flexGrow: 1,
+      maxWidth: '100vw',
+      overflowX: 'hidden',
     },
     topContentHidden: (isHidden) => ({
       ...(
@@ -126,10 +128,11 @@ function useStyle() {
       topInner: { flexWrap: 'wrap' },
       topContent: {
         order: 3,
+        flexBasis: '100%',
         padding: '1rem 0 0 0',
       },
     },
-    md: {
+    lg: {
       topContent: { order: 2 },
       topRight: { order: 3 },
     },
