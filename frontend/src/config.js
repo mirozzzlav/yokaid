@@ -76,8 +76,8 @@ export default {
   },
   defaultLanguage: 'en_US',
   languages: [
-    { value: 'en_US', label: 'English', iconName: 'USIcon' },
-    { value: 'sk_SK', label: 'Slovenčina', iconName: 'SKIcon' },
+    { value: 'en_US', label: 'English' },
+    { value: 'sk_SK', label: 'Slovenčina' },
   ],
   pluralFormGetter: (lang) =>
     ({

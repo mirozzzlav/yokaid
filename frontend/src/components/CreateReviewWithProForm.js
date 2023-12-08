@@ -31,12 +31,12 @@ import {
   usePlacesSearch,
   useProfessionsSearch,
 } from 'src/hooks';
-import Icons from 'src/components/Icons';
 import { MultiInput } from 'src/components/MultiItem';
 import PropTypes from 'prop-types';
 import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
+import { WorkerIcon, LocationIcon } from 'src/assets';
 
 export function CreateReviewWithPro({
   formResult,
@@ -121,7 +121,7 @@ export function CreateReviewWithPro({
             }}
             position="left"
             dropdownWidth="100%"
-            icon={<Icons.LocationIcon />}
+            icon={<LocationIcon />}
             showWithOverlay={isTouchDevice}
           />
           <FormErrorMessage>
@@ -199,7 +199,7 @@ export function CreateReviewWithPro({
             showCloseIcon={false}
             position="left"
             dropdownWidth="100%"
-            icon={<Icons.WorkerIcon />}
+            icon={<WorkerIcon />}
             showWithOverlay={isTouchDevice}
           />
           <MultiInput
@@ -238,8 +238,8 @@ export function CreateReviewWithPro({
               msgParts={
                 payReview
                   ? [
-                      <strong>{formResult.data.smsCode}</strong>,
-                      <strong>{smsPaymentPhone}</strong>,
+                    <strong>{formResult.data.smsCode}</strong>,
+                    <strong>{smsPaymentPhone}</strong>,
                     ]
                   : null
               }

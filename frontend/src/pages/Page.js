@@ -3,12 +3,11 @@ import PropTypes from 'prop-types';
 import {
   Box,
   Flex,
-  Icon,
   IconButton,
   keyframes,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ReactComponent as Logo } from 'src/assets/logo.svg';
+import { FullScreenIcon, Logo } from 'src/assets';
 import { FormModals, LanguageDropdown, Overlay } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
@@ -17,7 +16,6 @@ import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
 import { TranslationsContext } from 'src/providers';
 import config from 'src/config';
-import Icons from 'src/components/Icons';
 
 const loaderAnim = keyframes(`
   from {
@@ -48,15 +46,6 @@ function useStyle() {
       padding: '1rem 1rem',
       background: '#fff',
       transition: 'padding ease-in .1s',
-    },
-    logoBtn: {
-      lineHeight: 1,
-    },
-    logo: {
-      position: 'relative',
-      height: '33px',
-      width: '100px',
-      maxWidth: '100px',
     },
     topContent: {
       padding: '0 2rem',
@@ -168,12 +157,7 @@ function Page({
       <Box sx={style.top}>
         <Box sx={style.loader(isLoading)} />
         <Flex sx={{ ...style.topInner, ...style.topContentHidden(isFullScreen) }}>
-          <IconButton
-            aria-label="Company Logo"
-            variant="unstyled"
-            sx={style.logoBtn}
-            icon={<Icon as={Logo} sx={style.logo} />}
-          />
+          <Logo />
           <Box sx={style.topContent} aria-roledescription="top-content">
             {topContent}
           </Box>
@@ -205,7 +189,7 @@ function Page({
           aria-label="full screen switch"
           sx={style.fullScreenBtn}
           onClick={() => setIsFullScreen((prev) => !prev)}
-          icon={<Icons.FullScreenIcon exit={isFullScreen} />}
+          icon={<FullScreenIcon exit={isFullScreen} />}
         />
       </Flex>
     </Box>

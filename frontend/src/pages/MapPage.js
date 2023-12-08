@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Flex, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Button, Flex, Icon, useBreakpointValue } from '@chakra-ui/react';
 import Page from 'src/pages/Page';
 import theme from 'src/style';
 
@@ -23,11 +23,11 @@ import {
   useSearchProfessional,
   useProfessionalDetail,
 } from 'src/hooks';
-import Icons from 'src/components/Icons';
 import { unknownObjectValidator, getMergedStyle } from 'src/helpers';
 import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
+import { FilterIcon, FilterIcons, GhostIcon } from 'src/assets';
 
 function useStyle() {
   const style = {
@@ -141,7 +141,7 @@ function FilterInfo({
           {value}
         </Box>
       ))}
-      <Icons.FilterIcon sx={style.filterInfoIcon} />
+      <FilterIcon sx={style.filterInfoIcon} />
     </Flex>
   );
 }
@@ -282,7 +282,7 @@ export default function MapPage() {
                   inputValSetter={setInputVal}
                   dropdownWidth="100%"
                   {...(iconName
-                    ? { icon: React.createElement(Icons[iconName]) }
+                    ? { icon: React.createElement(FilterIcons[iconName]) }
                     : null)}
                   sx={style.filterDropdown}
                 />
@@ -338,7 +338,7 @@ export default function MapPage() {
           onClick={() => navigateAction('add-review-with-professional')}
           sx={style.addReviewBtn}
           colorScheme="blue"
-          leftIcon={<Icons.GhostIcon />}
+          leftIcon={<GhostIcon />}
         >
           {T('write review')}
         </Button>
@@ -361,7 +361,7 @@ export default function MapPage() {
         onScrolledDown={nextPage}
         submitButton={{
           label: T('write review'),
-          icon: <Icons.GhostIcon />,
+          icon: <GhostIcon />,
           onClick: () => professionalDetail.id && navigateAction('add-review', professionalDetail?.id),
         }}
       >
