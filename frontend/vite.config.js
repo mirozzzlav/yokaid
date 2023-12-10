@@ -24,7 +24,32 @@ export default () =>
         src: resolve('src/'),
       },
     },
-    esbuild: { loader: 'jsx', include: /src\/.*\.jsx?$/, exclude: [] },
+    esbuild: { loader: 'jsx',
+      include: /src\/.*\.jsx?$/,
+      exclude: [],
+    },
+    build: {
+      rollupOptions: {
+         output: {
+          manualChunks: (id) => {
+            if (
+                id.includes('react-router-dom') ||
+                id.includes('@remix-run') ||
+                id.includes('react-router')
+            ) {
+              return 'react-router';
+            }
+            if (id.includes('chakra-ui') || id.includes('framer-motion')) {
+              return 'chakra-ui';
+            }
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+            return 'index';
+          },
+        },
+      },
+    },
     optimizeDeps: {
       esbuildOptions: {
         loader: {

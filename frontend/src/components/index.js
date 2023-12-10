@@ -1,5 +1,3 @@
-import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
-import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
 import Message, {
   ErrorMessage,
   SuccessMessage,
@@ -20,6 +18,8 @@ import ProfessionalContact from 'src/components/ProfessionalContact';
 import RatingFormControls from 'src/components/RatingFormControls';
 import Overlay from 'src/components/Overlay';
 import LanguageDropdown from 'src/components/LanguageDropdown';
+import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
+import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
 
 export {
   createReviewFormConfigFactory,

@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Flex, Icon, useBreakpointValue } from '@chakra-ui/react';
-import Page from 'src/pages/Page';
+import { Box, Button, Flex, useBreakpointValue } from '@chakra-ui/react';
 import theme from 'src/style';
 
 import {
@@ -28,6 +27,7 @@ import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import { FilterIcon, FilterIcons, GhostIcon } from 'src/assets';
+import Page from 'src/pages/Page';
 
 function useStyle() {
   const style = {

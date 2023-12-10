@@ -1,15 +1,16 @@
-import { ReactComponent as LogoSvg } from 'src/assets/logo.svg';
-import { ReactComponent as FilterIconSvg } from 'src/assets/filterIcon.svg';
-import { ReactComponent as WorkerIconSvg } from 'src/assets/workerIcon.svg';
-import { ReactComponent as LocationIconSvg } from 'src/assets/locationIcon.svg';
-import { ReactComponent as SKSvg, ReactComponent as FullScreenSvg } from 'src/assets/SK.svg';
-import { ReactComponent as USSvg, ReactComponent as FullScreenExitSvg } from 'src/assets/US.svg';
-import { ReactComponent as GhostIconSvg } from 'src/assets/ghostIcon.svg';
-
 import PropTypes from 'prop-types';
 import { unknownObjectValidator } from 'src/helpers';
 import { Icon } from '@chakra-ui/react';
 import React from 'react';
+import { ReactComponent as LogoSvg } from 'src/assets/logo.svg';
+import { ReactComponent as FilterIconSvg } from 'src/assets/filterIcon.svg';
+import { ReactComponent as WorkerIconSvg } from 'src/assets/workerIcon.svg';
+import { ReactComponent as LocationIconSvg } from 'src/assets/locationIcon.svg';
+import { ReactComponent as SKSvg } from 'src/assets/SK.svg';
+import { ReactComponent as USSvg } from 'src/assets/US.svg';
+import { ReactComponent as FullScreenSvg } from 'src/assets/fullScreenIcon.svg';
+import { ReactComponent as FullScreenExitSvg } from 'src/assets/fullScreenExitIcon.svg';
+import { ReactComponent as GhostIconSvg } from 'src/assets/ghostIcon.svg';
 
 const defaultIconStyle = {
   fontSize: '1.4rem',
