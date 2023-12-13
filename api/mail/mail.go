@@ -37,11 +37,15 @@ var templateGetters = map[string]templateGetter{
 
 type Notifier struct{}
 
-func (notifier Notifier) SendNotification(to string, subject string, message string) error {
+func (notifier Notifier) SendNotification(to string, message string, extraParams ...string) error {
 
 	if !common.Config.EnableNotifications {
 		log.Println("--- APP Notifications are disabled ---")
 		return nil
+	}
+	subject := "Message"
+	if len(extraParams) >= 1 {
+		subject = extraParams[0]
 	}
 
 	_mail := mail.NewSingleEmail(

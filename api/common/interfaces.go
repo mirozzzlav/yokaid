@@ -37,7 +37,7 @@ type QueriesRepo interface {
 	CreateReviewQuery(paymentId string, professionalId int, req CreateReviewRequest) Query
 	GetProfessionsQuery(filter QueryPartial, lang string) Query
 	CreatePaymentQuery(id string, userId UserId, productId string, paymentState string) Query
-	CheckPaymentExist(userId UserId, productId string) Query
+	CheckUserReviewedPro(userId UserId, professionalId int) Query
 	GetProfessionalContactQuery(professionalId int, userId UserId, columns ...string) Query
 	CreateProfessionalContactQuery(paymentId string, req CreateUserProfessionalContactRequest) Query
 	MakePaymentQuery(code string) Query
@@ -55,5 +55,5 @@ type StoreHelpers interface {
 }
 
 type Notifier interface {
-	SendNotification(to string, subject string, message string) error
+	SendNotification(to string, message string, extraParams ...string) error
 }

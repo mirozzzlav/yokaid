@@ -37,7 +37,7 @@ type QueriesRepo struct{}
 
 func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang string, limit int) common.Query {
 
-	query := `SELECT 
+	query := fmt.Sprintf(`SELECT 
 	  professionals.id, 
 	  professionals.full_name,
 	  professionals.business_id, 
@@ -56,7 +56,11 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang str
 			professional_professions JOIN professions ON professional_professions.profession_id = professions.id 
 		  GROUP BY
 			professional_professions.professional_id
-	  ) AS professions_view ON professions_view.professional_id = professionals.id`
+	  ) AS professions_view ON professions_view.professional_id = professionals.id
+	WHERE EXISTS (SELECT 1 FROM  reviews JOIN payments ON reviews.id = payments.id 
+	    AND payments.state='%s' AND reviews.professional_id = professionals.id)`,
+		common.PaymentStates.Paid,
+	)
 
 	params := []any{lang}
 
@@ -92,7 +96,7 @@ func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int
 	contactObj := "NULL AS contact, "
 	var params []any = []any{lang, professionalId, professionalId, professionalId}
 
-	if userId != "" || !common.Config.PayContact {
+	if userId != "" || common.Config.PayContact == "" {
 		contactObj = "JSON_BUILD_OBJECT('email', professionals.email, 'phone', professionals.phone) AS contact, "
 	}
 
@@ -289,15 +293,16 @@ func (qr QueriesRepo) CreatePaymentQuery(id string, userId common.UserId, produc
 	return q
 }
 
-func (qr QueriesRepo) CheckPaymentExist(userId common.UserId, productId string) common.Query {
+func (qr QueriesRepo) CheckUserReviewedPro(userId common.UserId, professionalId int) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
 				Query: fmt.Sprintf(
-					"SELECT id FROM payments WHERE user_id = ? AND product_id = ? AND state = '%s'",
+					`SELECT payments.id FROM reviews JOIN payments ON reviews.id=payments.id 
+							WHERE user_id = ? AND professional_id = ? AND state = '%s'`,
 					common.PaymentStates.Paid,
 				),
-				Params: []any{userId, productId},
+				Params: []any{userId, professionalId},
 			},
 		},
 	}
@@ -359,7 +364,7 @@ func (qr QueriesRepo) MakePaymentQuery(code string) common.Query {
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: `UPDATE payments SET state= ? WHERE id = ?`,
+				Query: fmt.Sprintf("UPDATE payments SET state= ? WHERE id = ? AND state != '%s'", common.PaymentStates.Paid),
 				Params: []any{
 					common.PaymentStates.Paid,
 					code,

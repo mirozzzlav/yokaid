@@ -64,7 +64,7 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		server.GetQueryRunner(ctx).Begin()
 		userId := ""
 
-		if common.Config.PayContact {
+		if common.Config.PayContact != "" {
 			userId, _ = ctx.Params.Get("userId")
 			dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, common.UserId(userId), "1")
 			_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)

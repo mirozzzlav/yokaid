@@ -96,8 +96,7 @@ function sprintf(string, textParts) {
     return string;
   }
   return textParts.reduce(
-    (previousValue, currentValue, index) =>
-      previousValue.replace(`$${index + 1}`, currentValue),
+    (previousValue, currentValue) => previousValue.replace(/%[sdv]/, currentValue),
     string,
   );
 }

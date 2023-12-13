@@ -19,7 +19,7 @@ export function TagTranslation({ msgId, msgParts, n }) {
     return msg;
   }
 
-  return msg.split(/\$[0-9]+/).reduce(
+  return msg.split(/%[sdv]+/).reduce(
     (prev, current, index) =>
       index < msgParts.length ? (
         <>

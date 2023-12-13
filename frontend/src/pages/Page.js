@@ -8,7 +8,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { FullScreenIcon, Logo } from 'src/assets';
-import { FormModals, LanguageDropdown, Overlay } from 'src/components';
+import { FormModals, LanguageDropdown, Overlay, verifyBySmsFormConfigFactory } from 'src/components';
 import theme from 'src/style';
 import { LoaderContext } from 'src/providers/LoaderProvider';
 import { useNavigateAction } from 'src/hooks';
@@ -142,11 +142,18 @@ function Page({
   const { isLoading } = useContext(LoaderContext);
   const style = useStyle();
   const { navigateAction, action, actionParams } = useNavigateAction();
+  const { T } = useContext(TranslationsContext);
   const modalsConfig = useMemo(
     () => ({
-      ...modalsConfigFromProps,
-      // ... some page related modals here if required
-    }),
+        ...modalsConfigFromProps,
+        'verify-by-sms': {
+          title: T('sms verification'),
+          submitButton: {
+            label: T('submit'),
+          },
+          formConfig: verifyBySmsFormConfigFactory(actionParams),
+        },
+      }),
     [action, actionParams, modalsConfigFromProps],
   );
   const { lang, setLang } = useContext(TranslationsContext);

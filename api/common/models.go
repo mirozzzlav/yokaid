@@ -25,7 +25,7 @@ func (phoneNumberIn *PhoneNumber) UnmarshalJSON(b []byte) error {
 	}
 	var num string
 	json.Unmarshal(b, &num)
-	*phoneNumberIn = PhoneNumber(getNumberSanitized(num))
+	*phoneNumberIn = PhoneNumber(GetNumberSanitized(num))
 	return nil
 }
 
@@ -37,7 +37,7 @@ func (userIdIn *UserId) UnmarshalJSON(b []byte) error {
 	}
 	var num string
 	json.Unmarshal(b, &num)
-	*userIdIn = UserId(getNumberSanitized(num))
+	*userIdIn = UserId(GetNumberSanitized(num))
 	return nil
 }
 

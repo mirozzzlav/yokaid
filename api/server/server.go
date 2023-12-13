@@ -18,7 +18,6 @@ type server struct {
 	router   *gin.Engine
 	logError func(ctx *gin.Context, err error)
 	validate *validator.Validate
-	notifier common.Notifier
 	db       *sql.DB
 }
 

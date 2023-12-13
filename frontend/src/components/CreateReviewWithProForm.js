@@ -17,7 +17,6 @@ import {
 import {
   ErrorMessage,
   InfoMessage,
-  SuccessMessage,
 } from 'src/components/Messages';
 import FormGroup from 'src/components/FormGroup';
 import {
@@ -37,6 +36,8 @@ import RatingFormControls from 'src/components/RatingFormControls';
 import useCall from 'src/hooks/useCall';
 import config from 'src/config';
 import { WorkerIcon, LocationIcon } from 'src/assets';
+import { NavLink } from 'react-router-dom';
+import { ReviewSuccessMessage } from 'src/components/CreateReviewForm';
 
 export function CreateReviewWithPro({
   formResult,
@@ -57,9 +58,18 @@ export function CreateReviewWithPro({
 
   return (
     <Box>
-      {payReview && (
+      {payReview === 'sms' && (
         <FormControl>
           <InfoMessage message={T('review form info', [smsPaymentPhone])} />
+        </FormControl>
+      )}
+      {payReview === 'verify' && (
+        <FormControl>
+          <InfoMessage message={<TagTranslation
+            msgId="review form info verify"
+            msgParts={[<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>]}
+          />}
+          />
         </FormControl>
       )}
       <FormControl>
@@ -231,20 +241,9 @@ export function CreateReviewWithPro({
 
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage
-          message={
-            <TagTranslation
-              msgId={formResult.msg}
-              msgParts={
-                payReview
-                  ? [
-                    <strong>{formResult.data.smsCode}</strong>,
-                    <strong>{smsPaymentPhone}</strong>,
-                    ]
-                  : null
-              }
-            />
-          }
+        <ReviewSuccessMessage
+          data={formResult.data}
+          msg={formResult.msg}
         />
       ) : null}
     </Box>

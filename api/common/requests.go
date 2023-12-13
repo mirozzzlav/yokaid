@@ -38,8 +38,13 @@ type CreateUserProfessionalContactRequest struct {
 	UserIdRequest
 }
 
+type MakePaymentRequest struct {
+	Code string `json:"code" validate:"required"`
+}
+
 // add here empty request instances that has validation rules
 var requests = []any{
 	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
+	MakePaymentRequest{},
 }

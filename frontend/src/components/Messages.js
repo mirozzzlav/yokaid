@@ -15,10 +15,17 @@ const style = {
       fontSize: '0.9rem',
       marginTop: '2px',
     },
-    '> p': {
+    '> p, a': {
       lineHeight: '1.1rem',
       fontSize: '0.8rem',
     },
+    a: {
+      fontWeight: 'bold',
+      ':hover': {
+        textDecoration: 'underline',
+      },
+    },
+
   },
   message: {
     fontSize: '0.9rem',

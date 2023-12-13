@@ -13,30 +13,33 @@ $(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
 endif
 endif
 
-wip := ""
 server_name := $(DOMAIN)
 api_host := api_$(MAIN_SERVER)
 api_port := $(API_PORT)
 api_docker_mode := api_$(mode)
 api_port_mode := $(API_PORT)
-pay_review := false
-pay_contact := false
+pay_review_arg := ""
+pay_contact_arg := ""
+nginx_conf := nginx.conf
 
 ifeq ($(mode),$(TEST_SERVER))
 api_port_mode := $(API_PORT_TEST)
 server_name := $(TEST_SERVER).$(DOMAIN)
 endif
 
-ifeq ($(word 3, $(MAKECMDGOALS)),wip)
-wip := wip
+ifeq ($(index), wip)
+	nginx_conf := nginxwip.conf
 endif
 
-ifeq ($(word 3, $(MAKECMDGOALS)),pay_review)
-pay_review := true
+ifeq ($(pay_review), sms)
+pay_review_arg := "sms"
+endif
+ifeq ($(pay_review), verify)
+pay_review_arg := "verify"
 endif
 
-ifeq ($(word 4, $(MAKECMDGOALS)),pay_contact)
-pay_contact := true
+ifeq ($(pay_contact), sms)
+pay_contact_arg := "sms"
 endif
 
 
@@ -72,7 +75,7 @@ nginxconf:
 	export SERVER_NAME=$(server_name); \
 	export API_HOST=$(api_docker_mode); \
 	export API_PORT=$(api_port_mode); \
-	envsubst < frontend/nginx_conf/nginx$(wip).conf | sed 's|$$%|$$|g' > nginx.conf; \
+	envsubst < frontend/nginx_conf/$(nginx_conf) | sed 's|$$%|$$|g' > nginx.conf; \
 	docker cp nginx.conf fe:/etc/nginx/conf.d/$(server_name).conf; \
 	docker exec rm /etc/nginx/conf.d/default.conf 2> /dev/null; \
 	rm nginx.conf; \
@@ -86,11 +89,13 @@ buildapi:
 	--build-arg APP_NAME=$(APP_NAME) \
 	--build-arg MAIL_FROM=$(MAIL_FROM) \
 	--build-arg MAIL_API_KEY=$(MAIL_API_KEY) \
+	--build-arg SMS_SEND_API=$(SMS_SEND_API) \
+	--build-arg SMS_SEND_AUTH=$(SMS_SEND_AUTH) \
 
 runapi:
 	$(network_cmd); \
 	docker run -d --rm --name $(api_docker_mode) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
-	app -api_port=$(api_port_mode) -db_url=$(db_docker_url) -pay_review=$(pay_review) -pay_contact=$(pay_contact)
+	app -api_port=$(api_port_mode) -db_url=$(db_docker_url) -pay_review=$(pay_review_arg) -pay_contact=$(pay_contact_arg)
 
 buildfe:
 	docker build -t fe ./frontend

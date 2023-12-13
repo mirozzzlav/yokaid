@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/leonelquinteros/gotext"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -183,7 +184,7 @@ func MultiWordsValidator(fl validator.FieldLevel) bool {
 	return len(textSplits) >= 2
 }
 
-func getNumberSanitized(number string) string {
+func GetNumberSanitized(number string) string {
 	numberSanitized := regexp.MustCompile(`[\/)(\- ]`).ReplaceAllString(number, "")
 	return regexp.MustCompile(`^00|\+`).ReplaceAllString(numberSanitized, "")
 }
@@ -316,18 +317,22 @@ func GetJSONBytes(data any) (json.RawMessage, error) {
 }
 
 func GenerateUniqueID() string {
-	// Get the current timestamp in nanoseconds
-	timestamp := time.Now().UnixNano()
+	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
+	base36Timestamp := fmt.Sprintf("%s", strconv.FormatInt(timestamp, 36))
+	var splits []string
 
-	// Generate a random number to add uniqueness
-	rand.Seed(time.Now().UnixNano())
-	randomNum := rand.Intn(1000)
+	for i := 0; i < len(base36Timestamp); i += 4 {
+		endIndex := i + 4
+		if endIndex > len(base36Timestamp) {
+			endIndex = len(base36Timestamp)
+		}
+		splits = append(splits, base36Timestamp[i:endIndex])
+	}
 
-	// Combine the timestamp and random number to create a unique ID
-	uniqueID := fmt.Sprintf("%d-%d", timestamp, randomNum)
+	return strings.ToUpper(strings.Join(splits, "-"))
 
-	return uniqueID
 }
+
 func GetLangFromSession(ctx *gin.Context) string {
 	lang := sessions.Default(ctx).Get("lang")
 	if lang == nil {
@@ -347,4 +352,10 @@ func GetPhoneNumber(storedPhoneNumber string) string {
 	}
 
 	return fmt.Sprintf("+%s", result.String())
+}
+
+func Translate(lang string, text string, vars ...interface{}) string {
+	locale := gotext.NewLocale(Config.Translations.Root, lang)
+	locale.AddDomain(Config.Translations.DefaultDomain)
+	return locale.Get(text, vars...)
 }

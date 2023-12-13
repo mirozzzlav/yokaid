@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import { Box, FormControl } from '@chakra-ui/react';
+import { Box, FormControl, Link } from '@chakra-ui/react';
 import {
   ErrorMessage,
   InfoMessage,
@@ -18,6 +18,33 @@ import {
 } from 'src/providers';
 import FormGroup from 'src/components/FormGroup';
 import RatingFormControls from 'src/components/RatingFormControls';
+import { NavLink } from 'react-router-dom';
+
+export function ReviewSuccessMessage({ data, msg }) {
+  let contentMsgParts = null;
+  const { smsPaymentPhone, payReview } = useContext(InitialDataContext);
+  const { T } = useContext(TranslationsContext);
+
+  if (payReview === 'sms') {
+    contentMsgParts = [<strong>{data.smsCode}</strong>, <strong>{smsPaymentPhone}</strong>];
+  }
+  if (payReview === 'verify') {
+    contentMsgParts = [<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>];
+  }
+
+  return <SuccessMessage
+    message={
+      <TagTranslation
+        msgId={msg}
+        msgParts={contentMsgParts}
+      />}
+  />;
+}
+
+ReviewSuccessMessage.prototype.propTypes = {
+  data: unknownObjectValidator.isRequired,
+  msg: PropTypes.string.isRequired,
+};
 
 export function CreateReviewForm({
   formResult,
@@ -36,9 +63,18 @@ export function CreateReviewForm({
 
   return (
     <Box>
-      {payReview && (
+      {payReview === 'sms' && (
         <FormControl>
           <InfoMessage message={T('review form info', [smsPaymentPhone])} />
+        </FormControl>
+      )}
+      {payReview === 'verify' && (
+        <FormControl>
+          <InfoMessage message={<TagTranslation
+            msgId="review form info verify"
+            msgParts={[<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>]}
+          />}
+          />
         </FormControl>
       )}
       <FormGroup groupLabel={T('reviewed person')}>
@@ -57,20 +93,9 @@ export function CreateReviewForm({
       </FormGroup>
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
-        <SuccessMessage
-          message={
-            <TagTranslation
-              msgId={formResult.msg}
-              msgParts={
-                payReview
-                  ? [
-                      <strong>{formResult.data.smsCode}</strong>,
-                      <strong>{smsPaymentPhone}</strong>,
-                    ]
-                  : null
-              }
-            />
-          }
+        <ReviewSuccessMessage
+          data={formResult.data}
+          msg={formResult.msg}
         />
       ) : null}
     </Box>

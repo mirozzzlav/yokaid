@@ -21,6 +21,11 @@ type sessionConfig struct {
 	Secret string
 	Name   string
 }
+
+type smsSendConfig struct {
+	ApiUrl string
+	Auth   string
+}
 type config struct {
 	AppName             string
 	AppMailFrom         string
@@ -39,8 +44,9 @@ type config struct {
 	DefaultLanguage     string
 	Session             sessionConfig
 	Port                string
-	PayReview           bool
-	PayContact          bool
+	PayReview           string
+	PayContact          string
+	SMSSend             smsSendConfig
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -74,13 +80,13 @@ var Config = func() config {
 
 	var dbUrl string
 	var apiPort string
-	var payReview bool
-	var payContact bool
+	var payReview string
+	var payContact string
 	// Parse command-line flags
 	flag.StringVar(&dbUrl, "db_url", "", "Database name")
 	flag.StringVar(&apiPort, "api_port", "", "API port")
-	flag.BoolVar(&payReview, "pay_review", false, "Flag turn on/off review payments")
-	flag.BoolVar(&payContact, "pay_contact", false, "Flag turn on/off contacts payments")
+	flag.StringVar(&payReview, "pay_review", "", "Pay for reviews free, sms, or by verification")
+	flag.StringVar(&payContact, "pay_contact", "", "Pay for contacts free, sms, or by verification")
 	flag.Parse()
 
 	if dbUrl == "" {
@@ -116,5 +122,9 @@ var Config = func() config {
 		Port:            apiPort,
 		PayReview:       payReview,
 		PayContact:      payContact,
+		SMSSend: smsSendConfig{
+			ApiUrl: os.Getenv("SMS_SEND_API"),
+			Auth:   os.Getenv("SMS_SEND_AUTH"),
+		},
 	}
 }()

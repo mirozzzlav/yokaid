@@ -20,10 +20,12 @@ import Overlay from 'src/components/Overlay';
 import LanguageDropdown from 'src/components/LanguageDropdown';
 import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
 import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
+import { formConfigFactory as verifyBySmsFormConfigFactory } from 'src/components/VerifyBySmsForm';
 
 export {
   createReviewFormConfigFactory,
   createReviewWithProConfigFactory,
+  verifyBySmsFormConfigFactory,
   FormModals,
   Message,
   SearchDropdown,
