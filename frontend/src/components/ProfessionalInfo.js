@@ -41,22 +41,22 @@ const style = {
   infoDropdown: {
     fontSize: '0.9rem',
   },
-  galleryWrapper: {
+  imagesWrapper: {
     margin: `0 0 ${theme.space[4]} 0`,
-    padding: `${theme.space[4]} ${theme.space[4]}`,
-    background: theme.colors.whiteAlpha[500],
-    borderRadius: theme.radii.md,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gridGap: theme.space[4],
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.space[1],
   },
   img: {
     cursor: 'pointer',
-    height: '60px',
-    maxWidth: '60px',
+    height: '80px',
+    maxWidth: '80px',
+    padding: `${theme.space[2]} ${theme.space[2]}`,
+    background: theme.colors.white,
     width: '100%',
     flexGrow: 0,
     objectFit: 'cover',
+    borderRadius: theme.radii.base,
   },
   showMoreBtn: {
     margin: `${theme.space[4]} 0 0 0`,
@@ -110,7 +110,7 @@ export function Review({ review: { id, text, images } }) {
   return (
     <Box key={id} sx={style.review}>
       {images && (
-        <Box sx={style.galleryWrapper}>
+        <Box sx={style.imagesWrapper}>
           {images.map((src, index) => {
             const k = `${src}-${index}`;
             return (

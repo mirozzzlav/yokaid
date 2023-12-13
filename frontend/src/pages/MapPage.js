@@ -76,6 +76,7 @@ function useStyle() {
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
+      minWidth: '120px',
     },
     mainSearch: {
       flexGrow: 0,

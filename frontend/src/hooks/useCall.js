@@ -11,7 +11,6 @@ export default function useCall(onCallFinish = null) {
   const [response, setResponse] = useState(initialResponse);
   const [httpResponseCode, setHttpResponseCode] = useState(null);
   const [state, setState] = useState(callStates.initial);
-  const { setIsLoading } = useContext(LoaderContext);
   const call = useCallback(
     (url, urlParams = [], method = 'get', payload = null, headers = null) => {
       setState(callStates.loading);
@@ -53,7 +52,6 @@ export default function useCall(onCallFinish = null) {
   );
 
   useEffect(() => {
-    setIsLoading(state === callStates.loading);
     if (!onCallFinish) {
       return;
     }

@@ -10,6 +10,9 @@ const originalTheme = extendTheme();
 
 const Modal = {
   baseStyle: {
+    overlay: {
+      background: originalTheme.colors.blackAlpha[800],
+    },
     dialog: {
       width: '400px',
       maxWidth: `calc(100vw - ${originalTheme.space[10]})`,
@@ -101,7 +104,7 @@ const theme = extendTheme({
           positionStyle = { right: 0 };
         }
         return {
-          zIndex: 500,
+          zIndex: 1,
           marginTop: '5px',
           top: '100%',
           position: 'absolute',

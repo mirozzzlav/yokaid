@@ -277,7 +277,7 @@ function SearchDropdown({
   const [items, setItems] = useState([]);
   const delayedCall = useDelayedAction();
   let [inputVal, inputValSetter] = useState('');
-  const [isLoading, setIsLoading] = useState(null); // isLoading is specific to current dropdown
+  const { isLoading, setIsLoading } = useContext(LoaderContext);
 
   if (inputValFromProps !== null && inputValSetterFromProps !== null) {
     inputVal = inputValFromProps;

@@ -1,7 +1,8 @@
 import { Box } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import theme from 'src/style';
 import PropTypes from 'prop-types';
+import { unknownObjectValidator } from 'src/helpers';
 
 const style = {
   container: {
@@ -11,7 +12,7 @@ const style = {
     width: '100vw',
     height: '100vh',
     background: theme.colors.blackAlpha[800],
-    zIndex: 9999,
+    zIndex: 1500,
   },
   content: {
     background: '#fff',
@@ -23,10 +24,12 @@ export default function Overlay({
   children,
   isShown: isShownFromProps,
   isShownSetter,
+  contentSx,
+  sx,
 }) {
   let [isShown, setIsShown] = useState(false);
   const ref = useRef();
-  if (isShownFromProps !== null && isShownSetter) {
+  if (isShownFromProps !== null) {
     isShown = isShownFromProps;
     setIsShown = isShownSetter;
   }
@@ -38,18 +41,22 @@ export default function Overlay({
   }, []);
 
   return isShown ? (
-    <Box sx={style.container} tabIndex={0} onClick={onClose} ref={ref}>
-      <Box sx={style.content}>{children}</Box>
+    <Box sx={{ ...style.container, ...sx }} tabIndex={0} onClick={onClose} ref={ref}>
+      <Box sx={{ ...style.content, ...contentSx }}>{children}</Box>
     </Box>
   ) : null;
 }
 
 Overlay.defaultProps = {
   isShown: null,
-  isShownSetter: null,
+  isShownSetter: () => {},
+  contentSx: null,
+  sx: null,
 };
 Overlay.prototype.propTypes = {
   children: PropTypes.node.isRequired,
   isShown: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf([null])]),
-  isShownSetter: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
+  isShownSetter: PropTypes.func,
+  contentSx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
+  sx: PropTypes.oneOfType([unknownObjectValidator, PropTypes.oneOf([null])]),
 };

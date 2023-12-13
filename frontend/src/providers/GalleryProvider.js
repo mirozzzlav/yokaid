@@ -10,16 +10,14 @@ import React, {
   useState,
 } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
+import config from 'src/config';
+import Overlay from 'src/components/Overlay';
 
 const galleryStyle = {
-  galleryWrapper: {
-    width: '100vw',
-    height: '100vh',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    background: theme.colors.blackAlpha[300],
-    zIndex: 9999,
+  container: {
+    padding: 0,
+    background: 'none',
+    position: 'relative',
   },
   close: {
     position: 'absolute',
@@ -27,8 +25,8 @@ const galleryStyle = {
     top: theme.space[1],
     width: '3rem',
     height: '3rem',
-    background: theme.colors.whiteAlpha[800],
-    color: theme.colors.orange[300],
+    background: theme.colors.white,
+    color: theme.colors.orange[400],
     fontSize: '1.4rem',
     ':hover': {
       background: theme.colors.whiteAlpha[900],
@@ -39,7 +37,7 @@ const galleryStyle = {
       ? { left: 0, justifyContent: 'flex-start' }
       : { right: 0, justifyContent: 'flex-end' }),
     fontSize: '3rem',
-    color: theme.colors.orange[300],
+    color: theme.colors.orange[400],
     background: 'none',
     height: '100%',
     width: '50%',
@@ -82,20 +80,25 @@ const galleryStyle = {
 export const GalleryContext = React.createContext({});
 
 function Gallery() {
+  const { isShown } = useContext(GalleryContext);
   const sliderWrapperRef = useRef();
   const { selectedImage, prevImage, nextImage, images, closeGallery } =
     useContext(GalleryContext);
 
   useEffect(() => {
-    sliderWrapperRef.current.scrollLeft = selectedImage * window.innerWidth;
+    if (sliderWrapperRef.current) {
+      sliderWrapperRef.current.scrollLeft = selectedImage * window.innerWidth;
+    }
   }, [selectedImage]);
 
   if (!images) {
     return null;
   }
-
   return (
-    <Box sx={galleryStyle.galleryWrapper}>
+    <Overlay
+      contentSx={galleryStyle.container}
+      isShown={isShown}
+    >
       {images?.length > 1 && selectedImage > 0 && (
         <IconButton
           sx={galleryStyle.arrow('left')}
@@ -119,11 +122,11 @@ function Gallery() {
         <Box sx={galleryStyle.slider(images.length)}>
           {images.map((src, index) => {
             const k = `${src}${index}`;
-            return <Image src={src} key={k} sx={galleryStyle.img} />;
+            return <Image src={config.api.url + src} key={k} sx={galleryStyle.img} />;
           })}
         </Box>
       </Box>
-    </Box>
+    </Overlay>
   );
 }
 
@@ -171,17 +174,19 @@ export default function GalleryProvider({ children }) {
       images,
       initGallery: setImages,
       showImage,
+      isShown,
+      setIsShown,
       closeGallery: () => setIsShown(false),
       nextImage: () => showImage(selectedImage + 1),
       prevImage: () => showImage(selectedImage - 1),
     }),
-    [images, selectedImage],
+    [images, selectedImage, isShown],
   );
 
   return (
     <GalleryContext.Provider value={contextVal}>
       {children}
-      {isShown && images && <Gallery />}
+      {images && <Gallery />}
     </GalleryContext.Provider>
   );
 }

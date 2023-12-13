@@ -38,7 +38,7 @@ function useStyle() {
     top: {
       position: 'fixed',
       width: '100%',
-      zIndex: 1111,
+      zIndex: 500,
     },
     topInner: {
       alignItems: 'center',
@@ -50,8 +50,7 @@ function useStyle() {
     topContent: {
       padding: '0 2rem',
       flexGrow: 1,
-      maxWidth: '100vw',
-      overflowX: 'hidden',
+      width: '100%',
     },
     topContentHidden: (isHidden) => ({
       ...(
@@ -72,31 +71,17 @@ function useStyle() {
     },
     loader: (isLoading) => ({
       width: '100%',
-      height: '2px',
-      background: '#fff',
+      height: '3px',
+      padding: 0,
+      background: 'none',
       '::after': {
         content: "' '",
         height: '100%',
         display: isLoading ? 'block' : 'none',
-        backgroundColor: theme.colors.blue['600'],
+        backgroundColor: theme.colors.orange['400'],
         animation: `${loaderAnim} infinite 5s ease`,
       },
     }),
-    filter: {
-      position: 'fixed',
-      background: theme.colors.blackAlpha[600],
-      zIndex: 1111,
-      width: '100vw',
-      height: '100vh',
-      top: 0,
-      left: 0,
-      '> *': {
-        background: '#fff',
-        maxWidth: '1000px',
-        margin: '0 auto',
-        padding: '1rem',
-      },
-    },
     content: {
       flexGrow: 1,
     },
@@ -117,7 +102,6 @@ function useStyle() {
       topInner: { flexWrap: 'wrap' },
       topContent: {
         order: 3,
-        flexBasis: '100%',
         padding: '1rem 0 0 0',
       },
     },
@@ -162,7 +146,6 @@ function Page({
   return (
     <Box sx={style.container(mode)}>
       <Box sx={style.top}>
-        <Box sx={style.loader(isLoading)} />
         <Flex sx={{ ...style.topInner, ...style.topContentHidden(isFullScreen) }}>
           <Logo />
           <Box sx={style.topContent} aria-roledescription="top-content">
@@ -199,6 +182,7 @@ function Page({
           icon={<FullScreenIcon exit={isFullScreen} />}
         />
       </Flex>
+      <Overlay contentSx={style.loader(isLoading)} isShown={isLoading} sx={{ background: 'none' }} />
     </Box>
   );
 }

@@ -1,11 +1,11 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { InitialDataContext, UserIdContext } from 'src/providers';
+import { InitialDataContext, LoaderContext, UserIdContext } from 'src/providers';
 import config from 'src/config';
 import useValidationErrors from 'src/hooks/useValidationErrors';
 
 const requestStatesConsts = {
   initial: 'initial',
-  loading: 'loading',
+  submitted: 'submitted',
   error: 'error',
   success: 'success',
 };
@@ -21,6 +21,7 @@ const getDefaultFormState = () => ({
 export default function useForms(formConfigs) {
   const { validationRules } = useContext(InitialDataContext);
   const { userId, saveUserId } = useContext(UserIdContext);
+  const { setIsLoading } = useContext(LoaderContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.keys(formConfigs).map((formId) => [formId, getDefaultFormState()]),
@@ -77,10 +78,9 @@ export default function useForms(formConfigs) {
 
       ...formStates[formId],
 
-      submitForm: () => setRequestState(formId, requestStatesConsts.loading),
+      submitForm: () => setRequestState(formId, requestStatesConsts.submitted),
       formRequestState: {
         isError: requestStates[formId] === requestStatesConsts.error,
-        isLoading: requestStates[formId] === requestStatesConsts.loading,
         isSuccess: requestStates[formId] === requestStatesConsts.success,
         isFinished:
           requestStates[formId] === requestStatesConsts.error ||
@@ -142,6 +142,7 @@ export default function useForms(formConfigs) {
         formId,
         formConfig.hook((response, success) => {
           setFormResult(response);
+          setIsLoading(false);
           if (!success) {
             setRequestState(formId, requestStatesConsts.error);
             return;
@@ -160,7 +161,8 @@ export default function useForms(formConfigs) {
         const { inputs: inputsRaw } = getFormStateAndHelpers(formId);
         const inputsToRequestMapper =
           formConfigs[formId]?.inputsToRequestMapper;
-        if (requestStates[formId] === requestStatesConsts.loading) {
+        if (requestStates[formId] === requestStatesConsts.submitted) {
+          setIsLoading(true);
           calls[formId]({
             ...(inputsToRequestMapper
               ? inputsToRequestMapper(inputsRaw)
