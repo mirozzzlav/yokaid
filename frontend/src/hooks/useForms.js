@@ -21,7 +21,7 @@ const getDefaultFormState = () => ({
 export default function useForms(formConfigs) {
   const { validationRules } = useContext(InitialDataContext);
   const { userId, saveUserId } = useContext(UserIdContext);
-  const { setIsLoading } = useContext(LoaderContext);
+  const { setIsLoading, isLoading } = useContext(LoaderContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.keys(formConfigs).map((formId) => [formId, getDefaultFormState()]),
@@ -78,7 +78,9 @@ export default function useForms(formConfigs) {
 
       ...formStates[formId],
 
-      submitForm: () => setRequestState(formId, requestStatesConsts.submitted),
+      submitForm: () => {
+        if (!isLoading) { setRequestState(formId, requestStatesConsts.submitted); }
+      },
       formRequestState: {
         isError: requestStates[formId] === requestStatesConsts.error,
         isSuccess: requestStates[formId] === requestStatesConsts.success,
@@ -131,8 +133,9 @@ export default function useForms(formConfigs) {
         formStates[formId].formResult.data
           ? getValidationErrors(formStates[formId].formResult.data)
           : null,
+      inputsToRequestMapper: formConfigs[formId].inputsToRequestMapper || null,
     }),
-    [formStates, requestStates, formConfigs, validationRules],
+    [formStates, requestStates, formConfigs, validationRules, isLoading],
   );
 
   const calls = Object.fromEntries(
@@ -158,9 +161,7 @@ export default function useForms(formConfigs) {
   useEffect(
     () =>
       Object.keys(formConfigs).forEach((formId) => {
-        const { inputs: inputsRaw } = getFormStateAndHelpers(formId);
-        const inputsToRequestMapper =
-          formConfigs[formId]?.inputsToRequestMapper;
+        const { inputs: inputsRaw, inputsToRequestMapper } = getFormStateAndHelpers(formId);
         if (requestStates[formId] === requestStatesConsts.submitted) {
           setIsLoading(true);
           calls[formId]({
@@ -171,7 +172,7 @@ export default function useForms(formConfigs) {
           });
         }
       }),
-    [formConfigs, requestStates, userId],
+    [requestStates, userId],
   );
 
   return getFormStateAndHelpers;

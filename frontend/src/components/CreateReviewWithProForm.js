@@ -80,6 +80,7 @@ export function CreateReviewWithPro({
               onExistingProSelected(value);
             }
           }}
+          setInputValOnValSet={false}
           position="left"
           dropdownWidth="100%"
           showWithOverlay={isTouchDevice}
