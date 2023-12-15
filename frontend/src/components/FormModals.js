@@ -34,7 +34,7 @@ export default function FormModals({
       {Object.entries(modalsConfig).map(
         ([id, { title, formConfig, submitButton }]) => {
           const { formUI, ...restFormConfig } = formConfig;
-          const { formRequestState, submitForm, ...formStateAndHelpers } =
+          const { formRequestState, submitForm, isLoading, ...formStateAndHelpers } =
             getFormStateAndHelpers(id);
           return (
             <Modal
@@ -46,6 +46,7 @@ export default function FormModals({
                 ...submitButton,
                 onClick: submitForm,
               }}
+              isLoading={isLoading}
             >
               {React.createElement(formUI, {
                 state: formRequestState,

@@ -83,10 +83,11 @@ FullScreenIcon.prototype.propTypes = {
 };
 
 function GhostIcon({ sx }) {
-  return <Icon as={GhostIconSvg} sx={{ ...defaultIconStyle, '#ghost': sx }} />;
+  const { fill, ...restSx } = sx;
+  return <Icon as={GhostIconSvg} sx={{ ...defaultIconStyle, ...restSx, '#ghost': { fill } }} />;
 }
 GhostIcon.defaultProps = {
-  sx: { ...defaultProps, '#ghost': { fill: '#ffffff' } },
+  sx: { ...defaultProps, fill: '#ffffff' },
 };
 GhostIcon.prototype.propTypes = propTypes;
 

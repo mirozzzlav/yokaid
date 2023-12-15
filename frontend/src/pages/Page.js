@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -6,10 +6,9 @@ import {
   IconButton,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { FullScreenIcon, GhostIcon, Logo } from 'src/assets';
+import { FullScreenIcon, Logo } from 'src/assets';
 import { FormModals, LanguageDropdown, Overlay, verifyBySmsFormConfigFactory } from 'src/components';
 import theme from 'src/style';
-import { LoaderContext } from 'src/providers/LoaderProvider';
 import { useNavigateAction } from 'src/hooks';
 import { getMergedStyle } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
@@ -69,36 +68,6 @@ function useStyle() {
         width: '100px',
       },
     },
-    loader: (isShown, dots) => ({
-      display: 'flex',
-      padding: `4px ${theme.space[3]}`,
-      transformOrigin: 'center',
-      ...(isShown ? { opacity: 1 } : { opacity: 0, pointerEvents: 'none' }),
-      position: 'fixed',
-      bottom: theme.space[4],
-      left: 'calc(50vw - 90px)',
-      zIndex: 10000,
-      background: '#1788d9',
-      width: '180px',
-      borderRadius: theme.radii.base,
-      justifyContent: 'left',
-      alignItems: 'center',
-      '::after': {
-        fontSize: '0.9rem',
-        color: '#fff',
-        content: `"is loading${dots}"`,
-        fontFamily: 'monospace',
-        fontWeight: theme.fontWeights.bold,
-        marginLeft: theme.space[2],
-      },
-      '> svg': {
-        width: '30px',
-        height: '30px',
-      },
-    }),
-    loaderContent: {
-      fill: '#fff',
-    },
     content: {
       flexGrow: 1,
     },
@@ -130,48 +99,6 @@ function useStyle() {
   return getMergedStyle(style, responsiveStyle);
 }
 
-function Loader({ isLoading }) {
-  const style = useStyle();
-  const [dots, setDots] = useState('.');
-  const timeoutRef = useRef(false);
-  const isShownRef = useRef(false);
-  const [isShown, setIsShown] = useState(false);
-
-  useEffect(() => {
-      if (!isShown) {
-        return () => {};
-      }
-      const interval = setInterval(() => {
-        setDots((prevDots) => prevDots.length < 3 ? `${prevDots}.` : '.');
-      }, 800);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isShown]);
-
-  useEffect(() => {
-    isShownRef.current = isLoading;
-    if (isLoading) {
-      setIsShown(true);
-      return;
-    }
-
-    if (!timeoutRef.current) {
-      setTimeout(() => { timeoutRef.current = false; setIsShown(isShownRef.current); }, 500);
-    }
-  }, [isLoading, isShownRef.current]);
-
-  return (
-    <Box sx={style.loader(isShown, dots)}>
-      <GhostIcon sx={style.loaderContent} />
-    </Box>
-  );
-}
-
-Loader.prototype.propTypes = {
-  isLoading: PropTypes.bool.isRequired,
-};
-
 function Page({
   children,
   mode,
@@ -182,7 +109,6 @@ function Page({
   isFilterShownSetter,
   modalsConfig: modalsConfigFromProps,
 }) {
-  const { isLoading } = useContext(LoaderContext);
   const style = useStyle();
   const { navigateAction, action, actionParams } = useNavigateAction();
   const { T } = useContext(TranslationsContext);
@@ -241,7 +167,6 @@ function Page({
           icon={<FullScreenIcon exit={isFullScreen} />}
         />
       </Flex>
-      <Loader isLoading={isLoading} />
     </Box>
   );
 }

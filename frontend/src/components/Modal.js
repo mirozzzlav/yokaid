@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { buttonPropType } from 'src/constants';
 import { TranslationsContext, WindowContext } from 'src/providers';
+import Loader from 'src/components/Loader';
 
 const style = {
   fakeFocus: {
@@ -30,6 +31,7 @@ export default function Modal({
   submitButton,
   children,
   onScrolledDown,
+  isLoading,
 }) {
   const { isScrolledDown } = useContext(WindowContext);
   const { T } = useContext(TranslationsContext);
@@ -56,7 +58,8 @@ export default function Modal({
           {children}
         </ModalBody>
         <ModalFooter>
-          {submitButton && (
+          <Loader isLoading={isLoading} mini={false} />
+          {submitButton && isLoading !== true && (
             <Button
               variant="solid"
               colorScheme="blue"
@@ -80,6 +83,7 @@ Modal.defaultProps = {
   submitButton: null,
   onShow: () => {},
   onScrolledDown: () => {},
+  isLoading: null,
 };
 
 Modal.prototype.propTypes = {
@@ -90,4 +94,5 @@ Modal.prototype.propTypes = {
   title: PropTypes.string.isRequired,
   submitButton: PropTypes.oneOfType([buttonPropType, PropTypes.oneOf([null])]),
   onScrolledDown: PropTypes.func,
+  isLoading: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf([null])]),
 };

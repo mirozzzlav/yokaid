@@ -118,7 +118,7 @@ var Config = func() config {
 		},
 		ReviewsPerPage:  5,
 		DefaultLanguage: "en_US",
-		Session:         sessionConfig{Name: "superstarSession", Secret: "SecretForSessionStore123"},
+		Session:         sessionConfig{Name: "yokaidSession", Secret: "SecretForSessionStore123"},
 		Port:            apiPort,
 		PayReview:       payReview,
 		PayContact:      payContact,

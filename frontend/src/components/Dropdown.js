@@ -21,10 +21,10 @@ import { ChevronDownIcon, SearchIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 import useDelayedAction from 'src/hooks/useDelayedAction';
-import { LoaderContext } from 'src/providers/LoaderProvider';
 import { WindowContext } from 'src/providers/WindowProvider';
 import Overlay from 'src/components/Overlay';
 import { TranslationsContext } from 'src/providers';
+import Loader from 'src/components/Loader';
 
 const listElemStyle = {
   width: '100%',
@@ -277,7 +277,7 @@ function SearchDropdown({
   const [items, setItems] = useState([]);
   const delayedCall = useDelayedAction();
   let [inputVal, inputValSetter] = useState('');
-  const { isLoading, setIsLoading } = useContext(LoaderContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (inputValFromProps !== null && inputValSetterFromProps !== null) {
     inputVal = inputValFromProps;
@@ -339,6 +339,9 @@ function SearchDropdown({
   );
 
   const inputIcon = useMemo(() => {
+    if (isLoading) {
+      return <Loader isLoading={isLoading} mini />;
+    }
     if (inputVal !== '' && showCloseIcon) {
       return (
         <SmallCloseIcon
@@ -354,7 +357,7 @@ function SearchDropdown({
       );
     }
     return icon;
-  }, [showLoader, icon, onValueEmpty, inputVal, showCloseIcon]);
+  }, [showLoader, icon, onValueEmpty, inputVal, showCloseIcon, isLoading]);
 
   useEffect(() => {
     if (isShown && showWithOverlay && inputRef.current) {

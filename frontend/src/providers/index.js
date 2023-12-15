@@ -1,4 +1,3 @@
-import LoaderProvider, { LoaderContext } from 'src/providers/LoaderProvider';
 import InitialDataProvider, {
   InitialDataContext,
 } from 'src/providers/InitialDataProvider';
@@ -19,8 +18,6 @@ import TranslationsProvider, {
 import WindowProvider, { WindowContext } from 'src/providers/WindowProvider';
 
 export {
-  LoaderProvider,
-  LoaderContext,
   InitialDataProvider,
   InitialDataContext,
   FilterProvider,

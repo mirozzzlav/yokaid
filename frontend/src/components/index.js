@@ -21,6 +21,7 @@ import LanguageDropdown from 'src/components/LanguageDropdown';
 import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
 import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
 import { formConfigFactory as verifyBySmsFormConfigFactory } from 'src/components/VerifyBySmsForm';
+import Loader from 'src/components/Loader';
 
 export {
   createReviewFormConfigFactory,
@@ -46,4 +47,5 @@ export {
   RatingFormControls,
   Overlay,
   LanguageDropdown,
+  Loader,
 };

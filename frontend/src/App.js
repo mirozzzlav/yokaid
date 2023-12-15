@@ -7,7 +7,6 @@ import {
   InitialDataProvider,
   IntervalProvider,
   TranslationsProvider,
-  LoaderProvider,
   MapProvider,
   UserIdProvider,
   WindowProvider,
@@ -16,25 +15,23 @@ import {
 function App() {
   return (
     <BrowserRouter>
-      <LoaderProvider>
-        <TranslationsProvider>
-          <IntervalProvider>
-            <InitialDataProvider>
-              <WindowProvider>
-                <FilterProvider>
-                  <MapProvider>
-                    <UserIdProvider>
-                      <GalleryProvider>
-                        <Routes />
-                      </GalleryProvider>
-                    </UserIdProvider>
-                  </MapProvider>
-                </FilterProvider>
-              </WindowProvider>
-            </InitialDataProvider>
-          </IntervalProvider>
-        </TranslationsProvider>
-      </LoaderProvider>
+      <TranslationsProvider>
+        <IntervalProvider>
+          <InitialDataProvider>
+            <WindowProvider>
+              <FilterProvider>
+                <MapProvider>
+                  <UserIdProvider>
+                    <GalleryProvider>
+                      <Routes />
+                    </GalleryProvider>
+                  </UserIdProvider>
+                </MapProvider>
+              </FilterProvider>
+            </WindowProvider>
+          </InitialDataProvider>
+        </IntervalProvider>
+      </TranslationsProvider>
     </BrowserRouter>
   );
 }

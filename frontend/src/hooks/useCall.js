@@ -1,6 +1,5 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { callStates } from 'src/constants';
-import { LoaderContext } from 'src/providers/LoaderProvider';
 
 const initialResponse = {
   msg: '',

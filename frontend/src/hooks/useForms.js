@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { InitialDataContext, LoaderContext, UserIdContext } from 'src/providers';
+import { InitialDataContext, UserIdContext } from 'src/providers';
 import config from 'src/config';
 import useValidationErrors from 'src/hooks/useValidationErrors';
 
@@ -21,7 +21,6 @@ const getDefaultFormState = () => ({
 export default function useForms(formConfigs) {
   const { validationRules } = useContext(InitialDataContext);
   const { userId, saveUserId } = useContext(UserIdContext);
-  const { setIsLoading, isLoading } = useContext(LoaderContext);
   const [formStates, setFormStates] = useState(
     Object.fromEntries(
       Object.keys(formConfigs).map((formId) => [formId, getDefaultFormState()]),
@@ -78,9 +77,7 @@ export default function useForms(formConfigs) {
 
       ...formStates[formId],
 
-      submitForm: () => {
-        if (!isLoading) { setRequestState(formId, requestStatesConsts.submitted); }
-      },
+      submitForm: () => setRequestState(formId, requestStatesConsts.submitted),
       formRequestState: {
         isError: requestStates[formId] === requestStatesConsts.error,
         isSuccess: requestStates[formId] === requestStatesConsts.success,
@@ -134,8 +131,9 @@ export default function useForms(formConfigs) {
           ? getValidationErrors(formStates[formId].formResult.data)
           : null,
       inputsToRequestMapper: formConfigs[formId].inputsToRequestMapper || null,
+      isLoading: requestStates[formId] === requestStatesConsts.submitted,
     }),
-    [formStates, requestStates, formConfigs, validationRules, isLoading],
+    [formStates, requestStates, formConfigs, validationRules],
   );
 
   const calls = Object.fromEntries(
@@ -145,7 +143,6 @@ export default function useForms(formConfigs) {
         formId,
         formConfig.hook((response, success) => {
           setFormResult(response);
-          setIsLoading(false);
           if (!success) {
             setRequestState(formId, requestStatesConsts.error);
             return;
@@ -163,7 +160,6 @@ export default function useForms(formConfigs) {
       Object.keys(formConfigs).forEach((formId) => {
         const { inputs: inputsRaw, inputsToRequestMapper } = getFormStateAndHelpers(formId);
         if (requestStates[formId] === requestStatesConsts.submitted) {
-          setIsLoading(true);
           calls[formId]({
             ...(inputsToRequestMapper
               ? inputsToRequestMapper(inputsRaw)

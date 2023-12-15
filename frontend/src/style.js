@@ -128,4 +128,5 @@ const theme = extendTheme({
   },
 });
 
+export const yokaidColor = '#1788d9';
 export default theme;
