@@ -14,10 +14,7 @@ import {
   Input,
   InputGroup,
 } from '@chakra-ui/react';
-import {
-  ErrorMessage,
-  InfoMessage,
-} from 'src/components/Messages';
+import { ErrorMessage, InfoMessage } from 'src/components/Messages';
 import FormGroup from 'src/components/FormGroup';
 import {
   formatPhoneNumber,
@@ -38,6 +35,7 @@ import config from 'src/config';
 import { WorkerIcon, LocationIcon } from 'src/assets';
 import { NavLink } from 'react-router-dom';
 import { ReviewSuccessMessage } from 'src/components/CreateReviewForm';
+import Upload from 'src/components/Upload';
 
 export function CreateReviewWithPro({
   formResult,
@@ -65,10 +63,17 @@ export function CreateReviewWithPro({
       )}
       {payReview === 'verify' && (
         <FormControl>
-          <InfoMessage message={<TagTranslation
-            msgId="review form info verify"
-            msgParts={[<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>]}
-          />}
+          <InfoMessage
+            message={
+              <TagTranslation
+                msgId="review form info verify"
+                msgParts={[
+                  <NavLink to="/verify-by-sms">
+                    {T('link placeholder')}
+                  </NavLink>,
+                ]}
+              />
+            }
           />
         </FormControl>
       )}
@@ -235,6 +240,17 @@ export function CreateReviewWithPro({
           validationRules={validationRules}
           getInput={getInput}
         />
+        <Upload
+          url="/media/upload"
+          onUploadedFilesChange={(mediaFolderId, filesCount) => {
+            if (filesCount > 0) {
+              updateInput('mediaFolderId', mediaFolderId);
+            } else {
+              updateInput('mediaFolderId', '');
+            }
+          }}
+          forceReset={state.isSuccess}
+        />
       </FormGroup>
       <FormGroup>
         <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
@@ -242,10 +258,7 @@ export function CreateReviewWithPro({
 
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
-        <ReviewSuccessMessage
-          data={formResult.data}
-          msg={formResult.msg}
-        />
+        <ReviewSuccessMessage data={formResult.data} msg={formResult.msg} />
       ) : null}
     </Box>
   );
@@ -296,6 +309,7 @@ export function formConfigFactory(onExistingProSelected) {
       review: {
         text: inputs?.text || null,
         rating: inputs?.rating ? parseInt(inputs.rating, 10) : '',
+        mediaFolderId: inputs?.mediaFolderId || null,
       },
     }),
   };

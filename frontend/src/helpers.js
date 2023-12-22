@@ -87,8 +87,8 @@ function getHexSHA256(inputString) {
   return Sha256(inputString).toString(encHex);
 }
 
-function generateUUID() {
-  return getHexSHA256(new Date().getTime());
+function generateUUID(base = 10) {
+  return new Date().getTime().toString(base);
 }
 
 function sprintf(string, textParts) {

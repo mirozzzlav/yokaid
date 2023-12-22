@@ -5,18 +5,6 @@ import (
 	"time"
 )
 
-type imagePath string
-
-func (i *imagePath) UnmarshalJSON(b []byte) error {
-	if string(b) == "null" {
-		return nil
-	}
-	var path string
-	json.Unmarshal(b, &path)
-	*i = imagePath(Config.AssetsRelativeUrl + "/" + path)
-	return nil
-}
-
 type PhoneNumber string
 
 func (phoneNumberIn *PhoneNumber) UnmarshalJSON(b []byte) error {
@@ -95,30 +83,16 @@ type professional struct {
 }
 
 type review struct {
-	Id     string       `json:"id"`
-	Text   string       `json:"text"`
-	Rating int          `json:"rating"`
-	Images *[]imagePath `json:"images"`
+	Id            string    `json:"id"`
+	Text          string    `json:"text"`
+	Rating        int       `json:"rating"`
+	Images        *[]string `json:"images"`
+	MediaFolderId *string   `json:"mediaFolderId"`
 	//CreatedAt timeCustom   `json:"createdAt"`
 }
 type profession struct {
 	Id    int    `json:"id"`
 	Title string `json:"title"`
-}
-
-type ListItem struct {
-	FilterColumnAlias string `json:"filterColumnAlias"`
-	Value             any    `json:"value"`
-	Label             string `json:"label"`
-}
-
-func ListItemLoader() (*[]ListItem, func(rowBytes []byte)) {
-	var listItems []ListItem
-	return &listItems, func(rowBytes []byte) {
-		var listItem ListItem
-		_ = json.Unmarshal(rowBytes, &listItem)
-		listItems = append(listItems, listItem)
-	}
 }
 
 func ProfessionalsModelLoader() (*[]professional, func(rowBytes []byte)) {

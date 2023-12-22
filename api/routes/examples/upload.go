@@ -2,7 +2,6 @@ package examples
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"yokaid/api/common"
 	"yokaid/api/upload"
 )
@@ -16,16 +15,20 @@ func testUpload(_ common.Server) gin.HandlerFunc {
 			Request:    ctx.Request,
 			Path:       "./static/images/",
 			Extensions: "gif jpg png webp",
+			Name:       "image",
+			Sub:        Upload.Parameter(ctx.Request),
+			Normalize:  true,
 			Size:       1024 * 1024 * 32,
-			Success: func(file string, idx string) {
+			Success: func(u upload.SuccessObject) {
 				Upload.Response(upload.Message{
-					File: file,
+					Id:        u.Id,
+					File:      u.File,
+					Path:      u.Path,
+					Name:      u.Name,
+					Parameter: u.Parameter,
 				}, ctx.Writer)
 			},
 			Error: func(err error, httpErrorStatus int) {
-
-				log.Printf("Error: %v", err)
-
 				Upload.Response(upload.Message{
 					Error:  err.Error(),
 					Status: httpErrorStatus,

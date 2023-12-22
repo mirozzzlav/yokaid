@@ -43,6 +43,11 @@ func NewServer() (common.Server, error) {
 		return nil, err
 	}
 
+	err = validate.RegisterValidation("mediaFolderId", common.MediaFolderIdValidator)
+	if err != nil {
+		return nil, err
+	}
+
 	db, err := sql.Open(common.Config.DBDriver, common.Config.DBSource)
 	if err != nil {
 		return nil, err

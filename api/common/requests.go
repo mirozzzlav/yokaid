@@ -1,8 +1,9 @@
 package common
 
 type CreateReviewRequest struct {
-	Text   *string `json:"text" validate:"omitempty,string"`
-	Rating int     `json:"rating" validate:"required,numeric,min=1,max=5"`
+	Text          *string `json:"text" validate:"omitempty,string"`
+	Rating        int     `json:"rating" validate:"required,numeric,min=1,max=5"`
+	MediaFolderId *string `json:"mediaFolderId" validate:"omitempty,mediaFolderId"`
 }
 
 type CreateProfessionalRequest struct {

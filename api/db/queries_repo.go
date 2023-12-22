@@ -123,29 +123,12 @@ func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int
 		professional_professions.professional_id
 	) AS professions_view ON professions_view.professional_id = professionals.id
 	JOIN (
-		SELECT 
+	    SELECT 
 			professional_id,
-			JSON_AGG(
-				JSON_BUILD_OBJECT(
-				  'id', id, 'text', text, 'rating', rating, 
-				  'images', images
-				)
-			) AS reviews 
+			JSON_AGG(JSON_BUILD_OBJECT('id', id, 'text', text, 'rating', rating, 'mediaFolderId', media_folder_id)) AS reviews 
 		FROM (
-			SELECT reviews.id, professional_id, reviews.text, reviews.rating, review_images_view.images
-			FROM 
-			  reviews
-			  JOIN payments ON reviews.id = payments.id
-			  LEFT JOIN (
-				SELECT 
-				  review_id, 
-				  JSON_AGG(images.path) AS images 
-				FROM 
-				  review_images 
-				  JOIN images ON review_images.image_id = images.id 
-				GROUP BY 
-				  review_images.review_id
-			  ) AS review_images_view ON reviews.id = review_images_view.review_id 
+			SELECT reviews.id, professional_id, reviews.text, reviews.rating, reviews.media_folder_id
+			FROM reviews JOIN payments ON reviews.id = payments.id 
 			WHERE payments.state='%s' AND professional_id = ?
 			ORDER BY reviews.created_at DESC
 	    	LIMIT %d 
@@ -243,12 +226,13 @@ func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, re
 	return dbQuery{
 		partials: []common.QueryPartial{
 			{
-				Query: `INSERT INTO reviews (id, professional_id, text, rating) VALUES (?, ?, ?, ?)`,
+				Query: `INSERT INTO reviews (id, professional_id, text, rating, media_folder_id) VALUES (?, ?, ?, ?, ?)`,
 				Params: []any{
 					paymentId,
 					professionalId,
 					req.Text,
 					req.Rating,
+					req.MediaFolderId,
 				},
 			},
 		},

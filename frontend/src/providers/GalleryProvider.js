@@ -10,7 +10,6 @@ import React, {
   useState,
 } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
-import config from 'src/config';
 import Overlay from 'src/components/Overlay';
 
 const galleryStyle = {
@@ -21,8 +20,8 @@ const galleryStyle = {
   },
   close: {
     position: 'absolute',
-    right: theme.space[1],
-    top: theme.space[1],
+    right: theme.space[2],
+    top: theme.space[2],
     width: '3rem',
     height: '3rem',
     background: theme.colors.white,
@@ -95,10 +94,7 @@ function Gallery() {
     return null;
   }
   return (
-    <Overlay
-      contentSx={galleryStyle.container}
-      isShown={isShown}
-    >
+    <Overlay contentSx={galleryStyle.container} isShown={isShown}>
       {images?.length > 1 && selectedImage > 0 && (
         <IconButton
           sx={galleryStyle.arrow('left')}
@@ -122,7 +118,13 @@ function Gallery() {
         <Box sx={galleryStyle.slider(images.length)}>
           {images.map((src, index) => {
             const k = `${src}${index}`;
-            return <Image src={config.api.url + src} key={k} sx={galleryStyle.img} />;
+            return (
+              <Image
+                src={`${window.location.origin}/${src}`}
+                key={k}
+                sx={galleryStyle.img}
+              />
+            );
           })}
         </Box>
       </Box>
@@ -134,6 +136,15 @@ export default function GalleryProvider({ children }) {
   const [images, setImages] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isShown, setIsShown] = useState(false);
+
+  const setImagesAndshowImage = useCallback((newImages, imageNumber) => {
+    if (!newImages || imageNumber < 0 || imageNumber > newImages.length - 1) {
+      return;
+    }
+    setImages(newImages);
+    setIsShown(true);
+    setSelectedImage(imageNumber);
+  }, []);
 
   const showImage = useCallback(
     (imageNumber) => {
@@ -172,7 +183,8 @@ export default function GalleryProvider({ children }) {
     () => ({
       selectedImage,
       images,
-      initGallery: setImages,
+      setImagesAndshowImage,
+      setImages,
       showImage,
       isShown,
       setIsShown,

@@ -13,7 +13,7 @@ import config from 'src/config';
 
 const style = {
   review: {
-    padding: `${theme.space[6]} ${theme.space[4]} ${theme.space[8]} ${theme.space[4]}`,
+    padding: `${theme.space[6]} ${theme.space[4]} ${theme.space[6]} ${theme.space[4]}`,
     margin: `${theme.space[3]} 0`,
     background: theme.colors.gray[100],
     borderRadius: theme.radii.md,
@@ -22,6 +22,9 @@ const style = {
     ':last-child': {
       marginBottom: 0,
     },
+    display: 'flex',
+    flexDir: 'column',
+    gap: theme.space[4],
   },
   reviewContent: (isShown, contentTooBig) => ({
     maxHeight: !isShown ? '160px' : '10000px',
@@ -42,7 +45,7 @@ const style = {
     fontSize: '0.9rem',
   },
   imagesWrapper: {
-    margin: `0 0 ${theme.space[4]} 0`,
+    margin: '0',
     display: 'flex',
     flexWrap: 'wrap',
     gap: theme.space[1],
@@ -59,7 +62,6 @@ const style = {
     borderRadius: theme.radii.base,
   },
   showMoreBtn: {
-    margin: `${theme.space[4]} 0 0 0`,
     fontWeight: theme.fontWeights.bold,
     fontSize: '0.8rem',
     color: theme.colors.blackAlpha[700],
@@ -88,24 +90,16 @@ export function Review({ review: { id, text, images } }) {
   const reviewRef = useRef();
   const [contentTooBig, setContentTooBig] = useState(false);
   const [reviewFullyShown, setReviewFullyShown] = useState(false);
-  const { showImage, initGallery } = useContext(GalleryContext);
+  const { setImagesAndshowImage } = useContext(GalleryContext);
 
   useEffect(() => {
+    if (!reviewRef.current) {
+      return;
+    }
     setContentTooBig(
       reviewRef.current.scrollHeight - 10 > reviewRef.current.offsetHeight,
     );
-  }, []);
-
-  const imagesHash = useMemo(
-    () => (images ? getHexSHA256(images.join('')) : ''),
-    [images],
-  );
-
-  useEffect(() => {
-    if (images) {
-      initGallery(images);
-    }
-  }, [imagesHash]);
+  }, [reviewRef.current]);
 
   return (
     <Box key={id} sx={style.review}>
@@ -116,20 +110,24 @@ export function Review({ review: { id, text, images } }) {
             return (
               <Image
                 key={k}
-                src={config.api.url + src}
+                src={`${window.location.origin}/${src}`}
                 sx={style.img}
-                onClick={() => showImage(index)}
+                onClick={() => {
+                  setImagesAndshowImage(images, index);
+                }}
               />
             );
           })}
         </Box>
       )}
-      <Box
-        sx={style.reviewContent(reviewFullyShown, contentTooBig)}
-        ref={reviewRef}
-      >
-        <Box sx={style.reviewText}>{text}</Box>
-      </Box>
+      {text && (
+        <Box
+          sx={style.reviewContent(reviewFullyShown, contentTooBig)}
+          ref={reviewRef}
+        >
+          <Box sx={style.reviewText}>{text}</Box>
+        </Box>
+      )}
       {contentTooBig && (
         <Button
           variant="link"
@@ -166,7 +164,9 @@ export default function ProfessionalInfo({
   const reviews = useMemo(
     () =>
       showReviews && data.reviews
-        ? data.reviews.filter(({ text }) => text)
+        ? data.reviews.filter(
+            ({ text, images }) => text || (images && images.length > 0),
+          )
         : [],
     [data, showReviews],
   );
@@ -245,11 +245,9 @@ export default function ProfessionalInfo({
           headline: T('review', [], 2),
           content: (
             <>
-              {data.reviews
-                .filter(({ text }) => text)
-                .map((review) => (
-                  <Review review={review} key={review.id} />
-                ))}
+              {reviews.map((review) => (
+                <Review review={review} key={review.id} />
+              ))}
             </>
           ),
         },

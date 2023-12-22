@@ -17,6 +17,12 @@ export default () =>
           rewrite: (path) => path.replace(/^\/api/, ''),
           secure: false,
         },
+        '/media': {
+          target: 'http://0.0.0.0:9090',
+          changeOrigin: true,
+          rewrite: (path) => path,
+          secure: false,
+        },
       },
     },
     resolve: {
@@ -24,18 +30,19 @@ export default () =>
         src: resolve('src/'),
       },
     },
-    esbuild: { loader: 'jsx',
+    esbuild: {
+      loader: 'jsx',
       include: /src\/.*\.jsx?$/,
       exclude: [],
     },
     build: {
       rollupOptions: {
-         output: {
+        output: {
           manualChunks: (id) => {
             if (
-                id.includes('react-router-dom') ||
-                id.includes('@remix-run') ||
-                id.includes('react-router')
+              id.includes('react-router-dom') ||
+              id.includes('@remix-run') ||
+              id.includes('react-router')
             ) {
               return 'react-router';
             }

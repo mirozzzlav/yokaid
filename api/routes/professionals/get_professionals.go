@@ -1,7 +1,11 @@
 package professionals
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strings"
 	"yokaid/api/common"
 )
 
@@ -45,6 +49,33 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, "", professionals)
 	}
+}
+
+type mediaResponse struct {
+	Data map[string][]string `json:"data""`
+}
+
+func getMedia(mediaFolderIds []string) (mediaResponse, error) {
+
+	url := fmt.Sprintf(
+		"http://%s/media/list/[%s]", common.Config.MediaStoreUrl, strings.Join(mediaFolderIds, ","),
+	)
+	response, err := http.Get(url)
+
+	if err != nil {
+		return mediaResponse{}, err
+	}
+	defer response.Body.Close()
+
+	var resp mediaResponse
+	err = json.NewDecoder(response.Body).Decode(&resp)
+
+	if err != nil {
+		return mediaResponse{}, err
+	}
+
+	return resp, nil
+
 }
 
 func getProfessionalDetail(server common.Server) gin.HandlerFunc {
@@ -94,11 +125,30 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		common.CheckErrAndPanic(err)
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)
-		var professional any = nil
 		if pros != nil && len(*pros) > 0 {
-			professional = (*pros)[0]
+			reviews := (*pros)[0].Reviews
+			var mediaFolderIds []string
+			for _, r := range reviews {
+				if r.MediaFolderId != nil {
+					mediaFolderIds = append(mediaFolderIds, *r.MediaFolderId)
+				}
+			}
+
+			if mediaFolderIds != nil {
+				mediaResposnse, err := getMedia(mediaFolderIds)
+				common.CheckErrAndPanic(err)
+				for i, r := range reviews {
+					if r.MediaFolderId != nil {
+						images := mediaResposnse.Data[*r.MediaFolderId]
+						reviews[i].Images = &images
+					}
+				}
+			}
+
+			common.SetOKJSONResponse(ctx, "", (*pros)[0])
+		} else {
+			common.SetOKJSONResponse(ctx, "", nil)
 		}
-		common.SetOKJSONResponse(ctx, "", professional)
 
 	}
 }

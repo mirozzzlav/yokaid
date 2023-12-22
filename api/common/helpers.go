@@ -196,6 +196,10 @@ func PhoneNumberValidator(fl validator.FieldLevel) bool {
 	return validatePhoneNumber(fl.Field().String())
 }
 
+func MediaFolderIdValidator(fl validator.FieldLevel) bool {
+	return regexp.MustCompile("^[0-9]+$").MatchString(fl.Field().String())
+}
+
 func ConvertToInt(val any) (int, error) {
 	switch v := val.(type) {
 	case int:

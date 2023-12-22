@@ -19,6 +19,7 @@ import {
 import FormGroup from 'src/components/FormGroup';
 import RatingFormControls from 'src/components/RatingFormControls';
 import { NavLink } from 'react-router-dom';
+import Upload from 'src/components/Upload';
 
 export function ReviewSuccessMessage({ data, msg }) {
   let contentMsgParts = null;
@@ -26,19 +27,22 @@ export function ReviewSuccessMessage({ data, msg }) {
   const { T } = useContext(TranslationsContext);
 
   if (payReview === 'sms') {
-    contentMsgParts = [<strong>{data.smsCode}</strong>, <strong>{smsPaymentPhone}</strong>];
+    contentMsgParts = [
+      <strong>{data.smsCode}</strong>,
+      <strong>{smsPaymentPhone}</strong>,
+    ];
   }
   if (payReview === 'verify') {
-    contentMsgParts = [<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>];
+    contentMsgParts = [
+      <NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>,
+    ];
   }
 
-  return <SuccessMessage
-    message={
-      <TagTranslation
-        msgId={msg}
-        msgParts={contentMsgParts}
-      />}
-  />;
+  return (
+    <SuccessMessage
+      message={<TagTranslation msgId={msg} msgParts={contentMsgParts} />}
+    />
+  );
 }
 
 ReviewSuccessMessage.prototype.propTypes = {
@@ -70,10 +74,17 @@ export function CreateReviewForm({
       )}
       {payReview === 'verify' && (
         <FormControl>
-          <InfoMessage message={<TagTranslation
-            msgId="review form info verify"
-            msgParts={[<NavLink to="/verify-by-sms">{T('link placeholder')}</NavLink>]}
-          />}
+          <InfoMessage
+            message={
+              <TagTranslation
+                msgId="review form info verify"
+                msgParts={[
+                  <NavLink to="/verify-by-sms">
+                    {T('link placeholder')}
+                  </NavLink>,
+                ]}
+              />
+            }
           />
         </FormControl>
       )}
@@ -87,16 +98,24 @@ export function CreateReviewForm({
           updateInput={updateInput}
           validationRules={validationRules}
         />
+        <Upload
+          url="/media/upload"
+          onUploadedFilesChange={(mediaFolderId, filesCount) => {
+            if (filesCount > 0) {
+              updateInput('mediaFolderId', mediaFolderId);
+            } else {
+              updateInput('mediaFolderId', '');
+            }
+          }}
+          forceReset={state.isSuccess}
+        />
       </FormGroup>
       <FormGroup>
         <UserIdFormControl error={inputsErrors?.[config.userIdMeta.name]} />
       </FormGroup>
       {state.isError ? <ErrorMessage message={T(formResult.msg)} /> : null}
       {state.isSuccess ? (
-        <ReviewSuccessMessage
-          data={formResult.data}
-          msg={formResult.msg}
-        />
+        <ReviewSuccessMessage data={formResult.data} msg={formResult.msg} />
       ) : null}
     </Box>
   );
@@ -138,6 +157,7 @@ export function formConfigFactory(professional) {
       review: {
         text: inputs?.text || null,
         rating: inputs?.rating ? parseInt(inputs.rating, 10) : '',
+        mediaFolderId: inputs?.mediaFolderId || null,
       },
     }),
   };

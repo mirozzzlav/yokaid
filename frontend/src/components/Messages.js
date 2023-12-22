@@ -1,7 +1,7 @@
-import { Box, Text } from '@chakra-ui/react';
-import React from 'react';
+import { Box, IconButton, Text } from '@chakra-ui/react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { CheckIcon, InfoIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon, InfoIcon } from '@chakra-ui/icons';
 import theme from 'src/style';
 import { unknownObjectValidator } from 'src/helpers';
 
@@ -25,26 +25,42 @@ const style = {
         textDecoration: 'underline',
       },
     },
-
   },
   message: {
     fontSize: '0.9rem',
     lineHeight: '1.1rem',
   },
+  closeButton: {
+    fontSize: '0.6rem',
+    color: '#000',
+    marginLeft: 'auto',
+    minWidth: 0,
+    padding: 0,
+  },
 };
 
-export default function Message({ message, extraStyle, icon }) {
-  return (
+export default function Message({ message, extraStyle, icon, onHide }) {
+  return message ? (
     <Box sx={{ ...style.wrapper, ...extraStyle }}>
       {icon}
       <Text>{message}</Text>
-    </Box>
-  );
+      {onHide &&
+        <IconButton
+          variant="link"
+          sx={style.closeButton}
+          aria-label="close"
+          icon={<CloseIcon />}
+          onClick={onHide}
+        />
+      }
+    </Box>) : null;
 }
 
 Message.defaultProps = {
   extraStyle: null,
+  onHide: null,
 };
+
 Message.propTypes = {
   message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
     .isRequired,
@@ -53,6 +69,7 @@ Message.propTypes = {
     PropTypes.oneOf([null]),
   ]),
   icon: PropTypes.node.isRequired,
+  onHide: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
 };
 
 function SuccessMessage({ message }) {
@@ -75,11 +92,13 @@ SuccessMessage.propTypes = {
     .isRequired,
 };
 
-function ErrorMessage({ message }) {
+function ErrorMessage({ message, margin, onHide }) {
   return (
     <Message
+      margin={margin}
       message={message}
       extraStyle={{
+        margin,
         background: theme.colors.red[50],
         border: `1px solid ${theme.colors.red[200]}`,
         '> svg': {
@@ -87,36 +106,46 @@ function ErrorMessage({ message }) {
         },
       }}
       icon={<InfoIcon />}
+      onHide={onHide}
     />
   );
 }
+
+ErrorMessage.defaultProps = {
+  margin: '0',
+  onHide: null,
+};
+
 ErrorMessage.propTypes = {
   message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
     .isRequired,
+  margin: PropTypes.string,
+  onHide: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
 };
 
-function InfoMessage({ message, margin }) {
-  return (
-    <Message
-      message={message}
-      extraStyle={{
+function InfoMessage({ message, margin, onHide }) {
+  return <Message
+    onHide={onHide}
+    message={message}
+    extraStyle={{
         margin,
         background: theme.colors.orange[50],
         border: `1px solid ${theme.colors.orange[200]}`,
         '> svg': { color: theme.colors.orange[400] },
       }}
-      icon={<InfoIcon />}
-    />
-  );
+    icon={<InfoIcon />}
+  />;
 }
 InfoMessage.defaultProps = {
   margin: '0',
+  onHide: null,
 };
 
 InfoMessage.propTypes = {
   margin: PropTypes.string,
   message: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
     .isRequired,
+  onHide: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf([null])]),
 };
 
 export { SuccessMessage, ErrorMessage, InfoMessage };

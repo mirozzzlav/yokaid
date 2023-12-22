@@ -1,0 +1,1 @@
+ALTER TABLE reviews ADD COLUMN media_folder_id character varying(32) DEFAULT NULL;
