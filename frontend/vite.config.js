@@ -18,7 +18,7 @@ export default () =>
           secure: false,
         },
         '/media': {
-          target: 'http://0.0.0.0:9090',
+          target: `http://0.0.0.0:${process.env.VITE_MEDIA_STORE_PORT}`,
           changeOrigin: true,
           rewrite: (path) => path,
           secure: false,

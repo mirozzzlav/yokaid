@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './upload.css';
+import config from 'src/config';
+import useCall from 'src/hooks/useCall';
 
 const getSize = (value) => {
   if (!value) {
@@ -45,6 +47,18 @@ const slugify = (filename) => {
   return fl.toLowerCase() + ext;
 };
 
+const UploadStates = {
+  running: 'running',
+  cancelled: 'cancelled',
+  finished: 'finished',
+};
+
+function useDeleteMedia(onCallFinish) {
+  const { call } = useCall(onCallFinish);
+  return (mediaFolderId, mediaId) =>
+    call(config.api.endPointsURLs.deleteMedia, [mediaFolderId, mediaId]);
+}
+
 export default function Upload({
   autoUpload,
   label,
@@ -53,12 +67,14 @@ export default function Upload({
   size,
   success,
   url,
-  onUploadedFilesChange,
+  onFilesChange,
+  onFileDelete,
   forceReset,
 }) {
   let instances = [];
   let uploadContainer = null;
   let uploadSessionId = null;
+  const deleteMediaCall = useDeleteMedia(onFileDelete);
 
   const getInstance = (uploadId) =>
     instances.find(
@@ -75,6 +91,16 @@ export default function Upload({
     document.querySelector('.messagebox').style.display = 'none';
   };
 
+  const getInstancesCount = () =>
+    instances.filter(({ state }) => state !== UploadStates.cancelled).length;
+
+  const generateUploadId = () =>
+    `${uploadSessionId}_${
+      new Date().getTime() + Math.round(Math.random() * 256) - uploadSessionId
+    }`;
+
+  const getUploadIdPartials = (uploadId) => uploadId.split('_');
+
   const removeInstance = (uploadId) => {
     let newInstances = [];
     instances.forEach((instance) => {
@@ -82,10 +108,32 @@ export default function Upload({
         newInstances = [...newInstances, instance];
       } else {
         instance.element.remove();
+        deleteMediaCall(...getUploadIdPartials(uploadId));
       }
     });
-    onUploadedFilesChange(uploadSessionId, instances.length);
-    return newInstances;
+    instances = newInstances;
+    onFilesChange(uploadSessionId, getInstancesCount());
+  };
+
+  const cancel = (uploadId) => {
+    let newInstances = [];
+    instances.forEach((instance) => {
+      if (instance.uploadId === uploadId) {
+        instance.element.remove();
+      }
+      newInstances = [
+        ...newInstances,
+        {
+          ...instance,
+          state:
+            uploadId === instance.uploadId
+              ? UploadStates.cancelled
+              : instance.state,
+        },
+      ];
+    });
+    instances = newInstances;
+    onFilesChange(uploadSessionId, getInstancesCount());
   };
 
   const sliceUpload = (instance) => {
@@ -136,21 +184,23 @@ export default function Upload({
 
   const fileUpload = async (sliceIndex, uploadId) => {
     const instance = getInstance(uploadId);
-    if (sliceIndex >= instance.slices || !instance.running) {
+    if (
+      sliceIndex >= instance.slices ||
+      instance.state !== UploadStates.running
+    ) {
       return;
     }
     const nextSlice = sliceIndex + 1;
     instance.current = nextSlice;
-    instance.running = true;
     instance.start = sliceIndex * instance.chunkSize;
     instance.end =
       nextSlice === instance.slices
         ? instance.file.size
         : nextSlice * instance.chunkSize;
     instance.percentage = +((100 / instance.slices) * nextSlice);
-    instance.uploadId = uploadId;
     const file = await sliceUpload(instance);
     if (file) {
+      instance.state = UploadStates.finished;
       if (instance.removeProgressbar === true) {
         removeInstance(uploadId);
       }
@@ -163,9 +213,7 @@ export default function Upload({
   const handleFiles = (upload, files) => {
     const chunkSize = +(1024 * 1024);
     Array.from(files).forEach(async (file) => {
-      const uploadId = `${uploadSessionId}_${
-        new Date().getTime() + Math.round(Math.random() * 256) - uploadSessionId
-      }`;
+      const uploadId = generateUploadId();
       const ext = file.name.split('.').pop().trim().toLowerCase() || null;
       const filesize = upload.size || 1099511627776;
       if (
@@ -196,7 +244,7 @@ export default function Upload({
           element: li,
           slices: Math.ceil(file.size / chunkSize),
           current: null,
-          running: true,
+          state: UploadStates.running,
           chunkSize,
           url: upload.url,
           removeProgressbar: upload.removeProgressbar,
@@ -207,7 +255,11 @@ export default function Upload({
       li.onclick = (e) => {
         const cl = Array.from(e.target.classList);
         if (cl.includes('remove')) {
-          removeInstance(uploadId);
+          if (getInstance(uploadId)?.state === UploadStates.finished) {
+            removeInstance(uploadId);
+          } else {
+            cancel(uploadId);
+          }
         }
       };
       if (upload.autoUpload === true) {
@@ -243,7 +295,7 @@ export default function Upload({
       },
       e.target.files,
     );
-    onUploadedFilesChange(uploadSessionId, instances.length);
+    onFilesChange(uploadSessionId, getInstancesCount());
     e.preventDefault();
   };
 
@@ -272,7 +324,7 @@ export default function Upload({
     uploadContainer.querySelector('ul').innerHTML = '';
     uploadContainer.querySelector('input[type=file]').value = '';
     instances = [];
-    onUploadedFilesChange(uploadSessionId, 0);
+    onFilesChange(uploadSessionId, 0);
     attachListeners();
   };
 
@@ -311,7 +363,8 @@ Upload.defaultProps = {
   extensions: 'jpg gif webp png',
   label: 'Media upload',
   success: () => {},
-  onUploadedFilesChange: () => {},
+  onFilesChange: () => {},
+  onFileDelete: () => {},
 };
 
 Upload.prototype.propTypes = {
@@ -322,6 +375,7 @@ Upload.prototype.propTypes = {
   extensions: PropTypes.string,
   success: PropTypes.func,
   label: PropTypes.string,
-  onUploadedFilesChange: PropTypes.func,
+  onFilesChange: PropTypes.func,
+  onFileDelete: PropTypes.func,
   forceReset: PropTypes.bool.isRequired,
 };

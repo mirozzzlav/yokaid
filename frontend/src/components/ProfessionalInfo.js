@@ -62,6 +62,7 @@ const style = {
     borderRadius: theme.radii.base,
   },
   showMoreBtn: {
+    justifyContent: 'flex-start',
     fontWeight: theme.fontWeights.bold,
     fontSize: '0.8rem',
     color: theme.colors.blackAlpha[700],
@@ -91,6 +92,7 @@ export function Review({ review: { id, text, images } }) {
   const [contentTooBig, setContentTooBig] = useState(false);
   const [reviewFullyShown, setReviewFullyShown] = useState(false);
   const { setImagesAndshowImage } = useContext(GalleryContext);
+  const { T } = useContext(TranslationsContext);
 
   useEffect(() => {
     if (!reviewRef.current) {
@@ -137,7 +139,7 @@ export function Review({ review: { id, text, images } }) {
           }
           onClick={() => setReviewFullyShown((prev) => !prev)}
         >
-          {!reviewFullyShown ? 'show more' : 'show less'}
+          {!reviewFullyShown ? T('show more') : T('show less')}
         </Button>
       )}
     </Box>
@@ -152,8 +154,6 @@ Review.prototype.propTypes = {
   }).isRequired,
 };
 
-// don't want to show reviews and rating when adding new review,
-// user should not be affected by others
 export default function ProfessionalInfo({
   data,
   compact,
@@ -164,9 +164,7 @@ export default function ProfessionalInfo({
   const reviews = useMemo(
     () =>
       showReviews && data.reviews
-        ? data.reviews.filter(
-            ({ text, images }) => text || (images && images.length > 0),
-          )
+        ? data.reviews.filter(({ text }) => text)
         : [],
     [data, showReviews],
   );

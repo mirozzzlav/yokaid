@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"yokaid/media_store/common"
 	uploadPkg "yokaid/media_store/upload"
 )
@@ -22,19 +21,63 @@ type Route struct {
 
 var Routes = []Route{
 	{
-		Pattern: "/media/get/{mediaFolderId}/{mediaFile}",
+		Pattern: "/media/get/{mediaFolderId}/{mediaId}",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			params := mux.Vars(r)
-			mediaFile := params["mediaFile"]
+			mediaId := params["mediaId"]
 			mediaFolderId := params["mediaFolderId"]
-			filePath := filepath.Clean(fmt.Sprintf("media/%s/%s", mediaFolderId, mediaFile))
-			if _, err := os.Stat(filePath); err != nil {
+
+			files, err := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
+			if err != nil || len(files) == 0 {
 				panic(common.HttpResponse{
 					Body: common.HttpResponseBody{Msg: "File not found", Data: nil},
 					Code: http.StatusNotFound,
 				})
 			}
-			http.ServeFile(w, r, filePath)
+
+			if _, err := os.Stat(files[0]); err != nil {
+				panic(common.HttpResponse{
+					Body: common.HttpResponseBody{Msg: "File not found", Data: nil},
+					Code: http.StatusNotFound,
+				})
+			}
+			http.ServeFile(w, r, files[0])
+		},
+		Method: "GET",
+	},
+	{
+		Pattern: "/media/delete/{mediaFolderId}/{mediaId}",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			deleteErrResposne := common.HttpResponse{
+				Body: common.HttpResponseBody{Msg: "Error while deleting the media", Data: nil},
+				Code: http.StatusInternalServerError,
+			}
+
+			params := mux.Vars(r)
+			mediaId := params["mediaId"]
+			mediaFolderId := params["mediaFolderId"]
+
+			files, err := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
+			if err != nil {
+				panic(deleteErrResposne)
+			}
+
+			for _, filePath := range files {
+				err := os.Remove(filePath)
+				if err != nil {
+					panic(deleteErrResposne)
+				}
+			}
+
+			mediaFolder := fmt.Sprintf("media/%s", mediaFolderId)
+			isEmpty, err := common.IsFolderEmpty(mediaFolder)
+			if err != nil {
+				panic(deleteErrResposne)
+			}
+			if isEmpty {
+				_ = os.RemoveAll(mediaFolder)
+			}
+
 		},
 		Method: "GET",
 	},
@@ -47,23 +90,19 @@ var Routes = []Route{
 
 			for _, mediaFolderId := range mediaFolderIds {
 				mediaFolderIdStr := strconv.Itoa(mediaFolderId)
-				if !regexp.MustCompile("[0-9]+").MatchString(mediaFolderIdStr) {
-					panic(common.HttpResponse{
-						Body: common.HttpResponseBody{Msg: "Bad request", Data: nil},
-						Code: http.StatusBadRequest,
-					})
-				}
 				path := fmt.Sprintf("media/%d", mediaFolderId)
-				if !common.CheckPathExist(path) {
-					panic(common.HttpResponse{
-						Body: common.HttpResponseBody{Msg: "Requested media not found", Data: nil},
-						Code: http.StatusNotFound,
-					})
+				if !regexp.MustCompile("[0-9]+").MatchString(mediaFolderIdStr) ||
+					!common.CheckPathExist(path) {
+					continue
 				}
+
 				media, _ := common.ListFiles(path)
 				var mediaUrl []string
 				for _, m := range media {
-					mediaUrl = append(mediaUrl, strings.Replace(m, "media", "media/get", -1))
+					mediaUrl = append(
+						mediaUrl,
+						fmt.Sprintf("media/get/%s", regexp.MustCompile("[0-9]+/[0-9]+").FindString(m)),
+					)
 				}
 				data[mediaFolderIdStr] = mediaUrl
 			}

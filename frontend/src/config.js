@@ -1,6 +1,7 @@
 import { formatPhoneNumber } from 'src/helpers';
 
 const apiUrl = `${window.location.origin}/api`;
+const mediaUrl = `${window.location.origin}/media`;
 
 const defaultMapBounds = [47.7311798, 16.8331891, 49.6138162, 22.56571];
 const defaultMapPosition = [48.7411522, 19.4528646];
@@ -38,6 +39,7 @@ export default {
       handleProfessionalContact: `${apiUrl}/professionals/handle-contact`,
       getTranslations: `${apiUrl}/translations/get`,
       makePayment: `${apiUrl}/payments/make`,
+      deleteMedia: `${mediaUrl}/delete`,
     },
   },
   map: {

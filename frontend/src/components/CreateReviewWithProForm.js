@@ -242,7 +242,7 @@ export function CreateReviewWithPro({
         />
         <Upload
           url="/media/upload"
-          onUploadedFilesChange={(mediaFolderId, filesCount) => {
+          onFilesChange={(mediaFolderId, filesCount) => {
             if (filesCount > 0) {
               updateInput('mediaFolderId', mediaFolderId);
             } else {

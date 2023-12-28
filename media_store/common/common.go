@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -161,4 +162,14 @@ func RenameFile(filePath string, newFilePath string) error {
 	}
 
 	return nil
+}
+
+func IsFolderEmpty(folderPath string) (bool, error) {
+	files, err := ioutil.ReadDir(folderPath)
+	if err != nil {
+		return false, err
+	}
+
+	// Check if there are no files in the directory
+	return len(files) == 0, nil
 }
