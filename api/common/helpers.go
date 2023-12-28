@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -32,10 +33,7 @@ func RandomString(length int) string {
 }
 
 func SetJSONResponse(ctx *gin.Context, response HttpResponse) {
-	ctx.AbortWithStatusJSON(response.Code, map[string]any{
-		"msg":  response.Msg,
-		"data": response.Data,
-	})
+	ctx.AbortWithStatusJSON(response.Code, response.Body)
 }
 
 func SetOKJSONResponse(ctx *gin.Context, msg string, data ...any) {
@@ -44,7 +42,13 @@ func SetOKJSONResponse(ctx *gin.Context, msg string, data ...any) {
 	if len(data) > 0 {
 		respData = data[0]
 	}
-	SetJSONResponse(ctx, HttpResponse{Msg: msg, Code: http.StatusOK, Data: respData})
+	SetJSONResponse(ctx, HttpResponse{
+		Code: http.StatusOK,
+		Body: HttpResponseBody{
+			Msg:  msg,
+			Data: respData,
+		},
+	})
 }
 
 func GetValidationErrors(errors any) []map[string]any {
@@ -70,17 +74,19 @@ func GetHttpResponseFromError(err error) any {
 	if validationErrors != nil || err == ErrBadInputs {
 		return HttpResponse{
 			Code: http.StatusBadRequest,
-			Msg:  "response invalid inputs",
-			Data: validationErrors,
+			Body: HttpResponseBody{
+				Msg:  "response invalid inputs",
+				Data: validationErrors,
+			},
 		}
 	}
 
 	if err == ErrNoRows {
-		return HttpResponse{Code: http.StatusBadRequest, Msg: "response no results"}
+		return HttpResponse{Code: http.StatusBadRequest, Body: HttpResponseBody{Msg: "response no results"}}
 	}
 
 	if err == ErrRecordExist {
-		return HttpResponse{Code: http.StatusBadRequest, Msg: "response record exist"}
+		return HttpResponse{Code: http.StatusBadRequest, Body: HttpResponseBody{Msg: "response record exist"}}
 	}
 
 	return nil
@@ -362,4 +368,37 @@ func Translate(lang string, text string, vars ...interface{}) string {
 	locale := gotext.NewLocale(Config.Translations.Root, lang)
 	locale.AddDomain(Config.Translations.DefaultDomain)
 	return locale.Get(text, vars...)
+}
+
+func ConfirmMediaFolder(mediaFolderId string) (HttpResponse, error) {
+
+	url := fmt.Sprintf("http://%s/media/confirm/%s", Config.MediaStoreUrl, mediaFolderId)
+	defaultErrResp := HttpResponse{
+		Code: http.StatusBadRequest,
+		Body: HttpResponseBody{
+			Msg: "Error handling media.",
+		},
+	}
+
+	response, err := http.Get(url)
+	defer response.Body.Close()
+	if err != nil {
+		return defaultErrResp, err
+	}
+
+	var respBody HttpResponseBody
+	err = json.NewDecoder(response.Body).Decode(&respBody)
+	if err != nil {
+		return defaultErrResp, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		err = errors.New(defaultErrResp.Body.Msg)
+	}
+
+	return HttpResponse{
+		Code: response.StatusCode,
+		Body: respBody,
+	}, err
+
 }

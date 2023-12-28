@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"yokaid/media_store/common"
 	uploadPkg "yokaid/media_store/upload"
 )
@@ -27,20 +28,17 @@ var Routes = []Route{
 			mediaId := params["mediaId"]
 			mediaFolderId := params["mediaFolderId"]
 
-			files, err := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
-			if err != nil || len(files) == 0 {
+			files, _ := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
+			filesTmp, _ := filepath.Glob(fmt.Sprintf("media/tmp/%s_%s*", mediaFolderId, mediaId))
+			files = append(files, filesTmp...)
+
+			if len(files) == 0 {
 				panic(common.HttpResponse{
 					Body: common.HttpResponseBody{Msg: "File not found", Data: nil},
 					Code: http.StatusNotFound,
 				})
 			}
 
-			if _, err := os.Stat(files[0]); err != nil {
-				panic(common.HttpResponse{
-					Body: common.HttpResponseBody{Msg: "File not found", Data: nil},
-					Code: http.StatusNotFound,
-				})
-			}
 			http.ServeFile(w, r, files[0])
 		},
 		Method: "GET",
@@ -77,6 +75,7 @@ var Routes = []Route{
 			if isEmpty {
 				_ = os.RemoveAll(mediaFolder)
 			}
+			common.SendOKResponse(w, nil)
 
 		},
 		Method: "GET",
@@ -111,11 +110,8 @@ var Routes = []Route{
 				data = nil
 			}
 
-			responseBytes, _ := json.Marshal(
-				common.HttpResponseBody{Msg: "OK", Data: data},
-			)
+			common.SendOKResponse(w, data)
 
-			fmt.Fprintf(w, string(responseBytes))
 		},
 		Method: "GET",
 	},
@@ -136,5 +132,45 @@ var Routes = []Route{
 
 		},
 		Method: "POST",
+	},
+	{
+		Pattern: "/media/confirm/{mediaFolderId}",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			commonErrResponse := common.HttpResponse{
+				Body: common.HttpResponseBody{Msg: "Error while confirming media folder", Data: nil},
+				Code: http.StatusInternalServerError,
+			}
+
+			params := mux.Vars(r)
+			mediaFolderId := params["mediaFolderId"]
+
+			files, err := filepath.Glob(fmt.Sprintf("media/tmp/%s_*", mediaFolderId))
+			if err != nil || len(files) == 0 {
+				panic(common.HttpResponse{
+					Body: common.HttpResponseBody{Msg: "No media to confirm", Data: nil},
+					Code: http.StatusInternalServerError,
+				})
+			}
+
+			for _, filePath := range files {
+				match := regexp.MustCompile("(?i)([0-9]+)_([0-9]+)\\.([a-z]+)").FindStringSubmatch(filePath)
+				if len(match) == 4 {
+					err = common.CreateOrUseDirectory(fmt.Sprintf("media/%s", match[1]))
+					if err != nil {
+						panic(commonErrResponse)
+					}
+					err = common.RenameFile(
+						filePath,
+						strings.ToLower(fmt.Sprintf("media/%s/%s.%s", match[1], match[2], match[3])),
+					)
+					if err != nil {
+						panic(commonErrResponse)
+					}
+				}
+			}
+			common.SendOKResponse(w, nil)
+
+		},
+		Method: "GET",
 	},
 }

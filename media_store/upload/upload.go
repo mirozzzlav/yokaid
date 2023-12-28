@@ -45,20 +45,20 @@ type Setup struct {
 }
 
 type uploadResponse struct {
-	File     string `json:"file"`
+	MediaUrl string `json:"mediaUrl"`
 	UploadId string `json:"uploadId"`
 }
 
-func (u *Upload) SendResponse(uploadId string, file ...string) {
-	f := ""
-	if len(file) == 1 {
-		f = file[0]
+func (u *Upload) SendResponse(uploadId string, mediaUrl ...string) {
+	mUrl := ""
+	if len(mediaUrl) == 1 {
+		mUrl = mediaUrl[0]
 	}
 	jsonData, _ := json.Marshal(common.HttpResponseBody{
 		Msg: "OK",
 		Data: uploadResponse{
 			UploadId: uploadId,
-			File:     f,
+			MediaUrl: mUrl,
 		},
 	})
 
@@ -214,16 +214,20 @@ func (u *Upload) Run() {
 	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			panic(common.NewErrorResponse(errors.New("failed to retrieve a file")))
+			panic(common.NewErrorResponse(errors.New("failed to close a file")))
 		}
 	}(data)
 
-	uploadIdParts, err := getUploadIdParts(fileInfo.UploadId)
 	if err != nil {
 		panic(common.NewErrorResponse(err, http.StatusBadRequest))
 	}
 
-	tmpFileFullPath := fmt.Sprintf("%stmp__%s.%s", u.Setup.Path, fileInfo.UploadId, extension)
+	err = common.CreateOrUseDirectory(fmt.Sprintf("%s/tmp", u.Setup.Path))
+	if err != nil {
+		panic(common.NewErrorResponse(err, http.StatusBadRequest))
+	}
+
+	tmpFileFullPath := fmt.Sprintf("%s/tmp/%s.%s", u.Setup.Path, fileInfo.UploadId, extension)
 	tmpFile, err := common.OpenOrCreateFile(tmpFileFullPath)
 
 	defer common.CloseFile(tmpFile)
@@ -234,22 +238,11 @@ func (u *Upload) Run() {
 	}
 
 	if fileInfo.TotalSlices == fileInfo.SliceNum {
-		finalFileFullPath := fmt.Sprintf(
-			"%s%s/%s.%s", u.Setup.Path, uploadIdParts[0], uploadIdParts[1], extension)
-
-		err := common.CreateOrUseDirectory(fmt.Sprintf("%s%s", u.Setup.Path, uploadIdParts[0]))
+		uploadIdParts, err := getUploadIdParts(fileInfo.UploadId)
 		if err != nil {
-			panic(common.NewErrorResponse(err))
+			panic(common.NewErrorResponse(err, http.StatusBadRequest))
 		}
-
-		err = common.RenameFile(
-			tmpFileFullPath,
-			finalFileFullPath,
-		)
-		if err != nil {
-			panic(common.NewErrorResponse(err))
-		}
-		u.SendResponse(fileInfo.UploadId, finalFileFullPath)
+		u.SendResponse(fileInfo.UploadId, fmt.Sprintf("media/%s/%s", uploadIdParts[0], uploadIdParts[1]))
 	} else {
 		u.SendResponse(fileInfo.UploadId)
 	}

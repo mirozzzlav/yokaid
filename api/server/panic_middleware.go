@@ -27,7 +27,9 @@ func panicMiddleware(s *server) gin.HandlerFunc {
 					ctx,
 					common.HttpResponse{
 						Code: http.StatusInternalServerError,
-						Msg:  "Hoops, internal server error give it an other try.",
+						Body: common.HttpResponseBody{
+							Msg: "Hoops, internal server error give it an other try.",
+						},
 					},
 				)
 			}

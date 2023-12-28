@@ -33,11 +33,20 @@ func create(server common.Server) gin.HandlerFunc {
 			panic(
 				common.HttpResponse{
 					Code: http.StatusBadRequest,
-					Msg:  "review form existing person",
+					Body: common.HttpResponseBody{
+						Msg: "review form existing person",
+					},
 				},
 			)
 		}
 		common.CheckErrAndPanic(err)
+
+		if req.Review.MediaFolderId != nil {
+			mediaResp, err := common.ConfirmMediaFolder(*req.Review.MediaFolderId)
+			if err != nil {
+				panic(mediaResp)
+			}
+		}
 
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)

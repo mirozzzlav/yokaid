@@ -2,6 +2,7 @@ package professionals
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -51,30 +52,39 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 	}
 }
 
-type mediaResponse struct {
-	Data map[string][]string `json:"data""`
-}
+func getMedia(mediaFolderIds []string) (common.HttpResponse, error) {
 
-func getMedia(mediaFolderIds []string) (mediaResponse, error) {
-
+	defaultErrResp := common.HttpResponse{
+		Code: http.StatusInternalServerError,
+		Body: common.HttpResponseBody{
+			Msg: "Problem occurred while getting the media",
+		},
+	}
 	url := fmt.Sprintf(
 		"http://%s/media/list/[%s]", common.Config.MediaStoreUrl, strings.Join(mediaFolderIds, ","),
 	)
 	response, err := http.Get(url)
 
 	if err != nil {
-		return mediaResponse{}, err
+		return defaultErrResp, err
 	}
 	defer response.Body.Close()
 
-	var resp mediaResponse
-	err = json.NewDecoder(response.Body).Decode(&resp)
+	var respBody common.HttpResponseBody
+	err = json.NewDecoder(response.Body).Decode(&respBody)
 
 	if err != nil {
-		return mediaResponse{}, err
+		return defaultErrResp, err
 	}
 
-	return resp, nil
+	if response.StatusCode != http.StatusOK {
+		err = errors.New(defaultErrResp.Body.Msg)
+	}
+
+	return common.HttpResponse{
+		Code: response.StatusCode,
+		Body: respBody,
+	}, err
 
 }
 
@@ -135,13 +145,17 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			}
 
 			if mediaFolderIds != nil {
-				mediaResposnse, err := getMedia(mediaFolderIds)
-				common.CheckErrAndPanic(err)
+				mediaResp, err := getMedia(mediaFolderIds)
+				if err != nil {
+					panic(mediaResp)
+				}
+
 				for i, r := range reviews {
-					if r.MediaFolderId != nil {
-						images := mediaResposnse.Data[*r.MediaFolderId]
-						reviews[i].Images = &images
-					}
+					var imagesMap map[string][]string
+					marshaled, _ := json.Marshal(mediaResp.Body.Data)
+					json.Unmarshal(marshaled, &imagesMap)
+					images := imagesMap[*r.MediaFolderId]
+					reviews[i].Images = &images
 				}
 			}
 

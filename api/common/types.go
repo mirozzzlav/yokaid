@@ -12,8 +12,12 @@ type Route struct {
 
 type HttpResponse struct {
 	Code int
-	Msg  string
-	Data any
+	Body HttpResponseBody
+}
+
+type HttpResponseBody struct {
+	Msg  string `json:"msg"`
+	Data any    `json:"data"`
 }
 
 type QueryPartial struct {

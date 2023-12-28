@@ -31,7 +31,9 @@ func create(server common.Server) gin.HandlerFunc {
 				panic(
 					common.HttpResponse{
 						Code: http.StatusBadRequest,
-						Msg:  "user already reviewed pro",
+						Body: common.HttpResponseBody{
+							Msg: "user already reviewed pro",
+						},
 					},
 				)
 			}
@@ -45,6 +47,13 @@ func create(server common.Server) gin.HandlerFunc {
 		q = server.GetQueriesRepo().CreateReviewQuery(paymentId, req.ProfessionalId, req.Review)
 		_, err = server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
+
+		if req.Review.MediaFolderId != nil {
+			mediaResp, err := common.ConfirmMediaFolder(*req.Review.MediaFolderId)
+			if err != nil {
+				panic(mediaResp)
+			}
+		}
 
 		err = server.GetQueryRunner(ctx).Commit()
 		common.CheckErrAndPanic(err)

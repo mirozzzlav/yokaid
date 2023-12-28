@@ -103,7 +103,13 @@ func (s *server) initRouter() {
 	// 404
 	router.NoRoute(
 		func(ctx *gin.Context) {
-			panic(common.HttpResponse{Code: http.StatusNotFound, Msg: "Cannot find given route."})
+			panic(
+				common.HttpResponse{
+					Code: http.StatusNotFound,
+					Body: common.HttpResponseBody{
+						Msg: "Cannot find given route.",
+					},
+				})
 		},
 	)
 

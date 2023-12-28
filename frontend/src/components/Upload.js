@@ -177,7 +177,7 @@ export default function Upload({
           throw Error(response.msg);
         }
         progressBar.style.width = `${instance.percentage}%`;
-        return response.data.file || null;
+        return response.data.mediaUrl || null;
       })
       .catch((e) => showMessage(e.message));
   };
@@ -198,13 +198,13 @@ export default function Upload({
         ? instance.file.size
         : nextSlice * instance.chunkSize;
     instance.percentage = +((100 / instance.slices) * nextSlice);
-    const file = await sliceUpload(instance);
-    if (file) {
+    const mediaUrl = await sliceUpload(instance);
+    if (mediaUrl) {
       instance.state = UploadStates.finished;
       if (instance.removeProgressbar === true) {
         removeInstance(uploadId);
       }
-      success(file);
+      success(mediaUrl);
     } else {
       await fileUpload(nextSlice, uploadId);
     }

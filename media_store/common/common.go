@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -40,6 +41,14 @@ func NewErrorResponse(err error, codeAndData ...any) HttpResponse {
 			Data: data,
 		},
 	}
+}
+
+func SendOKResponse(w http.ResponseWriter, data any) {
+	responseBytes, _ := json.Marshal(
+		HttpResponseBody{Msg: "OK", Data: data},
+	)
+
+	fmt.Fprintf(w, string(responseBytes))
 }
 
 func ListFiles(directory string, pattern ...string) ([]string, error) {

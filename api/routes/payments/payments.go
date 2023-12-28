@@ -19,8 +19,10 @@ func makePayment(server common.Server) gin.HandlerFunc {
 			if err == common.ErrNoRows {
 				panic(common.HttpResponse{
 					Code: http.StatusBadRequest,
-					Msg:  "your sms code is not valid",
-					Data: nil,
+					Body: common.HttpResponseBody{
+						Msg:  "your sms code is not valid",
+						Data: nil,
+					},
 				})
 			}
 			common.CheckErrAndPanic(err)
@@ -36,8 +38,10 @@ func makePayment(server common.Server) gin.HandlerFunc {
 			if common.Config.PayReview != "verify" {
 				panic(common.HttpResponse{
 					Code: http.StatusUnauthorized,
-					Msg:  "SMS verification is not allowed.",
-					Data: nil,
+					Body: common.HttpResponseBody{
+						Msg:  "SMS verification is not allowed.",
+						Data: nil,
+					},
 				})
 			}
 			var req common.MakePaymentRequest
