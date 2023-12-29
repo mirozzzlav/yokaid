@@ -151,10 +151,13 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 				}
 
 				for i, r := range reviews {
+					if r.MediaFolderId == nil {
+						continue
+					}
 					var imagesMap map[string][]string
 					marshaled, _ := json.Marshal(mediaResp.Body.Data)
 					json.Unmarshal(marshaled, &imagesMap)
-					images := imagesMap[*r.MediaFolderId]
+					images, _ := imagesMap[*r.MediaFolderId]
 					reviews[i].Images = &images
 				}
 			}
