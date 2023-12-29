@@ -7,23 +7,26 @@ export
 command := $(word 1, $(MAKECMDGOALS))
 mode := $(word 2, $(MAKECMDGOALS))
 
-ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore runstore),)
+ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore buildmediastore runstore),)
 ifeq ($(filter $(mode),$(MAIN_SERVER) $(TEST_SERVER)),)
 $(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
 endif
 endif
 
-server_name := $(DOMAIN)
-api_host := api_$(MAIN_SERVER)
-api_port := $(API_PORT)
-api_docker_mode := api_$(mode)
 api_port_mode := $(API_PORT)
+api_docker_mode := api_$(mode)
+
+media_store_port_mode := $(MEDIA_STORE_PORT)
+media_store_docker_mode := media_store_$(mode)
+
+server_name := $(DOMAIN)
 pay_review_arg := ""
 pay_contact_arg := ""
 nginx_conf := nginx.conf
 
 ifeq ($(mode),$(TEST_SERVER))
 api_port_mode := $(API_PORT_TEST)
+media_store_port_mode := $(MEDIA_STORE_PORT_TEST)
 server_name := $(TEST_SERVER).$(DOMAIN)
 endif
 
@@ -75,6 +78,8 @@ nginxconf:
 	export SERVER_NAME=$(server_name); \
 	export API_HOST=$(api_docker_mode); \
 	export API_PORT=$(api_port_mode); \
+	export MEDIA_STORE_HOST=$(media_store_docker_mode); \
+	export MEDIA_STORE_PORT=$(media_store_port_mode); \
 	envsubst < frontend/nginx_conf/$(nginx_conf) | sed 's|$$%|$$|g' > nginx.conf; \
 	docker cp nginx.conf fe:/etc/nginx/conf.d/$(server_name).conf; \
 	docker exec rm /etc/nginx/conf.d/default.conf 2> /dev/null; \
@@ -95,7 +100,18 @@ buildapi:
 runapi:
 	$(network_cmd); \
 	docker run -d --rm --name $(api_docker_mode) --network $(DOCKER_NET) -p $(api_port_mode):8080 api \
-	app -api_port=$(api_port_mode) -db_url=$(db_docker_url) -pay_review=$(pay_review_arg) -pay_contact=$(pay_contact_arg)
+	app -api_port=$(api_port_mode) -db_url=$(db_docker_url) \
+	-media_store_host=$(media_store_docker_mode) -media_store_port=$(media_store_port_mode) \
+	-pay_contact=$(pay_contact_arg) -pay_review=$(pay_review_arg)
+
+
+buildmediastore:
+	docker build -t media_store ./media_store
+
+runmediastore:
+	$(network_cmd); \
+	docker run -d --rm --name $(media_store_docker_mode) --network $(DOCKER_NET) -p $(media_store_port_mode):9090 media_store \
+	store -host=$(media_store_docker_mode) -port=$(media_store_port_mode)
 
 buildfe:
 	docker build -t fe ./frontend

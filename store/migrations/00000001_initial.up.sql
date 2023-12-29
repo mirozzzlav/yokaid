@@ -9,12 +9,6 @@ CREATE TABLE payments (
     CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "images" (
-   "id" serial NOT NULL,
-   "path" character varying(512) NOT NULL,
-   CONSTRAINT "images_pkey" PRIMARY KEY ("id")
-) WITH (oids = false);
-
 CREATE TABLE "professionals" (
     "id" "serial" NOT NULL,
     "full_name" character varying(32) NOT NULL,
@@ -38,10 +32,6 @@ CREATE TABLE "reviews" (
     CONSTRAINT "reviews_pk" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
-CREATE TABLE "review_images" (
-    "review_id" character varying(32) NOT NULL,
-    "image_id" integer NOT NULL
-) WITH (oids = false);
 
 CREATE TABLE "professions" (
     "id" serial NOT NULL,
@@ -59,7 +49,6 @@ CREATE TABLE "professional_professions" (
 
 ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_professional_id_fkey" FOREIGN KEY ("professional_id") REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "reviews" ADD CONSTRAINT "reviews_id_fkey" FOREIGN KEY ("id") REFERENCES payments(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "review_images" ADD CONSTRAINT "review_images_image_id_fkey" FOREIGN KEY (image_id) REFERENCES images(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_profession_id_fkey" FOREIGN KEY (profession_id) REFERENCES professions(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "professional_professions" ADD CONSTRAINT "professional_professions_professional_id_fkey" FOREIGN KEY (professional_id) REFERENCES professionals(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 

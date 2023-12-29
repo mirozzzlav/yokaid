@@ -28,8 +28,10 @@ var Routes = []Route{
 			mediaId := params["mediaId"]
 			mediaFolderId := params["mediaFolderId"]
 
-			files, _ := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
-			filesTmp, _ := filepath.Glob(fmt.Sprintf("media/tmp/%s_%s*", mediaFolderId, mediaId))
+			files, _ := filepath.Glob(fmt.Sprintf("%s%s/%s*",
+				common.Config.MediaFolder, mediaFolderId, mediaId))
+			filesTmp, _ := filepath.Glob(fmt.Sprintf("%stmp/%s_%s*",
+				common.Config.MediaFolder, mediaFolderId, mediaId))
 			files = append(files, filesTmp...)
 
 			if len(files) == 0 {
@@ -55,7 +57,8 @@ var Routes = []Route{
 			mediaId := params["mediaId"]
 			mediaFolderId := params["mediaFolderId"]
 
-			files, err := filepath.Glob(fmt.Sprintf("media/%s/%s*", mediaFolderId, mediaId))
+			files, err := filepath.Glob(fmt.Sprintf("%s,tmp/%s_%s*",
+				common.Config.MediaFolder, mediaFolderId, mediaId))
 			if err != nil {
 				panic(deleteErrResposne)
 			}
@@ -67,7 +70,7 @@ var Routes = []Route{
 				}
 			}
 
-			mediaFolder := fmt.Sprintf("media/%s", mediaFolderId)
+			mediaFolder := fmt.Sprintf("%s%s", common.Config.MediaFolder, mediaFolderId)
 			isEmpty, err := common.IsFolderEmpty(mediaFolder)
 			if err != nil {
 				panic(deleteErrResposne)
@@ -89,7 +92,7 @@ var Routes = []Route{
 
 			for _, mediaFolderId := range mediaFolderIds {
 				mediaFolderIdStr := strconv.Itoa(mediaFolderId)
-				path := fmt.Sprintf("media/%d", mediaFolderId)
+				path := fmt.Sprintf("%s%d", common.Config.MediaFolder, mediaFolderId)
 				if !regexp.MustCompile("[0-9]+").MatchString(mediaFolderIdStr) ||
 					!common.CheckPathExist(path) {
 					continue
@@ -122,7 +125,7 @@ var Routes = []Route{
 				Setup: uploadPkg.Setup{
 					Writer:     w,
 					Request:    r,
-					Path:       "media/",
+					Path:       common.Config.MediaFolder,
 					Extensions: "gif jpg png webp",
 					Name:       "image",
 					Size:       1024 * 1024 * 32,
@@ -144,7 +147,7 @@ var Routes = []Route{
 			params := mux.Vars(r)
 			mediaFolderId := params["mediaFolderId"]
 
-			files, err := filepath.Glob(fmt.Sprintf("media/tmp/%s_*", mediaFolderId))
+			files, err := filepath.Glob(fmt.Sprintf("%stmp/%s_*", common.Config.MediaFolder, mediaFolderId))
 			if err != nil || len(files) == 0 {
 				panic(common.HttpResponse{
 					Body: common.HttpResponseBody{Msg: "No media to confirm", Data: nil},
@@ -155,13 +158,14 @@ var Routes = []Route{
 			for _, filePath := range files {
 				match := regexp.MustCompile("(?i)([0-9]+)_([0-9]+)\\.([a-z]+)").FindStringSubmatch(filePath)
 				if len(match) == 4 {
-					err = common.CreateOrUseDirectory(fmt.Sprintf("media/%s", match[1]))
+					err = common.CreateOrUseDirectory(fmt.Sprintf("%s%s", common.Config.MediaFolder, match[1]))
 					if err != nil {
 						panic(commonErrResponse)
 					}
 					err = common.RenameFile(
 						filePath,
-						strings.ToLower(fmt.Sprintf("media/%s/%s.%s", match[1], match[2], match[3])),
+						strings.ToLower(fmt.Sprintf("%s%s/%s.%s",
+							common.Config.MediaFolder, match[1], match[2], match[3])),
 					)
 					if err != nil {
 						panic(commonErrResponse)

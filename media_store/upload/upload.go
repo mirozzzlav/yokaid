@@ -242,7 +242,7 @@ func (u *Upload) Run() {
 		if err != nil {
 			panic(common.NewErrorResponse(err, http.StatusBadRequest))
 		}
-		u.SendResponse(fileInfo.UploadId, fmt.Sprintf("media/%s/%s", uploadIdParts[0], uploadIdParts[1]))
+		u.SendResponse(fileInfo.UploadId, fmt.Sprintf("%s%s/%s", common.Config.MediaFolder, uploadIdParts[0], uploadIdParts[1]))
 	} else {
 		u.SendResponse(fileInfo.UploadId)
 	}

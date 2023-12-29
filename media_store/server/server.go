@@ -20,7 +20,7 @@ func NewServer() error {
 	}
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf("0.0.0.0:%s", common.Config.Port),
+		Addr:    fmt.Sprintf("%s:%s", common.Config.Host, common.Config.Port),
 		Handler: router,
 		BaseContext: func(listener net.Listener) context.Context {
 			return context.Background()
@@ -28,6 +28,6 @@ func NewServer() error {
 	}
 
 	// Start the server
-	fmt.Printf("Server listening on 0.0.0.0:%s", common.Config.Port)
+	fmt.Printf("Server listening on %s:%s", common.Config.Host, common.Config.Port)
 	return server.ListenAndServe()
 }

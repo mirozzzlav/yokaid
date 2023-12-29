@@ -1,10 +1,6 @@
 FROM golang:1.21
 WORKDIR /store
 
-ARG MEDIA_DIR
-
-ENV MEDIA_DIR=${MEDIA_DIR}
-
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
