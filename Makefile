@@ -111,7 +111,7 @@ buildmediastore:
 runmediastore:
 	$(network_cmd); \
 	docker run -d --rm --name $(media_store_docker_mode) --network $(DOCKER_NET) -p $(media_store_port_mode):9090 media_store \
-	store -host=$(media_store_docker_mode) -port=$(media_store_port_mode)
+	store -port=$(media_store_port_mode)
 
 buildfe:
 	docker build -t fe ./frontend
