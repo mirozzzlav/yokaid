@@ -166,7 +166,11 @@ export default function Upload({
     })
       .then((response) => {
         responseOk = response.ok;
-        if (!response.headers.get('Content-Length')) {
+        if (
+          response.headers.get('Content-Type').toLowerCase() !==
+          'application/json'
+        ) {
+          responseOk = false;
           return { msg: 'server error' };
         }
         return response.json();
