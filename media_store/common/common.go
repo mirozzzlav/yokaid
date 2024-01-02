@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type HttpResponseBody struct {
@@ -79,12 +80,26 @@ func ListFiles(directory string, pattern ...string) ([]string, error) {
 	return files, nil
 }
 
-func GetExtension(filename string) string {
-	ext := filepath.Ext(filename)
-	if len(ext) > 1 {
-		return ext[1:]
+func SanitizeExtension(ext string) string {
+	if ext == "" || (ext[1] == '.' && len(ext) == 1) {
+		return ""
 	}
-	return ext
+
+	extSanitized := strings.ToLower(ext)
+
+	if extSanitized[0] == '.' {
+		extSanitized = extSanitized[1:]
+	}
+
+	if extSanitized == "jpeg" {
+		return "jpg"
+	}
+
+	return extSanitized
+}
+
+func GetExtension(filename string) string {
+	return SanitizeExtension(filepath.Ext(filename))
 }
 
 func CreateOrUseDirectory(path string) error {

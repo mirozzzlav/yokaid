@@ -113,25 +113,13 @@ func (u *Upload) checkFileSize(filesize int64) error {
 	return nil
 }
 
-func (u *Upload) checkFileExtension(ext string) (string, error) {
-
-	extSanitized := ext
-	if regexp.MustCompile("(jpe?g)/i").MatchString(ext) {
-		extSanitized = "jpg"
-	}
-
-	allowedExtensions := strings.Split(
-		regexp.MustCompile("(jpe?g)/i").ReplaceAllString(u.Setup.Extensions, "jpg"),
-		" ",
-	)
-
-	for _, e := range allowedExtensions {
-		if e == extSanitized {
-			return ext, nil
+func (u *Upload) checkFileExtension(ext string) error {
+	for _, currentExt := range strings.Split(u.Setup.Extensions, " ") {
+		if common.SanitizeExtension(currentExt) == common.SanitizeExtension(ext) {
+			return nil
 		}
 	}
-	err := fmt.Errorf("Invalid file extension.\n Only the following extensions are allowed:\n %s", ext)
-	return ext, err
+	return fmt.Errorf("Invalid file extension.\n Only the following extensions are allowed:\n %s", ext)
 }
 
 func uploadDataChunksToFile(file *os.File, data io.Reader, chunkSize int64) error {
@@ -200,8 +188,8 @@ func (u *Upload) Run() {
 			errors.New("file size problem"), http.StatusBadRequest),
 		)
 	}
-	extension := strings.ToLower(common.GetExtension(fileInfo.OriginalFileName))
-	u.Setup.Extensions, err = u.checkFileExtension(extension)
+	extension := common.GetExtension(fileInfo.OriginalFileName)
+	err = u.checkFileExtension(extension)
 	if err != nil {
 		panic(common.NewErrorResponse(err, http.StatusBadRequest))
 	}
