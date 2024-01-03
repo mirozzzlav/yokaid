@@ -1,7 +1,6 @@
 package upload
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,7 +19,9 @@ type IUpload interface {
 }
 
 type Upload struct {
-	Setup Setup
+	Setup  Setup
+	Writer http.ResponseWriter
+	Req    *http.Request
 }
 
 type File struct {
@@ -35,12 +36,10 @@ type File struct {
 }
 
 type Setup struct {
-	Writer     http.ResponseWriter
-	Request    *http.Request
 	Path       string
 	Name       string
-	Extensions string
-	Size       int64
+	Extensions []string
+	Size       int64 // in bytes
 	Replace    bool
 }
 
@@ -54,49 +53,43 @@ func (u *Upload) SendResponse(uploadId string, mediaUrl ...string) {
 	if len(mediaUrl) == 1 {
 		mUrl = mediaUrl[0]
 	}
-	jsonData, _ := json.Marshal(common.HttpResponseBody{
-		Msg: "OK",
-		Data: uploadResponse{
-			UploadId: uploadId,
-			MediaUrl: mUrl,
-		},
+
+	common.SendOKResponse(u.Writer, uploadResponse{
+		UploadId: uploadId,
+		MediaUrl: mUrl,
 	})
-
-	u.Setup.Writer.Header().Set("Content-Type", "application/json")
-
-	_, _ = fmt.Fprintf(u.Setup.Writer, string(jsonData))
 
 }
 
 func (u *Upload) getHeader() (File, error) {
-	sliceNumStr := u.Setup.Request.Header.Get("X-Slice")
+	sliceNumStr := u.Req.Header.Get("X-Slice")
 	sliceNum, err := strconv.Atoi(sliceNumStr)
 	if err != nil {
 		return File{}, err
 	}
 
-	totalSlicesStr := u.Setup.Request.Header.Get("X-Slices")
+	totalSlicesStr := u.Req.Header.Get("X-Slices")
 	totalSlices, err := strconv.Atoi(totalSlicesStr)
 	if err != nil {
 		return File{}, err
 	}
 
-	fileSizeStr := u.Setup.Request.Header.Get("X-File-Size")
+	fileSizeStr := u.Req.Header.Get("X-File-Size")
 	fileSize, err := strconv.ParseInt(fileSizeStr, 10, 64)
 	if err != nil {
 		return File{}, err
 	}
 
-	sliceSizeStr := u.Setup.Request.Header.Get("X-Slice-Size")
+	sliceSizeStr := u.Req.Header.Get("X-Slice-Size")
 	sliceSize, err := strconv.ParseInt(sliceSizeStr, 10, 64)
 	if err != nil {
 		return File{}, err
 	}
 
-	fileName := u.Setup.Request.Header.Get("X-File-Name")
+	fileName := u.Req.Header.Get("X-File-Name")
 
 	return File{
-		UploadId:         u.Setup.Request.Header.Get("X-Upload-Id"),
+		UploadId:         u.Req.Header.Get("X-Upload-Id"),
 		OriginalFileName: fileName,
 		SliceNum:         sliceNum,
 		TotalSlices:      totalSlices,
@@ -105,21 +98,17 @@ func (u *Upload) getHeader() (File, error) {
 	}, nil
 }
 
-func (u *Upload) checkFileSize(filesize int64) error {
-	if filesize > u.Setup.Size {
-		err := fmt.Errorf("file size exceeds the allowed limit of %d bytes", u.Setup.Size)
-		return err
-	}
-	return nil
+func (u *Upload) isFileSizeOk(filesize int64) bool {
+	return filesize <= u.Setup.Size
 }
 
-func (u *Upload) checkFileExtension(ext string) error {
-	for _, currentExt := range strings.Split(u.Setup.Extensions, " ") {
+func (u *Upload) isFileExtensionAllowed(ext string) bool {
+	for _, currentExt := range u.Setup.Extensions {
 		if common.SanitizeExtension(currentExt) == common.SanitizeExtension(ext) {
-			return nil
+			return true
 		}
 	}
-	return fmt.Errorf("Invalid file extension.\n Only the following extensions are allowed:\n %s", ext)
+	return false
 }
 
 func uploadDataChunksToFile(file *os.File, data io.Reader, chunkSize int64) error {
@@ -152,10 +141,12 @@ func getUploadIdParts(uploadId string) ([]string, error) {
 func (u *Upload) Run() {
 
 	var err error
-
-	if err = u.Setup.Request.ParseMultipartForm(32 << 20); err != nil {
-		panic(common.NewErrorResponse(
-			errors.New("problem parse multipart form"), http.StatusBadRequest))
+	defaultErrResponse := common.NewErrorResponse(
+		errors.New("unknown error while uploading file, try again later"),
+		http.StatusBadRequest,
+	)
+	if err = u.Req.ParseMultipartForm(32 << 20); err != nil {
+		panic(defaultErrResponse)
 	}
 
 	if u.Setup.Path[len(u.Setup.Path)-1:] != "/" {
@@ -164,55 +155,52 @@ func (u *Upload) Run() {
 	err = common.CreateOrUseDirectory(u.Setup.Path)
 
 	if err != nil {
-		panic(common.NewErrorResponse(err, http.StatusBadRequest))
+		panic(defaultErrResponse)
 	}
 
 	err = common.IsDirectoryWritable(u.Setup.Path)
 
 	if err != nil {
-		panic(common.NewErrorResponse(err, http.StatusBadRequest))
+		panic(defaultErrResponse)
 	}
 
 	fileInfo, err := u.getHeader()
 
 	if err != nil {
-		panic(common.NewErrorResponse(
-			errors.New("can't get file data from the header"), http.StatusBadRequest),
-		)
+		panic(defaultErrResponse)
 	}
 
-	err = u.checkFileSize(fileInfo.FileSize)
-
-	if err != nil {
+	if !u.isFileSizeOk(fileInfo.FileSize) {
 		panic(common.NewErrorResponse(
-			errors.New("file size problem"), http.StatusBadRequest),
-		)
+			errors.New("file size problem MBs"), http.StatusBadRequest,
+			map[string][]string{
+				"messageParts": {fmt.Sprintf("%d", u.Setup.Size/(1024*1024))},
+			},
+		))
 	}
 	extension := common.GetExtension(fileInfo.OriginalFileName)
-	err = u.checkFileExtension(extension)
-	if err != nil {
-		panic(common.NewErrorResponse(err, http.StatusBadRequest))
+	if !u.isFileExtensionAllowed(extension) {
+		panic(common.NewErrorResponse(
+			errors.New("invalid extension"), http.StatusBadRequest, map[string][]string{
+				"messageParts": {strings.Join(u.Setup.Extensions, ", ")},
+			}))
 	}
 
-	data, _, err := u.Setup.Request.FormFile("file")
+	data, _, err := u.Req.FormFile("file")
 	if err != nil {
-		panic(common.NewErrorResponse(errors.New("failed to retrieve a file")))
+		panic(defaultErrResponse)
 	}
 
 	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			panic(common.NewErrorResponse(errors.New("failed to close a file")))
+			panic(defaultErrResponse)
 		}
 	}(data)
 
-	if err != nil {
-		panic(common.NewErrorResponse(err, http.StatusBadRequest))
-	}
-
 	err = common.CreateOrUseDirectory(fmt.Sprintf("%s/tmp", u.Setup.Path))
 	if err != nil {
-		panic(common.NewErrorResponse(err, http.StatusBadRequest))
+		panic(defaultErrResponse)
 	}
 
 	tmpFileFullPath := fmt.Sprintf("%s/tmp/%s.%s", u.Setup.Path, fileInfo.UploadId, extension)
@@ -222,13 +210,13 @@ func (u *Upload) Run() {
 
 	err = uploadDataChunksToFile(tmpFile, data, int64(4096))
 	if err != nil {
-		panic(common.NewErrorResponse(errors.New("failed to upload data chunks to the file")))
+		panic(defaultErrResponse)
 	}
 
 	if fileInfo.TotalSlices == fileInfo.SliceNum {
 		uploadIdParts, err := getUploadIdParts(fileInfo.UploadId)
 		if err != nil {
-			panic(common.NewErrorResponse(err, http.StatusBadRequest))
+			panic(defaultErrResponse)
 		}
 		u.SendResponse(fileInfo.UploadId, fmt.Sprintf("%s%s/%s", common.Config.MediaFolder, uploadIdParts[0], uploadIdParts[1]))
 	} else {

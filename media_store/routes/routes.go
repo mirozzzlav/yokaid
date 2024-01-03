@@ -122,13 +122,15 @@ var Routes = []Route{
 		Pattern: "/media/upload",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			u := uploadPkg.Upload{
+				Writer: w,
+				Req:    r,
 				Setup: uploadPkg.Setup{
-					Writer:     w,
-					Request:    r,
-					Path:       common.Config.MediaFolder,
-					Extensions: "gif jpg png webp",
-					Name:       "image",
-					Size:       1024 * 1024 * 32,
+					Path: common.Config.MediaFolder,
+					Extensions: []string{
+						"gif", "jpg", "png", "webp",
+					},
+					Name: "image",
+					Size: 1024 * 1024 * 20, // 20MBs in bytes
 				}}
 
 			u.Run()

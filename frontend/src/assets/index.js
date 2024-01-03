@@ -2,15 +2,18 @@ import PropTypes from 'prop-types';
 import { unknownObjectValidator } from 'src/helpers';
 import { Icon } from '@chakra-ui/react';
 import React from 'react';
-import { ReactComponent as LogoSvg } from 'src/assets/logo.svg';
-import { ReactComponent as FilterIconSvg } from 'src/assets/filterIcon.svg';
-import { ReactComponent as WorkerIconSvg } from 'src/assets/workerIcon.svg';
-import { ReactComponent as LocationIconSvg } from 'src/assets/locationIcon.svg';
-import { ReactComponent as SKSvg } from 'src/assets/SK.svg';
-import { ReactComponent as USSvg } from 'src/assets/US.svg';
-import { ReactComponent as FullScreenSvg } from 'src/assets/fullScreenIcon.svg';
-import { ReactComponent as FullScreenExitSvg } from 'src/assets/fullScreenExitIcon.svg';
-import { ReactComponent as GhostIconSvg } from 'src/assets/ghostIcon.svg';
+
+/* eslint-disable import/no-unresolved */
+import LogoSvg from 'src/assets/logo.svg?react';
+import FilterIconSvg from 'src/assets/filterIcon.svg?react';
+import WorkerIconSvg from 'src/assets/workerIcon.svg?react';
+import LocationIconSvg from 'src/assets/locationIcon.svg?react';
+import SKSvg from 'src/assets/SK.svg?react';
+import USSvg from 'src/assets/US.svg?react';
+import FullScreenSvg from 'src/assets/fullScreenIcon.svg?react';
+import FullScreenExitSvg from 'src/assets/fullScreenExitIcon.svg?react';
+import GhostIconSvg from 'src/assets/ghostIcon.svg?react';
+/* eslint-disable import/no-unresolved */
 
 const defaultIconStyle = {
   fontSize: '1.4rem',
@@ -24,16 +27,19 @@ const propTypes = {
 };
 
 function Logo({ sx }) {
-  return <Icon
-    as={LogoSvg}
-    sx={
-    { ...{
-      height: '33px',
-      width: '100px',
-      maxWidth: '100px',
-  },
-...sx }}
-  />;
+  return (
+    <Icon
+      as={LogoSvg}
+      sx={{
+        ...{
+          height: '33px',
+          width: '100px',
+          maxWidth: '100px',
+        },
+        ...sx,
+      }}
+    />
+  );
 }
 Logo.defaultProps = defaultProps;
 Logo.prototype.propTypes = propTypes;
@@ -71,7 +77,12 @@ FlagIcon.prototype.propTypes = {
 };
 
 function FullScreenIcon({ sx, exit }) {
-  return <Icon as={exit ? FullScreenExitSvg : FullScreenSvg} sx={{ ...defaultIconStyle, ...sx }} />;
+  return (
+    <Icon
+      as={exit ? FullScreenExitSvg : FullScreenSvg}
+      sx={{ ...defaultIconStyle, ...sx }}
+    />
+  );
 }
 FullScreenIcon.defaultProps = {
   exit: false,
@@ -84,7 +95,12 @@ FullScreenIcon.prototype.propTypes = {
 
 function GhostIcon({ sx }) {
   const { fill, ...restSx } = sx;
-  return <Icon as={GhostIconSvg} sx={{ ...defaultIconStyle, ...restSx, '#ghost': { fill } }} />;
+  return (
+    <Icon
+      as={GhostIconSvg}
+      sx={{ ...defaultIconStyle, ...restSx, '#ghost': { fill } }}
+    />
+  );
 }
 GhostIcon.defaultProps = {
   sx: { ...defaultProps, fill: '#ffffff' },
@@ -95,4 +111,13 @@ const FilterIcons = {
   LocationIcon,
   WorkerIcon,
 };
-export { Logo, FilterIcon, WorkerIcon, LocationIcon, FlagIcon, FullScreenIcon, GhostIcon, FilterIcons };
+export {
+  Logo,
+  FilterIcon,
+  WorkerIcon,
+  LocationIcon,
+  FlagIcon,
+  FullScreenIcon,
+  GhostIcon,
+  FilterIcons,
+};

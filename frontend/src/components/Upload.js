@@ -1,38 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './upload.css';
 import config from 'src/config';
 import useCall from 'src/hooks/useCall';
-
-const getSize = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const sizeRegex = /(\d+(?:\.\d+)?)\s*([a-zA-Z]+)/;
-  const matches = value.toString().match(sizeRegex);
-
-  if (!matches) {
-    return value;
-  }
-
-  const [numericPart, unit] = matches;
-  const numericValue = parseFloat(numericPart);
-
-  switch (unit.toLowerCase()) {
-    case 'gb':
-    case 'g':
-      return numericValue * 1024 * 1024 * 1024;
-    case 'mb':
-    case 'm':
-      return numericValue * 1024 * 1024;
-    case 'kb':
-    case 'k':
-      return numericValue * 1024;
-    default:
-      return null;
-  }
-};
+import { TranslationsContext } from 'src/providers';
+import { useCallbackRef } from '@chakra-ui/react';
 
 const slugify = (filename) => {
   const ext = filename.match(/\.\w+$/gm);
@@ -62,9 +34,7 @@ function useDeleteMedia(onCallFinish) {
 export default function Upload({
   autoUpload,
   label,
-  extensions,
   removeProgressbar,
-  size,
   success,
   url,
   onFilesChange,
@@ -75,17 +45,21 @@ export default function Upload({
   let uploadContainer = null;
   let uploadSessionId = null;
   const deleteMediaCall = useDeleteMedia(onFileDelete);
+  const { T } = useContext(TranslationsContext);
 
   const getInstance = (uploadId) =>
     instances.find(
       ({ uploadId: currentUploadId }) => currentUploadId === uploadId,
     ) || null;
 
-  const showMessage = (val) => {
-    const msgBox = document.querySelector('.messagebox');
-    msgBox.style.display = 'block';
-    msgBox.innerHTML = val.replace(/\n/, '<br />');
-  };
+  const showMessage = useCallbackRef(
+    ({ message, messageParts }) => {
+      const msgBox = document.querySelector('.messagebox');
+      msgBox.style.display = 'block';
+      msgBox.innerHTML = T(message, messageParts);
+    },
+    [T],
+  );
 
   const hideMessage = () => {
     document.querySelector('.messagebox').style.display = 'none';
@@ -142,16 +116,10 @@ export default function Upload({
     const { element } = instance;
     let responseOk = false;
 
-    data.append(
-      'file',
-      instance.file.slice(instance.start, instance.end, {
-        type: 'application/octet-stream',
-      }),
-    );
-    data.append('type', 'multipart/form-data');
+    data.append('file', instance.file.slice(instance.start, instance.end));
+
     return fetch(instance.url, {
       method: 'POST',
-      mode: 'cors',
       headers: {
         'X-Upload-Id': instance?.uploadId || '',
         'X-Requested-With': 'XMLHttpRequest',
@@ -171,19 +139,21 @@ export default function Upload({
           'application/json'
         ) {
           responseOk = false;
-          return { msg: 'server error' };
+          return { msg: 'unknown error' };
         }
         return response.json();
       })
       .then((response) => {
         const progressBar = element.querySelector('.progress');
         if (!responseOk) {
-          throw Error(response.msg);
+          const e = Error(response.msg);
+          e.messageParts = response.data?.messageParts;
+          throw e;
         }
         progressBar.style.width = `${instance.percentage}%`;
         return response.data.mediaUrl || null;
       })
-      .catch((e) => showMessage(e.message));
+      .catch(showMessage);
   };
 
   const fileUpload = async (sliceIndex, uploadId) => {
@@ -215,19 +185,9 @@ export default function Upload({
   };
 
   const handleFiles = (upload, files) => {
-    const chunkSize = +(1024 * 1024);
+    const chunkSize = +(1024 * 512); // 512 kB
     Array.from(files).forEach(async (file) => {
       const uploadId = generateUploadId();
-      const ext = file.name.split('.').pop().trim().toLowerCase() || null;
-      const filesize = upload.size || 1099511627776;
-      if (
-        !upload.extensions.map((e) => e.toLowerCase()).includes(ext) ||
-        file.size > filesize
-      ) {
-        showMessage('some of the files is in wrong format or oversize');
-        return;
-      }
-
       const li = document.createElement('LI');
 
       li.innerHTML = `
@@ -290,12 +250,6 @@ export default function Upload({
         success,
         autoUpload,
         removeProgressbar,
-        files: {},
-        size: getSize(size),
-        extensions:
-          (extensions || null) !== null
-            ? extensions.replace(/jpg/gi, 'jpg jpeg').trim().split(' ')
-            : null,
       },
       e.target.files,
     );
@@ -363,8 +317,6 @@ export default function Upload({
 Upload.defaultProps = {
   removeProgressbar: false,
   autoUpload: true,
-  size: 1024 * 1024 * 32,
-  extensions: 'jpg gif webp png',
   label: 'Media upload',
   success: () => {},
   onFilesChange: () => {},
@@ -375,8 +327,6 @@ Upload.prototype.propTypes = {
   url: PropTypes.string.isRequired,
   removeProgressbar: PropTypes.bool,
   autoUpload: PropTypes.bool,
-  size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  extensions: PropTypes.string,
   success: PropTypes.func,
   label: PropTypes.string,
   onFilesChange: PropTypes.func,

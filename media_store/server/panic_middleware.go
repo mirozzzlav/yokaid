@@ -1,8 +1,8 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
+	"time"
 	"yokaid/media_store/common"
 )
 
@@ -22,14 +22,16 @@ func getErrorResponse(r any) (common.HttpResponseBody, int) {
 func PanicMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
-			r := recover()
-			if r == nil {
+			rec := recover()
+			if rec == nil {
 				return
 			}
-			w.Header().Set("Content-Type", "application/json")
-			response, code := getErrorResponse(r)
-			responseBytes, _ := json.Marshal(response)
-			http.Error(w, string(responseBytes), code)
+
+			// don't send multiple responses too fast
+			time.Sleep(1000 * 100 * time.Microsecond)
+
+			response, code := getErrorResponse(rec)
+			common.SendResponse(w, code, response.Msg, response.Data)
 		}()
 
 		// Call the next handler in the chain

@@ -44,12 +44,18 @@ func NewErrorResponse(err error, codeAndData ...any) HttpResponse {
 	}
 }
 
-func SendOKResponse(w http.ResponseWriter, data any) {
+func SendResponse(w http.ResponseWriter, code int, msg string, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
 	responseBytes, _ := json.Marshal(
-		HttpResponseBody{Msg: "OK", Data: data},
+		HttpResponseBody{Msg: msg, Data: data},
 	)
 
 	fmt.Fprintf(w, string(responseBytes))
+}
+func SendOKResponse(w http.ResponseWriter, data any) {
+	SendResponse(w, http.StatusOK, "OK", data)
 }
 
 func ListFiles(directory string, pattern ...string) ([]string, error) {
@@ -106,15 +112,15 @@ func CreateOrUseDirectory(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("Failed to create directory:\n %s", err)
+			return fmt.Errorf("failed to create directory:\n %s", err)
 		}
 	} else if err != nil {
-		return fmt.Errorf("Failed to check directory existence:\n %s", err)
+		return fmt.Errorf("failed to check directory existence:\n %s", err)
 	}
 
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("Failed to get directory information:\n %s", err)
+		return fmt.Errorf("failed to get directory information:\n %s", err)
 	}
 
 	if !fileInfo.IsDir() {
@@ -155,7 +161,7 @@ func OpenOrCreateFile(filePath string) (file *os.File, err error) {
 	}
 
 	if err != nil {
-		log.Printf("Failed to create %s: %s", filePath, err)
+		log.Printf("failed to create %s: %s", filePath, err)
 	}
 
 	return file, err
