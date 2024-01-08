@@ -1,6 +1,10 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import Routes from 'src/Routes';
+import {
+  BrowserRouter,
+  Route,
+  Routes as RoutesReactDom,
+} from 'react-router-dom';
+import routes from 'src/routes';
 import {
   FilterProvider,
   GalleryProvider,
@@ -13,6 +17,7 @@ import {
 } from 'src/providers';
 
 function App() {
+  const menuRoutes = routes.filter(({ notInMenu }) => !notInMenu, [routes]);
   return (
     <BrowserRouter>
       <TranslationsProvider>
@@ -23,7 +28,19 @@ function App() {
                 <MapProvider>
                   <UserIdProvider>
                     <GalleryProvider>
-                      <Routes />
+                      <RoutesReactDom>
+                        {routes.map(({ name, path, renderer }) => (
+                          <Route
+                            strict
+                            exact
+                            key={name}
+                            path={path}
+                            element={React.createElement(renderer, {
+                              menuRoutes,
+                            })}
+                          />
+                        ))}
+                      </RoutesReactDom>
                     </GalleryProvider>
                   </UserIdProvider>
                 </MapProvider>

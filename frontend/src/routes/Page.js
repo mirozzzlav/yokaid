@@ -1,37 +1,37 @@
 import React, { useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Box,
-  Flex,
-  IconButton,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FullScreenIcon, Logo } from 'src/assets';
-import { FormModals, LanguageDropdown, Overlay, verifyBySmsFormConfigFactory } from 'src/components';
+import {
+  Dropdown,
+  FormModals,
+  LanguageDropdown,
+  Overlay,
+  verifyBySmsFormConfigFactory,
+} from 'src/components';
 import theme from 'src/style';
 import { useNavigateAction } from 'src/hooks';
-import { getMergedStyle } from 'src/helpers';
+import { getMergedStyle, unknownObjectValidator } from 'src/helpers';
 import { formModalsConfigPropType } from 'src/constants';
 import { TranslationsContext } from 'src/providers';
 import config from 'src/config';
+import { HamburgerIcon } from '@chakra-ui/icons';
 
-function useStyle() {
+function useStyle(mode) {
   const style = {
-    container: (mode) => ({
-      ...(mode === 'fullscreen'
-        ? { height: '100vh', overflow: 'hidden' }
-        : null),
+    container: {
+      height: '100vh',
+      overflow: 'auto',
       display: 'flex',
       flexDirection: 'column',
-    }),
+    },
     top: {
-      position: 'fixed',
-      width: '100%',
+      position: 'relative',
       zIndex: 500,
     },
     topInner: {
       alignItems: 'center',
-      justifyContent: 'space-between',
       padding: '1rem 1rem',
       background: '#fff',
       transition: 'padding ease-in .1s',
@@ -41,16 +41,20 @@ function useStyle() {
       flexGrow: 1,
       width: '100%',
     },
+    topRight: {
+      display: 'flex',
+      flexWrap: 'nowrap',
+      marginLeft: 'auto',
+    },
     topContentHidden: (isHidden) => ({
-      ...(
-        isHidden ?
-        {
-          padding: '3px 1rem 5px 1rem',
-          '> [aria-roledescription="top-content"]': {
-            display: 'none',
-          },
-        } : null
-      ),
+      ...(isHidden
+        ? {
+            padding: '3px 1rem 5px 1rem',
+            '> [aria-roledescription="top-content"]': {
+              display: 'none',
+            },
+          }
+        : null),
     }),
     fullScreenBtn: {
       background: '#fff',
@@ -58,18 +62,9 @@ function useStyle() {
         background: '#fff',
       },
     },
-    logoWrapper: {
-      display: 'flex',
-      alignItems: 'center',
-      '> p': {
-        textAlign: 'center',
-        fontFamily: 'monospace',
-        fontWeight: 'bold',
-        width: '100px',
-      },
-    },
     content: {
       flexGrow: 1,
+      ...(mode === 'info' ? { padding: theme.space[4] } : null),
     },
     footer: {
       position: 'fixed',
@@ -108,31 +103,37 @@ function Page({
   isFilterShown,
   isFilterShownSetter,
   modalsConfig: modalsConfigFromProps,
+  menuRoutes,
 }) {
-  const style = useStyle();
+  const style = useStyle(mode);
   const { navigateAction, action, actionParams } = useNavigateAction();
+  const navigate = useNavigate();
   const { T } = useContext(TranslationsContext);
   const modalsConfig = useMemo(
     () => ({
-        ...modalsConfigFromProps,
-        'verify-by-sms': {
-          title: T('sms verification'),
-          submitButton: {
-            label: T('submit'),
-          },
-          formConfig: verifyBySmsFormConfigFactory(actionParams),
+      ...modalsConfigFromProps,
+      'verify-by-sms': {
+        title: T('sms verification'),
+        submitButton: {
+          label: T('submit'),
         },
-      }),
+        formConfig: verifyBySmsFormConfigFactory(actionParams),
+      },
+    }),
     [action, actionParams, modalsConfigFromProps],
   );
   const { lang, setLang } = useContext(TranslationsContext);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   return (
-    <Box sx={style.container(mode)}>
+    <Box sx={style.container}>
       <Box sx={style.top}>
-        <Flex sx={{ ...style.topInner, ...style.topContentHidden(isFullScreen) }}>
-          <Logo />
+        <Flex
+          sx={{ ...style.topInner, ...style.topContentHidden(isFullScreen) }}
+        >
+          <Link to="/">
+            <Logo />
+          </Link>
           <Box sx={style.topContent} aria-roledescription="top-content">
             {topContent}
           </Box>
@@ -141,6 +142,23 @@ function Page({
               selectedLanguage={lang}
               languages={config.languages}
               onLanguageSelect={({ value: langCode }) => setLang(langCode)}
+            />
+            <Dropdown
+              onItemClick={({ value }) => navigate(!value ? '/' : `/${value}`)}
+              buttonMeta={{
+                content: <HamburgerIcon />,
+                variant: 'ghost',
+                style: {
+                  '> span': { display: 'none' },
+                  '> svg': { fontSize: '1.4rem' },
+                  padding: '2px 4px 2px 4px',
+                },
+              }}
+              items={menuRoutes.map(({ name, path }) => ({
+                content: T(name),
+                value: path,
+              }))}
+              width="200px"
             />
           </Box>
         </Flex>
@@ -171,20 +189,24 @@ function Page({
   );
 }
 Page.defaultProps = {
-  mode: 'scroll',
+  mode: 'map',
+  topContent: null,
   filterContent: null,
   footer: null,
   modalsConfig: null,
+  isFilterShown: false,
+  isFilterShownSetter: () => {},
 };
 
 Page.propTypes = {
   children: PropTypes.node.isRequired,
+  menuRoutes: PropTypes.arrayOf(unknownObjectValidator).isRequired,
   mode: PropTypes.string,
-  topContent: PropTypes.node.isRequired,
+  topContent: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   filterContent: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
-  isFilterShown: PropTypes.bool.isRequired,
-  isFilterShownSetter: PropTypes.func.isRequired,
+  isFilterShown: PropTypes.bool,
+  isFilterShownSetter: PropTypes.func,
   modalsConfig: PropTypes.oneOfType([
     PropTypes.objectOf(formModalsConfigPropType),
     PropTypes.oneOf([null]),

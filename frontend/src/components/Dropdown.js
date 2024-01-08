@@ -107,28 +107,28 @@ function DropdownList({
         tabIndex={0}
         onBlur={() => i === items.length - 1 && setIsShown(false)}
         key={`${label}${
-              typeof value === 'object' ? JSON.stringify(value) : value
-            }`}
+          typeof value === 'object' ? JSON.stringify(value) : value
+        }`}
         onClick={() => {
-              if (restItem.onClick) {
-                restItem.onClick({
-                  label,
-                  value,
-                  ...restItem,
-                });
-              } else if (onItemClick) {
-                onItemClick({
-                  label,
-                  value,
-                  ...restItem,
-                });
-              }
-              setIsShown(false);
-            }}
+          if (restItem.onClick) {
+            restItem.onClick({
+              label,
+              value,
+              ...restItem,
+            });
+          } else if (onItemClick) {
+            onItemClick({
+              label,
+              value,
+              ...restItem,
+            });
+          }
+          setIsShown(false);
+        }}
       >
         <Box>{restItem.content || `${label}`}</Box>
       </Box>
-        ));
+    ));
   }
   return (
     <Box
@@ -138,7 +138,6 @@ function DropdownList({
       }}
     >
       {listItems}
-
     </Box>
   );
 }
@@ -210,16 +209,7 @@ Dropdown.defaultProps = {
   onItemClick: null,
 };
 Dropdown.propTypes = {
-  items: PropTypes.arrayOf(
-    PropTypes.shape({
-      label: PropTypes.string,
-      value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-        PropTypes.array,
-      ]),
-    }),
-  ),
+  items: itemsPropType,
   buttonMeta: PropTypes.shape({
     content: PropTypes.node,
     variant: PropTypes.string,
@@ -390,16 +380,17 @@ function SearchDropdown({
     </InputGroup>
   );
 
-  const dropdownList = (
-    (inputVal !== '' || !!initialItems) && !isLoading ? <DropdownList
-      items={items}
-      onItemClick={onItemClick}
-      setIsShown={setIsShown}
-      isShown={isShown}
-      position={position}
-      width={dropdownWidth}
-    /> : null
-  );
+  const dropdownList =
+    (inputVal !== '' || !!initialItems) && !isLoading ? (
+      <DropdownList
+        items={items}
+        onItemClick={onItemClick}
+        setIsShown={setIsShown}
+        isShown={isShown}
+        position={position}
+        width={dropdownWidth}
+      />
+    ) : null;
 
   if (showWithOverlay) {
     if (isShown) {

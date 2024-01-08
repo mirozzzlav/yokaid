@@ -5,7 +5,7 @@ import theme from 'src/style';
 import {
   createReviewFormConfigFactory,
   createReviewWithProConfigFactory,
-  Map,
+  Map as MapComponent,
   SearchDropdown,
 } from 'src/components';
 import {
@@ -27,7 +27,7 @@ import PropTypes from 'prop-types';
 import Modal from 'src/components/Modal';
 import ProfessionalInfo from 'src/components/ProfessionalInfo';
 import { FilterIcon, FilterIcons, GhostIcon } from 'src/assets';
-import Page from 'src/pages/Page';
+import Page from 'src/routes/Page';
 
 function useStyle() {
   const style = {
@@ -154,7 +154,7 @@ FilterInfo.prototype.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-export default function MapPage() {
+export function Map(props) {
   const { navigateAction, action } = useNavigateAction();
   const { T } = useContext(TranslationsContext);
 
@@ -225,6 +225,7 @@ export default function MapPage() {
 
   return (
     <Page
+      {...props}
       mode="fullscreen"
       modalsConfig={modalsConfig}
       topContent={
@@ -345,7 +346,7 @@ export default function MapPage() {
         </Button>
       }
     >
-      <Map
+      <MapComponent
         markers={markers}
         onZoomOrMove={(mapAreaFromMap) => {
           setMapAreaRequest(mapAreaFromMap);
@@ -363,7 +364,9 @@ export default function MapPage() {
         submitButton={{
           label: T('write review'),
           icon: <GhostIcon />,
-          onClick: () => professionalDetail.id && navigateAction('add-review', professionalDetail?.id),
+          onClick: () =>
+            professionalDetail.id &&
+            navigateAction('add-review', professionalDetail?.id),
         }}
       >
         <ProfessionalInfo
@@ -376,3 +379,17 @@ export default function MapPage() {
     </Page>
   );
 }
+
+export default [
+  {
+    name: 'map',
+    path: '',
+    renderer: Map,
+  },
+  {
+    name: 'mapActions',
+    notInMenu: true,
+    path: ':action/:actionParams?',
+    renderer: Map,
+  },
+];

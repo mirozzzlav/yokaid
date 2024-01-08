@@ -29,10 +29,6 @@ export default function MapProvider({ children }) {
     mapRef.current.setView(mapArea.position, calculateZoom(mapArea.bounds));
   }, []);
 
-  useEffect(() => {
-    moveMap(config.map.defaultArea);
-  }, []);
-
   const contextVal = useMemo(
     () => ({
       mapRef,

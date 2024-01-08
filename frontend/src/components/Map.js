@@ -44,7 +44,7 @@ export default function Map({
   const zoomRef = useRef(config.map.defaultZoom);
   const clusterGroupRef = useRef(null);
   const mapLayersRef = useRef({});
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, moveMap } = useContext(MapContext);
 
   const getBounds = useCallback(() => {
     const bounds = mapRef.current.getBounds();
@@ -87,8 +87,8 @@ export default function Map({
   }, [mapRef]);
 
   useEffect(() => {
-    if (mapRef.current || !mapElementRef.current) {
-      return;
+    if (!mapElementRef.current) {
+      return () => {};
     }
     const map = L.map(mapElementRef.current, {
       zoomControl: false,
@@ -109,6 +109,13 @@ export default function Map({
     mapRef.current = map;
     initClusterGroup();
     mapRef.current.addEventListener('zoomend moveend', onZoomOrMove);
+    moveMap(config.map.defaultArea);
+
+    return () => {
+      map.off();
+      map.remove();
+      mapRef.current.removeEventListener('zoomend moveend', onZoomOrMove);
+    };
   }, []);
 
   useEffect(() => {
