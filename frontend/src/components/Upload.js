@@ -52,18 +52,15 @@ export default function Upload({
       ({ uploadId: currentUploadId }) => currentUploadId === uploadId,
     ) || null;
 
-  const showMessage = useCallbackRef(
-    ({ message, messageParts }) => {
-      const msgBox = document.querySelector('.messagebox');
-      msgBox.style.display = 'block';
-      msgBox.innerHTML = T(message, messageParts);
+  const setInstanceError = useCallbackRef(
+    (uploadId, { message, messageParts }) => {
+      document.querySelector(`#instance-error-${uploadId}`).innerHTML = T(
+        message,
+        messageParts || null,
+      );
     },
-    [T],
+    [],
   );
-
-  const hideMessage = () => {
-    document.querySelector('.messagebox').style.display = 'none';
-  };
 
   const getInstancesCount = () =>
     instances.filter(({ state }) => state !== UploadStates.cancelled).length;
@@ -89,10 +86,10 @@ export default function Upload({
     onFilesChange(uploadSessionId, getInstancesCount());
   };
 
-  const cancel = (uploadId) => {
+  const cancel = (uploadId, error = null) => {
     let newInstances = [];
     instances.forEach((instance) => {
-      if (instance.uploadId === uploadId) {
+      if (instance.uploadId === uploadId && !error) {
         instance.element.remove();
       }
       newInstances = [
@@ -108,6 +105,9 @@ export default function Upload({
     });
     instances = newInstances;
     onFilesChange(uploadSessionId, getInstancesCount());
+    if (error) {
+      setInstanceError(uploadId, error);
+    }
   };
 
   const sliceUpload = (instance) => {
@@ -153,7 +153,9 @@ export default function Upload({
         progressBar.style.width = `${instance.percentage}%`;
         return response.data.mediaUrl || null;
       })
-      .catch(showMessage);
+      .catch((e) => {
+        cancel(instance.uploadId, e);
+      });
   };
 
   const fileUpload = async (sliceIndex, uploadId) => {
@@ -197,7 +199,7 @@ export default function Upload({
             <div class="remove"></div>
           </div>
         </div>
-        <div class="progress"></div>`;
+        <div class="progress"></div><div class="error" id="instance-error-${uploadId}"></div>`;
 
       uploadContainer.querySelector('ul').appendChild(li);
       instances = [
@@ -243,7 +245,6 @@ export default function Upload({
   };
 
   const onFileInputChange = (e) => {
-    hideMessage();
     handleFiles(
       {
         url,
@@ -278,7 +279,6 @@ export default function Upload({
   const reset = () => {
     uploadContainer = document.querySelector('.fileUpload');
     uploadSessionId = new Date().getTime();
-    hideMessage();
     uploadContainer.querySelector('ul').innerHTML = '';
     uploadContainer.querySelector('input[type=file]').value = '';
     instances = [];

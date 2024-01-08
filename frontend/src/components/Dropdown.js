@@ -4,7 +4,6 @@ import {
   Input,
   InputGroup,
   InputRightElement,
-  Spinner,
   useOutsideClick,
 } from '@chakra-ui/react';
 import React, {

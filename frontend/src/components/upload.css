@@ -91,6 +91,12 @@
     height: 5px;
 }
 
+.fileUpload ul li .error {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  line-height: 1.2rem;
+  margin-top: 1rem;
+}
 .fileUpload .control {
     display: flex;
     align-items: center;
