@@ -29,6 +29,7 @@ function useStyle(mode) {
     top: {
       position: 'relative',
       zIndex: 500,
+      boxShadow: theme.shadows.base,
     },
     topInner: {
       alignItems: 'center',
@@ -67,7 +68,7 @@ function useStyle(mode) {
       flexGrow: 1,
       ...(mode === 'info'
         ? {
-            padding: `0 ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
+            padding: `${theme.space[12]} ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
             maxWidth: theme.breakpoints.lg,
             margin: '0 auto',
           }
@@ -78,7 +79,7 @@ function useStyle(mode) {
       },
     },
     footer: {
-      ...(mode !== 'info'
+      ...(mode === 'map'
         ? { position: 'fixed', zIndex: 400, width: '100vw', bottom: 0, left: 0 }
         : null),
       padding: '0 12px 28px 52px',

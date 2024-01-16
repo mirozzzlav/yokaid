@@ -226,7 +226,7 @@ export function Map(props) {
   return (
     <Page
       {...props}
-      mode="fullscreen"
+      mode="map"
       modalsConfig={modalsConfig}
       topContent={
         <Flex sx={style.topContent}>
