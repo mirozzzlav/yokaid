@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { buttonPropType } from 'src/constants';
 import { TranslationsContext, WindowContext } from 'src/providers';
-import Loader from 'src/components/Loader';
+import Loader, { LoaderWithButton } from 'src/components/Loader';
 
 const style = {
   fakeFocus: {
@@ -58,17 +58,11 @@ export default function Modal({
           {children}
         </ModalBody>
         <ModalFooter>
-          <Loader isLoading={isLoading} mini={false} />
-          {submitButton && isLoading !== true && (
-            <Button
-              variant="solid"
-              colorScheme="blue"
-              mr={3}
-              onClick={submitButton.onClick}
-              leftIcon={submitButton.icon || null}
-            >
-              {submitButton.label}
-            </Button>
+          {submitButton && (
+            <LoaderWithButton
+              isLoading={isLoading === true}
+              button={submitButton}
+            />
           )}
           <Button onClick={close} variant="solid">
             {T('close')}

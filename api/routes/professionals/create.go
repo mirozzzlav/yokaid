@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"yokaid/api/common"
+	"yokaid/api/send_service"
 )
 
 func create(server common.Server) gin.HandlerFunc {
@@ -59,7 +60,7 @@ func create(server common.Server) gin.HandlerFunc {
 			)
 		} else if common.Config.PayReview == "verify" {
 			phoneNr := fmt.Sprintf("+%s", common.GetNumberSanitized(string(req.UserId)))
-			common.SendSMS(
+			send_service.SendSMS(
 				phoneNr,
 				common.Translate(common.GetLangFromSession(ctx), "verification sms", paymentId),
 			)

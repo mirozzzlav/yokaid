@@ -335,6 +335,7 @@ export function Map(props) {
           </Flex>
         </Flex>
       }
+      footerSx={{ justifyContent: 'right' }}
       footer={
         <Button
           onClick={() => navigateAction('add-review-with-professional')}

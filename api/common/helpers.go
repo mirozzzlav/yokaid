@@ -1,6 +1,7 @@
 package common
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/leonelquinteros/gotext"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -370,35 +372,42 @@ func Translate(lang string, text string, vars ...interface{}) string {
 	return locale.Get(text, vars...)
 }
 
-func ConfirmMediaFolder(mediaFolderId string) (HttpResponse, error) {
+func RequestJson(payload []byte, url string, headers map[string]string) error {
 
-	url := fmt.Sprintf("http://%s/media/confirm/%s", Config.MediaStoreUrl, mediaFolderId)
-	defaultErrResp := HttpResponse{
-		Code: http.StatusBadRequest,
-		Body: HttpResponseBody{
-			Msg: "Error handling media.",
-		},
-	}
-
-	response, err := http.Get(url)
-	defer response.Body.Close()
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return defaultErrResp, err
+		return err
 	}
 
-	var respBody HttpResponseBody
-	err = json.NewDecoder(response.Body).Decode(&respBody)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
 	if err != nil {
-		return defaultErrResp, err
+		return err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		err = errors.New(defaultErrResp.Body.Msg)
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	var bodyJson map[string]interface{}
+	err = json.Unmarshal(body, &bodyJson)
+	if err != nil {
+		return err
 	}
 
-	return HttpResponse{
-		Code: response.StatusCode,
-		Body: respBody,
-	}, err
+	if fmt.Sprintf("%d", resp.StatusCode)[0] == '2' {
+		return nil
+	}
+	return errors.New(fmt.Sprintf("%s", bodyJson))
 
 }

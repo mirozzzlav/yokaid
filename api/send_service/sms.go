@@ -1,11 +1,10 @@
-package common
+package send_service
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"yokaid/api/common"
 )
 
 type SMSMessagePartial struct {
@@ -21,7 +20,7 @@ type SMSMessage struct {
 func newMessagePartial(to string, message string) SMSMessagePartial {
 	return SMSMessagePartial{
 		To:     to,
-		Source: Config.AppName,
+		Source: common.Config.AppName,
 		Body:   message,
 	}
 }
@@ -38,27 +37,11 @@ func SendSMS(to string, message string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", Config.SMSSend.ApiUrl, bytes.NewBuffer(payload))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set(
-		"Authorization",
-		fmt.Sprintf(
-			"BASIC %s", base64.StdEncoding.EncodeToString([]byte(Config.SMSSend.Auth)),
-		),
+	return common.RequestJson(payload, common.Config.SendSMS.Url,
+		map[string]string{
+			"Authorization": fmt.Sprintf(
+				"BASIC %s", base64.StdEncoding.EncodeToString([]byte(common.Config.SendSMS.Auth)),
+			),
+		},
 	)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	return nil
 }

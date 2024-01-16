@@ -23,32 +23,32 @@ type sessionConfig struct {
 	Name   string
 }
 
-type smsSendConfig struct {
-	ApiUrl string
-	Auth   string
+type sendServiceConfig struct {
+	Url  string
+	Auth string
 }
 type config struct {
-	AppName             string
-	AppMailFrom         string
-	AppMailAPIKey       string
-	EnableNotifications bool
-	DBDriver            string
-	DBSource            string
-	AssetsFolder        string
-	AssetsRelativeUrl   string
-	Logs                logsConfig
-	PublicRoles         []string
-	InputFormats        map[string]string
-	SMSPaymentPhone     string
-	Translations        translationsConfig
-	ReviewsPerPage      int
-	DefaultLanguage     string
-	Session             sessionConfig
-	Port                string
-	PayReview           string
-	PayContact          string
-	SMSSend             smsSendConfig
-	MediaStoreUrl       string
+	AppName           string
+	AppMailFrom       string
+	SupportMail       string
+	DBDriver          string
+	DBSource          string
+	AssetsFolder      string
+	AssetsRelativeUrl string
+	Logs              logsConfig
+	PublicRoles       []string
+	InputFormats      map[string]string
+	SMSPaymentPhone   string
+	Translations      translationsConfig
+	ReviewsPerPage    int
+	DefaultLanguage   string
+	Session           sessionConfig
+	Port              string
+	PayReview         string
+	PayContact        string
+	SendSMS           sendServiceConfig
+	SendMail          sendServiceConfig
+	MediaStoreUrl     string
 }
 
 var ErrNoRows = errors.New("no rows in result set")
@@ -102,21 +102,15 @@ var Config = func() config {
 		panic(errors.New("missing argument media_store_host or media_store_port"))
 	}
 
-	enableNotifications, err := strconv.ParseBool(os.Getenv("ENABLE_NOTIFICATIONS"))
-	if err != nil {
-		panic(errors.New("missing ENABLE_NOTIFICATIONS parameter"))
-	}
-
 	return config{
-		AppName:             os.Getenv("APP_NAME"),
-		AppMailFrom:         os.Getenv("MAIL_FROM"),
-		AppMailAPIKey:       os.Getenv("MAIL_API_KEY"),
-		EnableNotifications: enableNotifications,
-		DBDriver:            "postgres",
-		DBSource:            dbUrl,
-		AssetsFolder:        "./assets",
-		AssetsRelativeUrl:   "/assets",
-		Logs:                getLogsConfig(),
+		AppName:           os.Getenv("APP_NAME"),
+		AppMailFrom:       os.Getenv("MAIL_FROM"),
+		SupportMail:       os.Getenv("SUPPORT_MAIL"),
+		DBDriver:          "postgres",
+		DBSource:          dbUrl,
+		AssetsFolder:      "./assets",
+		AssetsRelativeUrl: "/assets",
+		Logs:              getLogsConfig(),
 		InputFormats: map[string]string{
 			"phone": "+421 9xx xxx xxx",
 		},
@@ -131,9 +125,13 @@ var Config = func() config {
 		Port:            apiPort,
 		PayReview:       payReview,
 		PayContact:      payContact,
-		SMSSend: smsSendConfig{
-			ApiUrl: os.Getenv("SMS_SEND_API"),
-			Auth:   os.Getenv("SMS_SEND_AUTH"),
+		SendSMS: sendServiceConfig{
+			Url:  os.Getenv("SEND_SMS_URL"),
+			Auth: os.Getenv("SEND_SMS_AUTH"),
+		},
+		SendMail: sendServiceConfig{
+			Url:  os.Getenv("SEND_MAIL_URL"),
+			Auth: os.Getenv("SEND_MAIL_AUTH"),
 		},
 		MediaStoreUrl: fmt.Sprintf("%s:%s", mediaStoreHost, mediaStorePort),
 	}

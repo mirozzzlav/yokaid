@@ -21,12 +21,14 @@ import LanguageDropdown from 'src/components/LanguageDropdown';
 import { formConfigFactory as createReviewWithProConfigFactory } from 'src/components/CreateReviewWithProForm';
 import { formConfigFactory as createReviewFormConfigFactory } from 'src/components/CreateReviewForm';
 import { formConfigFactory as verifyBySmsFormConfigFactory } from 'src/components/VerifyBySmsForm';
-import Loader from 'src/components/Loader';
+import ContactForm from 'src/components/ContactForm';
+import Loader, { LoaderWithButton } from 'src/components/Loader';
 
 export {
   createReviewFormConfigFactory,
   createReviewWithProConfigFactory,
   verifyBySmsFormConfigFactory,
+  ContactForm,
   FormModals,
   Message,
   SearchDropdown,
@@ -48,4 +50,5 @@ export {
   Overlay,
   LanguageDropdown,
   Loader,
+  LoaderWithButton,
 };

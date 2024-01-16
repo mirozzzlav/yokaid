@@ -1,9 +1,4 @@
-import {
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Textarea,
-} from '@chakra-ui/react';
+import { FormControl, FormErrorMessage, Textarea } from '@chakra-ui/react';
 import { isFieldRequired, unknownObjectValidator } from 'src/helpers';
 import Rating from 'src/components/Rating';
 import PropTypes from 'prop-types';

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"yokaid/api/common"
+	"yokaid/api/routes/contact_form"
 	"yokaid/api/routes/examples"
 	frontendData "yokaid/api/routes/frontend_data"
 	"yokaid/api/routes/payments"
@@ -21,5 +22,6 @@ func GetRoutes(server common.Server) []common.Route {
 	routes = append(routes, reviews.GetRoutes(server)...)
 	routes = append(routes, translations.GetRoutes(server)...)
 	routes = append(routes, payments.GetRoutes(server)...)
+	routes = append(routes, contact_form.GetRoutes(server)...)
 	return routes
 }

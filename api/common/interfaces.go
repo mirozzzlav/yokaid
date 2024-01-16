@@ -8,7 +8,6 @@ import (
 type Server interface {
 	GetQueriesRepo() QueriesRepo
 	GetValidate() *validator.Validate
-	GetNotifier() Notifier
 	Start() error
 	GetQueryRunner(ctx *gin.Context) QueryRunner
 	GetStoreHelpers(ctx *gin.Context) StoreHelpers
@@ -52,8 +51,4 @@ type StoreHelpers interface {
 	Insert() int
 	Update(id int)
 	Delete(id int)
-}
-
-type Notifier interface {
-	SendNotification(to string, message string, extraParams ...string) error
 }

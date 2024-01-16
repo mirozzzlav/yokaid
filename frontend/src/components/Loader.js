@@ -1,10 +1,13 @@
 import theme from 'src/style';
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, keyframes } from '@chakra-ui/react';
+import { Box, Button, Flex, keyframes } from '@chakra-ui/react';
 import { GhostIcon } from 'src/assets';
 import PropTypes from 'prop-types';
+import { buttonPropType } from 'src/constants';
+import { unknownObjectValidator } from 'src/helpers';
 
-const dotsAnim = (prefix = 'isLoading') => keyframes(`
+const dotsAnim = (prefix = 'isLoading') =>
+  keyframes(`
     0%, 20% {
       content: '${prefix}.';
     }
@@ -13,8 +16,7 @@ const dotsAnim = (prefix = 'isLoading') => keyframes(`
     }
     80%, 100% {
       content: '${prefix}...';
-    }`,
-);
+    }`);
 const pulseAnim = keyframes(`
     0%, 20% {
       transform: scale(0.3);
@@ -24,8 +26,7 @@ const pulseAnim = keyframes(`
     }
     80%, 100% {
       transform: scale(1);
-    }`,
-);
+    }`);
 
 const style = {
   loader: (isShown, mini, color) => ({
@@ -33,27 +34,30 @@ const style = {
     justifyContent: 'left',
     alignItems: 'center',
     gap: theme.space[1],
-    ...(!mini ? {
-      width: '150px',
-      ':after': {
-        fontSize: '0.9rem',
-        color,
-        content: '""',
-        animation: `${dotsAnim()} 2s infinite steps(1)`,
-        fontFamily: 'monospace',
-        fontWeight: theme.fontWeights.bold,
-      },
-    } : null),
+    ...(!mini
+      ? {
+          width: '150px',
+          ':after': {
+            fontSize: '0.9rem',
+            color,
+            content: '""',
+            animation: `${dotsAnim()} 2s infinite steps(1)`,
+            fontFamily: 'monospace',
+            fontWeight: theme.fontWeights.bold,
+          },
+        }
+      : null),
   }),
   loaderIcon: (color, mini) => ({
     fill: color,
-    ...(mini ? {
-        animation: `${pulseAnim} 0.5s infinite`,
-      } : {
-        width: '30px',
-        height: '30px',
-      }
-    ),
+    ...(mini
+      ? {
+          animation: `${pulseAnim} 0.5s infinite`,
+        }
+      : {
+          width: '30px',
+          height: '30px',
+        }),
   }),
 };
 
@@ -75,7 +79,10 @@ export default function Loader({ isLoading, color, mini, delayOnHide }) {
     }
 
     if (!timeoutRef.current) {
-      setTimeout(() => { timeoutRef.current = false; setIsShown(isShownRef.current); }, 500);
+      setTimeout(() => {
+        timeoutRef.current = false;
+        setIsShown(isShownRef.current);
+      }, 500);
     }
   }, [isLoading, isShownRef.current]);
 
@@ -96,4 +103,29 @@ Loader.prototype.propTypes = {
   color: PropTypes.string,
   mini: PropTypes.bool,
   delayOnHide: PropTypes.bool,
+};
+
+export function LoaderWithButton({ isLoading, button, sx }) {
+  return (
+    <Flex sx={sx}>
+      <Loader isLoading={isLoading} mini={false} />
+      {!isLoading && (
+        <Button
+          variant="solid"
+          colorScheme="blue"
+          mr={3}
+          onClick={button.onClick}
+          leftIcon={button.icon || null}
+        >
+          {button.label}
+        </Button>
+      )}
+    </Flex>
+  );
+}
+
+LoaderWithButton.prototype.propTypes = {
+  sx: PropTypes.oneOfType([PropTypes.oneOf([null]), unknownObjectValidator]),
+  button: buttonPropType.isRequired,
+  isLoading: PropTypes.bool.isRequired,
 };

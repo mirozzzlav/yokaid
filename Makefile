@@ -90,12 +90,13 @@ buildapi:
 	docker build -t api ./api \
 	--build-arg LOGS_TO_SCREEN=$(LOGS_TO_SCREEN) \
 	--build-arg LOGS_TO_FILE=$(LOGS_TO_FILE) \
-	--build-arg ENABLE_NOTIFICATIONS=$(ENABLE_NOTIFICATIONS) \
+	--build-arg SUPPORT_MAIL=$(SUPPORT_MAIL) \
 	--build-arg APP_NAME=$(APP_NAME) \
 	--build-arg MAIL_FROM=$(MAIL_FROM) \
-	--build-arg MAIL_API_KEY=$(MAIL_API_KEY) \
-	--build-arg SMS_SEND_API=$(SMS_SEND_API) \
-	--build-arg SMS_SEND_AUTH=$(SMS_SEND_AUTH) \
+	--build-arg SEND_SMS_URL=$(SEND_SMS_URL) \
+	--build-arg SEND_SMS_AUTH=$(SEND_SMS_AUTH) \
+	--build-arg SEND_MAIL_URL=$(SEND_MAIL_URL) \
+	--build-arg SEND_MAIL_AUTH=$(SEND_MAIL_AUTH) \
 
 runapi:
 	$(network_cmd); \

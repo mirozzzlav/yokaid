@@ -1,0 +1,9 @@
+{{define "content"}}
+    <p>
+        <h3>Contact form request</h3>
+        <div>
+            From: <a href="mailto:{{.userEmail}}">{{.from}}</a><br />
+        </div>
+        <p>{{.message}}</p>
+    </p>
+{{end}}

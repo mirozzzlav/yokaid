@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"yokaid/api/common"
 	dbPkg "yokaid/api/db"
-	"yokaid/api/mail"
 	"yokaid/api/routes"
 )
 
@@ -127,8 +126,4 @@ func (s *server) GetQueriesRepo() common.QueriesRepo {
 
 func (s *server) GetValidate() *validator.Validate {
 	return s.validate
-}
-
-func (s *server) GetNotifier() common.Notifier {
-	return mail.Notifier{}
 }

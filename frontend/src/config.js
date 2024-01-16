@@ -40,6 +40,7 @@ export default {
       getTranslations: `${apiUrl}/translations/get`,
       makePayment: `${apiUrl}/payments/make`,
       deleteMedia: `${mediaUrl}/delete`,
+      processContactForm: `${apiUrl}/contact-form/process`,
     },
   },
   map: {

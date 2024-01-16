@@ -56,24 +56,32 @@ function useStyle(mode) {
           }
         : null),
     }),
-    fullScreenBtn: {
+    fullScreenBtn: (show) => ({
+      ...(!show ? { display: 'none' } : null),
       background: '#fff',
       ':hover, :focus, :visited': {
         background: '#fff',
       },
-    },
+    }),
     content: {
       flexGrow: 1,
-      ...(mode === 'info' ? { padding: theme.space[4] } : null),
+      ...(mode === 'info'
+        ? {
+            padding: `0 ${theme.space[4]} ${theme.space[4]} ${theme.space[4]}`,
+            maxWidth: theme.breakpoints.lg,
+            margin: '0 auto',
+          }
+        : null),
+      h2: {
+        fontSize: '1.6rem',
+        margin: `${theme.space[2]} 0 ${theme.space[2]} 0`,
+      },
     },
     footer: {
-      position: 'fixed',
-      zIndex: 400,
-      width: '100vw',
-      bottom: 0,
-      left: 0,
+      ...(mode !== 'info'
+        ? { position: 'fixed', zIndex: 400, width: '100vw', bottom: 0, left: 0 }
+        : null),
       padding: '0 12px 28px 52px',
-      justifyContent: 'right',
       display: 'flex',
       gap: theme.space[2],
     },
@@ -100,10 +108,12 @@ function Page({
   topContent,
   filterContent,
   footer,
+  footerSx,
   isFilterShown,
   isFilterShownSetter,
   modalsConfig: modalsConfigFromProps,
   menuRoutes,
+  showFullScreenBtn,
 }) {
   const style = useStyle(mode);
   const { navigateAction, action, actionParams } = useNavigateAction();
@@ -176,11 +186,11 @@ function Page({
           setShownModalId={navigateAction}
         />
       </Box>
-      <Flex sx={style.footer}>
+      <Flex sx={{ ...style.footer, ...footerSx }}>
         {footer}
         <IconButton
           aria-label="full screen switch"
-          sx={style.fullScreenBtn}
+          sx={style.fullScreenBtn(showFullScreenBtn)}
           onClick={() => setIsFullScreen((prev) => !prev)}
           icon={<FullScreenIcon exit={isFullScreen} />}
         />
@@ -193,9 +203,11 @@ Page.defaultProps = {
   topContent: null,
   filterContent: null,
   footer: null,
+  footerSx: null,
   modalsConfig: null,
   isFilterShown: false,
   isFilterShownSetter: () => {},
+  showFullScreenBtn: true,
 };
 
 Page.propTypes = {
@@ -205,12 +217,17 @@ Page.propTypes = {
   topContent: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   filterContent: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
   footer: PropTypes.oneOfType([PropTypes.node, PropTypes.oneOf([null])]),
+  footerSx: PropTypes.oneOfType([
+    unknownObjectValidator,
+    PropTypes.oneOf([null]),
+  ]),
   isFilterShown: PropTypes.bool,
   isFilterShownSetter: PropTypes.func,
   modalsConfig: PropTypes.oneOfType([
     PropTypes.objectOf(formModalsConfigPropType),
     PropTypes.oneOf([null]),
   ]),
+  showFullScreenBtn: PropTypes.bool,
 };
 
 export default Page;

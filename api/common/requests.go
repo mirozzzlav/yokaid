@@ -43,9 +43,15 @@ type MakePaymentRequest struct {
 	Code string `json:"code" validate:"required"`
 }
 
+type ContactFormRequest struct {
+	From    string `json:"from" validate:"required,email"`
+	Message string `json:"message" validate:"required"`
+}
+
 // add here empty request instances that has validation rules
 var requests = []any{
 	CreateReviewAndProfessionalRequest{},
 	CreateReviewForExistingProfessionalRequest{},
 	MakePaymentRequest{},
+	ContactFormRequest{},
 }
