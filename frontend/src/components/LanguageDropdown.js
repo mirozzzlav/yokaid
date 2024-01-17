@@ -7,7 +7,9 @@ import { FlagIcon } from 'src/assets';
 
 const style = {
   dropdownItem: {
-    '> svg': { marginRight: theme.space[2], marginTop: '-3px' },
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.space[2],
   },
 };
 
@@ -28,7 +30,6 @@ export default function LanguageDropdown({
         content: <FlagIcon lang={currentLangIconName} />,
         variant: 'ghost',
         style: {
-          '> svg': { marginTop: '-3px' },
           padding: '2px 8px 2px 4px',
         },
       }}

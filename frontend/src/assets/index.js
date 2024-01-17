@@ -13,6 +13,7 @@ import USSvg from 'src/assets/US.svg?react';
 import FullScreenSvg from 'src/assets/fullScreenIcon.svg?react';
 import FullScreenExitSvg from 'src/assets/fullScreenExitIcon.svg?react';
 import GhostIconSvg from 'src/assets/ghostIcon.svg?react';
+import theme from 'src/style';
 /* eslint-disable import/no-unresolved */
 
 const defaultIconStyle = {
@@ -68,7 +69,21 @@ function FlagIcon({ sx, lang }) {
     en_US: USSvg,
   };
 
-  return <Icon as={flags[lang]} sx={{ ...defaultIconStyle, sx }} />;
+  return (
+    <Icon
+      as={flags[lang]}
+      sx={{
+        ...defaultIconStyle,
+        ...{
+          width: '1.6rem',
+          height: 'auto',
+          border: `1px solid${theme.colors.gray[200]}`,
+          borderRadius: theme.radii.base,
+        },
+        ...sx,
+      }}
+    />
+  );
 }
 FlagIcon.defaultProps = defaultProps;
 FlagIcon.prototype.propTypes = {
