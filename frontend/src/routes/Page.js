@@ -145,9 +145,11 @@ function Page({
           <Link to="/">
             <Logo />
           </Link>
-          <Box sx={style.topContent} aria-roledescription="top-content">
-            {topContent}
-          </Box>
+          {topContent && (
+            <Box sx={style.topContent} aria-roledescription="top-content">
+              {topContent}
+            </Box>
+          )}
           <Box sx={style.topRight}>
             <LanguageDropdown
               selectedLanguage={lang}

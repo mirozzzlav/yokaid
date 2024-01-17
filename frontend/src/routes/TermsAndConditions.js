@@ -3,7 +3,7 @@ import Page from 'src/routes/Page';
 
 function TermsAndConditions(props) {
   return (
-    <Page mode="info" {...props}>
+    <Page mode="info" {...props} showFullScreenBtn={false}>
       Terms & Conditions Page
     </Page>
   );
