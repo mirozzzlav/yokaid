@@ -7,31 +7,46 @@ export
 command := $(word 1, $(MAKECMDGOALS))
 mode := $(word 2, $(MAKECMDGOALS))
 
-ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore buildmediastore runstore),)
+ifeq ($(filter $(command), cleanup runadminer runfe buildfe buildapi buildstore buildmediastore runstore nginxconf),)
 ifeq ($(filter $(mode),$(MAIN_SERVER) $(TEST_SERVER)),)
 $(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
 endif
 endif
 
+ifeq ($(command), nginxconf)
+nginx_conf := nginx.conf
+server_name := $(DOMAIN)
+
+ifeq ($(filter $(mode),$(MAIN_SERVER) $(TEST_SERVER) adminer wip),)
+$(error Invalid argument mode. Please use $(MAIN_SERVER), $(TEST_SERVER), wip or adminer.)
+endif
+
+ifneq ($(filter $(mode), adminer wip),)
+nginx_conf := nginx$(mode).conf
+endif
+
+ifneq ($(filter $(mode), $(TEST_SERVER) adminer),)
+server_name := $(mode).$(DOMAIN)
+endif
+endif
+
+pay_review_arg := ""
+pay_contact_arg := ""
+
+ifeq ($(mode),$(MAIN_SERVER))
 api_port_mode := $(API_PORT)
 api_docker_mode := api_$(mode)
 
 media_store_port_mode := $(MEDIA_STORE_PORT)
 media_store_docker_mode := media_store_$(mode)
-
-server_name := $(DOMAIN)
-pay_review_arg := ""
-pay_contact_arg := ""
-nginx_conf := nginx.conf
+endif
 
 ifeq ($(mode),$(TEST_SERVER))
 api_port_mode := $(API_PORT_TEST)
-media_store_port_mode := $(MEDIA_STORE_PORT_TEST)
-server_name := $(TEST_SERVER).$(DOMAIN)
-endif
+api_docker_mode := api_$(mode)
 
-ifeq ($(index), wip)
-	nginx_conf := nginxwip.conf
+media_store_port_mode := $(MEDIA_STORE_PORT_TEST)
+media_store_docker_mode := media_store_$(mode)
 endif
 
 ifeq ($(pay_review), sms)
@@ -75,6 +90,7 @@ initdb:
   	$(grantperms_cmd)
 
 nginxconf:
+	export DOMAIN=$(DOMAIN); \
 	export SERVER_NAME=$(server_name); \
 	export API_HOST=$(api_docker_mode); \
 	export API_PORT=$(api_port_mode); \
@@ -82,7 +98,7 @@ nginxconf:
 	export MEDIA_STORE_PORT=$(media_store_port_mode); \
 	envsubst < frontend/nginx_conf/$(nginx_conf) | sed 's|$$%|$$|g' > nginx.conf; \
 	docker cp nginx.conf fe:/etc/nginx/conf.d/$(server_name).conf; \
-	docker exec rm /etc/nginx/conf.d/default.conf 2> /dev/null; \
+	docker exec fe rm -f /etc/nginx/conf.d/default.conf; \
 	rm nginx.conf; \
 	docker restart fe
 
