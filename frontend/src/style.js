@@ -9,14 +9,20 @@ const originalTheme = extendTheme();
 // console.log(originalTheme.components);
 
 const Modal = {
+  variants: {
+    ...originalTheme.components.variants,
+    customModal: {
+      dialog: {
+        w: `calc(100vw - ${originalTheme.space[10]})`,
+        maxW: '660px',
+        minW: '330px',
+        margin: `${originalTheme.space[10]} auto`,
+      },
+    },
+  },
   baseStyle: {
     overlay: {
       background: originalTheme.colors.blackAlpha[800],
-    },
-    dialog: {
-      width: '400px',
-      maxWidth: `calc(100vw - ${originalTheme.space[10]})`,
-      margin: `${originalTheme.space[10]} ${originalTheme.space[5]}`,
     },
     header: {
       background: originalTheme.colors.gray[100],

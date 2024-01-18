@@ -163,8 +163,15 @@ function Page({
                 variant: 'ghost',
                 style: {
                   '> span': { display: 'none' },
-                  '> svg': { fontSize: '1.4rem' },
+                  '> svg': {
+                    fontSize: '1.4rem',
+                    transition: 'all 0.1s ease-in',
+                    transformOrigin: '50% 50%',
+                  },
                   padding: '2px 4px 2px 4px',
+                  ':hover > svg, :active > svg': {
+                    transform: 'scale(1.2)',
+                  },
                 },
               }}
               items={menuRoutes.map(({ name, path }) => ({

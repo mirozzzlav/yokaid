@@ -49,7 +49,7 @@ export default function Modal({
   }, [isShown]);
 
   return (
-    <ModalChakra isOpen={isShown} onClose={close}>
+    <ModalChakra isOpen={isShown} onClose={close} variant="customModal">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{title}</ModalHeader>
