@@ -67,8 +67,11 @@ endif
 db_name := $(APP_NAME)_$(mode)
 db_root_pass_plain := $(subst ",,$(DB_ROOT_PASS))
 db_app_pass_plain := $(subst ",,$(DB_APP_PASSWORD))
-db_root_pass_encoded := $(shell python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' '$(db_root_pass_plain)')
-db_app_pass_encoded := $(shell python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' '$(db_app_pass_plain)')
+empty :=
+space := $(empty) $(empty)
+url_encode = $(subst $(space),%20,$(subst ",%22,$(subst >,%3E,$(subst <,%3C,$(subst @,%40,$(subst :,%3A,$(subst /,%2F,$(subst ?,%3F,$(subst &,%26,$(subst =,%3D,$(subst +,%2B,$(subst %,%25,$(1)))))))))))))
+db_root_pass_encoded := $(call url_encode,$(db_root_pass_plain))
+db_app_pass_encoded := $(call url_encode,$(db_app_pass_plain))
 db_docker_url_root := postgresql://$(DB_ROOT):$(db_root_pass_encoded)@store:5432/$(db_name)?sslmode=disable
 db_docker_url := postgresql://$(DB_APP_USER):$(db_app_pass_encoded)@store:5432/$(db_name)?sslmode=disable
 

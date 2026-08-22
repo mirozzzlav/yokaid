@@ -15,7 +15,6 @@ Install these tools before starting:
 
 - Docker
 - Make
-- Python 3
 
 Docker must be running and your user must be allowed to run Docker commands.
 
