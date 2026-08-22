@@ -13,6 +13,9 @@ $(error Invalid argument mode. Please use $(MAIN_SERVER) or $(TEST_SERVER).)
 endif
 endif
 
+$(MAIN_SERVER) $(TEST_SERVER):
+	@:
+
 ifeq ($(command), nginxconf)
 nginx_conf := nginx.conf
 server_name := $(DOMAIN)
@@ -62,8 +65,10 @@ endif
 
 
 db_name := $(APP_NAME)_$(mode)
-db_root_pass_encoded := $(shell printf '%s' $(DB_ROOT_PASS) | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
-db_app_pass_encoded := $(shell printf '%s' $(DB_APP_PASSWORD) | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
+db_root_pass_plain := $(subst ",,$(DB_ROOT_PASS))
+db_app_pass_plain := $(subst ",,$(DB_APP_PASSWORD))
+db_root_pass_encoded := $(shell python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' '$(db_root_pass_plain)')
+db_app_pass_encoded := $(shell python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' '$(db_app_pass_plain)')
 db_docker_url_root := postgresql://$(DB_ROOT):$(db_root_pass_encoded)@store:5432/$(db_name)?sslmode=disable
 db_docker_url := postgresql://$(DB_APP_USER):$(db_app_pass_encoded)@store:5432/$(db_name)?sslmode=disable
 
@@ -164,4 +169,3 @@ cleanup:
 	docker image prune -f; \
 	docker network prune -f;\
 	@echo "--- CLEANUP FINISHED ---"
-

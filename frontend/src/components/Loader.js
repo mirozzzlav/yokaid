@@ -1,6 +1,7 @@
 import theme from 'src/style';
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Flex, keyframes } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
+import { Box, Button, Flex } from '@chakra-ui/react';
 import { GhostIcon } from 'src/assets';
 import PropTypes from 'prop-types';
 import { buttonPropType } from 'src/constants';
