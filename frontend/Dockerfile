@@ -1,14 +1,15 @@
-FROM nginx
-WORKDIR /app
+FROM node:22-bookworm-slim AS builder
 
-RUN apt-get update;\
-    apt-get install -y npm
+WORKDIR /app
 
 COPY ./ ./
 
-RUN npm update; npm install -y
+RUN npm ci
 RUN npm run build
-RUN mv ./dist/* /usr/share/nginx/html
-RUN cp ./wip.html ./fb.html /usr/share/nginx/html
+
+FROM nginx:stable-bookworm
+
+COPY --from=builder /app/dist/ /usr/share/nginx/html/
+COPY --from=builder /app/wip.html /app/fb.html /usr/share/nginx/html/
 
 RUN rm /etc/nginx/conf.d/*
