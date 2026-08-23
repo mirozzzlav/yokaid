@@ -262,6 +262,7 @@ function SearchDropdown({
 }) {
   const wrapperRef = useRef();
   const inputRef = useRef();
+  const ignoreSearchResultsRef = useRef(false);
   const [isShown, setIsShown] = useState(false);
   const [items, setItems] = useState([]);
   const delayedCall = useDelayedAction();
@@ -275,7 +276,7 @@ function SearchDropdown({
 
   const searchCall = searchHook((results) => {
     setIsLoading(false);
-    if (inputVal === '') {
+    if (ignoreSearchResultsRef.current || inputVal === '') {
       // this is risky, inputVal is uncertain in the callback context, but it works
       return;
     }
@@ -285,7 +286,10 @@ function SearchDropdown({
   });
   const onItemClick = useCallback(
     (onClickData) => {
+      ignoreSearchResultsRef.current = true;
       onValueSet(onClickData);
+      setItems([]);
+      setIsShown(false);
       if (setInputValOnValSet) {
         inputValSetter(onClickData.label);
       } else {
@@ -305,8 +309,8 @@ function SearchDropdown({
       }
       return [];
     });
-    setIsShown(!!items);
-  }, [items]);
+    setIsShown(items.length > 0 || !!initialItems?.length);
+  }, [items, initialItems]);
 
   const resetDropdown = useCallback(() => {
     setItems(initialItems || []);
@@ -316,6 +320,7 @@ function SearchDropdown({
   const onInputChange = useCallback(
     (e) => {
       const v = e.target.value;
+      ignoreSearchResultsRef.current = false;
       if (v === '') {
         resetDropdown();
       } else {
