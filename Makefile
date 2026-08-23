@@ -65,12 +65,13 @@ default_web_port ?= $(WEB_PORT)
 default_api_port ?= $(API_PORT)
 default_media_store_port ?= $(MEDIA_STORE_PORT)
 default_store_port ?= $(STORE_PORT)
+HOST_BIND_ADDR ?= 127.0.0.1
 
 web_port_instance := $(if $(web_port),$(web_port),$(default_web_port))
 api_port_instance := $(if $(api_port),$(api_port),$(default_api_port))
 media_store_port_instance := $(if $(media_store_port),$(media_store_port),$(default_media_store_port))
 store_port_instance := $(if $(store_port),$(store_port),$(default_store_port))
-store_port_arg := $(if $(store_port_instance),-p $(store_port_instance):5432,)
+store_port_arg := $(if $(store_port_instance),-p $(HOST_BIND_ADDR):$(store_port_instance):5432,)
 
 api_docker_instance := api_$(instance_id)
 media_store_docker_instance := media_store_$(instance_id)
@@ -156,7 +157,7 @@ buildapi:
 
 runapi:
 	$(network_cmd); \
-	docker run -d --rm --name $(api_docker_instance) --network $(DOCKER_NET) -p $(api_port_instance):$(api_port_instance) api \
+	docker run -d --rm --name $(api_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(api_port_instance):$(api_port_instance) api \
 	app -api_port=$(api_port_instance) -db_url=$(db_docker_url) \
 	-media_store_host=$(media_store_docker_instance) -media_store_port=$(media_store_port_instance) \
 	-pay_contact=$(pay_contact_arg) -pay_review=$(pay_review_arg)
@@ -167,7 +168,7 @@ buildmediastore:
 
 runmediastore:
 	$(network_cmd); \
-	docker run -d --rm --name $(media_store_docker_instance) --network $(DOCKER_NET) -p $(media_store_port_instance):$(media_store_port_instance) media_store \
+	docker run -d --rm --name $(media_store_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(media_store_port_instance):$(media_store_port_instance) media_store \
 	store -port=$(media_store_port_instance)
 
 buildweb:
@@ -175,7 +176,7 @@ buildweb:
 
 runweb:
 	$(network_cmd); \
-	docker run -d --rm --name $(web_docker_instance) --network $(DOCKER_NET) -p $(web_port_instance):80 \
+	docker run -d --rm --name $(web_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(web_port_instance):80 \
 	-e SERVER_NAME=$(server_name_instance) \
 	-e API_HOST=$(api_docker_instance) \
 	-e API_PORT=$(api_port_instance) \
@@ -185,7 +186,7 @@ runweb:
 
 runadminer:
 	$(network_cmd); \
-	docker run -d --rm --name adminer --network $(DOCKER_NET) -p 8088:8080 adminer
+	docker run -d --rm --name adminer --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):8088:8080 adminer
 
 dropdb:
 	docker exec $(store_docker_instance) dropdb --if-exists --username=$(DB_ROOT) $(db_name)

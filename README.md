@@ -79,6 +79,8 @@ The default instance uses the default ports from `.env`:
 - API: `${API_PORT}`, usually `8080`
 - media store: `${MEDIA_STORE_PORT}`, usually `9090`
 
+Docker-published ports bind to `127.0.0.1`, so they are only reachable from the host machine by default. Put a host nginx, Caddy, or another public reverse proxy in front of the web port for internet-facing deployments.
+
 Database containers are not published to the host by default. The API talks to PostgreSQL inside Docker through `store_<instance_id>:5432`.
 
 Non-default instances must receive explicit web/API/media ports when starting those services. This avoids accidentally colliding with the default stack ports.
