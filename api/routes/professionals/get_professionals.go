@@ -16,11 +16,7 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 
 		lang := common.GetLangFromSession(ctx)
 		app := server.GetAppService(ctx)
-		err := app.Begin()
-		common.CheckErrAndPanic(err)
 		pros, err := app.Professionals().GetProfessionals(filter, lang)
-		common.CheckErrAndPanic(err)
-		err = app.Commit()
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, "", pros)
 	}
@@ -32,11 +28,7 @@ func searchProfessional(server common.Server) gin.HandlerFunc {
 
 		lang := common.GetLangFromSession(ctx)
 		app := server.GetAppService(ctx)
-		err := app.Begin()
-		common.CheckErrAndPanic(err)
 		professionals, err := app.Professionals().SearchProfessionals(searchName, lang)
-		common.CheckErrAndPanic(err)
-		err = app.Commit()
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, "", professionals)
 	}
@@ -90,8 +82,6 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 		}
 
 		app := server.GetAppService(ctx)
-		err = app.Begin()
-		common.CheckErrAndPanic(err)
 		userId := ""
 
 		if common.Config.PayContact != "" {
@@ -120,8 +110,6 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			lang,
 		)
 
-		common.CheckErrAndPanic(err)
-		err = app.Commit()
 		common.CheckErrAndPanic(err)
 		if professional != nil {
 			reviews := professional.Reviews

@@ -10,11 +10,9 @@ func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 		var req common.CreateUserProfessionalContactRequest
 		_ = ctx.BindJSON(&req)
 		err := server.GetValidate().Struct(req)
-
-		app := server.GetAppService(ctx)
-		err = app.Begin()
 		common.CheckErrAndPanic(err)
 
+		app := server.GetAppService(ctx)
 		paymentId, err := app.Contacts().CreateProfessionalContactWithPayment(req, common.PaymentStates.New)
 		if err == common.ErrRecordExist {
 			contacts, err := app.Contacts().GetUnlockedContactByPaymentId(paymentId)
@@ -28,9 +26,9 @@ func handleProfessionalContact(server common.Server) gin.HandlerFunc {
 					"code":    "",
 				},
 			)
+			return
 		}
 		common.CheckErrAndPanic(err)
-		err = app.Commit()
 
 		common.SetOKJSONResponse(ctx, "", map[string]any{
 			"contact": nil,

@@ -11,10 +11,7 @@ func makePayment(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		doMakePayment := func(code string) {
 			app := server.GetAppService(ctx)
-			err := app.Begin()
-			common.CheckErrAndPanic(err)
-
-			err = app.Payments().MakePayment(code)
+			err := app.Payments().MakePayment(code)
 			if err == common.ErrNoRows {
 				panic(common.HttpResponse{
 					Code: http.StatusBadRequest,
@@ -25,10 +22,6 @@ func makePayment(server common.Server) gin.HandlerFunc {
 				})
 			}
 			common.CheckErrAndPanic(err)
-
-			err = app.Commit()
-			common.CheckErrAndPanic(err)
-
 		}
 
 		var code string

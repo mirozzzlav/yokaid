@@ -24,16 +24,10 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 			lang = common.Config.DefaultLanguage
 		}
 		app := server.GetAppService(ctx)
-		err := app.Begin()
-		common.CheckErrAndPanic(err)
-
 		professions, err := app.Professions().GetAllProfessions(lang)
 		common.CheckErrAndPanic(err)
 
 		validationRules, err := common.GetRequestsValidationRules()
-		common.CheckErrAndPanic(err)
-
-		err = app.Commit()
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "", frontEndDataResponse{

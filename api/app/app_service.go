@@ -7,25 +7,23 @@ type AppService struct {
 }
 
 type ProfessionalService struct {
-	Repo        common.ProfessionalRepository
-	PaymentRepo common.PaymentRepository
+	Store common.Store
 }
 
 type ContactService struct {
-	Repo common.ContactRepository
+	Store common.Store
 }
 
 type ReviewService struct {
-	Repo        common.ReviewRepository
-	PaymentRepo common.PaymentRepository
+	Store common.Store
 }
 
 type PaymentService struct {
-	Repo common.PaymentRepository
+	Store common.Store
 }
 
 type ProfessionService struct {
-	Repo common.ProfessionRepository
+	Store common.Store
 }
 
 func NewAppService(store common.Store) common.AppService {
@@ -34,64 +32,68 @@ func NewAppService(store common.Store) common.AppService {
 	}
 }
 
-func (s *AppService) Begin() error {
-	return s.Store.Begin()
-}
-
-func (s *AppService) Commit() error {
-	return s.Store.Commit()
-}
-
-func (s *AppService) Rollback() error {
-	return s.Store.Rollback()
-}
-
 func (s *AppService) Professionals() common.ProfessionalService {
 	return &ProfessionalService{
-		Repo:        s.Store.Professionals(),
-		PaymentRepo: s.Store.Payments(),
+		Store: s.Store,
 	}
 }
 
 func (s *AppService) Contacts() common.ContactService {
 	return &ContactService{
-		Repo: s.Store.Contacts(),
+		Store: s.Store,
 	}
 }
 
 func (s *AppService) Reviews() common.ReviewService {
 	return &ReviewService{
-		Repo:        s.Store.Reviews(),
-		PaymentRepo: s.Store.Payments(),
+		Store: s.Store,
 	}
 }
 
 func (s *AppService) Payments() common.PaymentService {
 	return &PaymentService{
-		Repo: s.Store.Payments(),
+		Store: s.Store,
 	}
 }
 
 func (s *AppService) Professions() common.ProfessionService {
 	return &ProfessionService{
-		Repo: s.Store.Professions(),
+		Store: s.Store,
 	}
 }
 
 func (s *ProfessionalService) GetProfessionals(filter string, lang string) ([]common.Professional, error) {
-	return s.Repo.GetProfessionals(filter, lang)
+	var professionals []common.Professional
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		professionals, err = store.Professionals().GetProfessionals(filter, lang)
+		return err
+	})
+	return professionals, err
 }
 
 func (s *ProfessionalService) SearchProfessionals(searchName string, lang string) ([]common.Professional, error) {
-	return s.Repo.SearchProfessionals(searchName, lang)
+	var professionals []common.Professional
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		professionals, err = store.Professionals().SearchProfessionals(searchName, lang)
+		return err
+	})
+	return professionals, err
 }
 
 func (s *ProfessionalService) GetProfessionalDetail(professionalId int, reviewsPage int, userId string, lang string) (*common.Professional, error) {
-	return s.Repo.GetProfessionalDetail(professionalId, reviewsPage, userId, lang)
+	var professional *common.Professional
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		professional, err = store.Professionals().GetProfessionalDetail(professionalId, reviewsPage, userId, lang)
+		return err
+	})
+	return professional, err
 }
 
-func (s *ProfessionalService) checkProfessionalExist(phone common.PhoneNumber, email *string) bool {
-	exists, err := s.Repo.ProfessionalExists(phone, email)
+func (_ *ProfessionalService) checkProfessionalExist(repo common.ProfessionalRepository, phone common.PhoneNumber, email *string) bool {
+	exists, err := repo.ProfessionalExists(phone, email)
 	if err != nil {
 		return false
 	}
@@ -99,35 +101,38 @@ func (s *ProfessionalService) checkProfessionalExist(phone common.PhoneNumber, e
 }
 
 func (s *ProfessionalService) CreateReviewAndProfessionalWithPayment(req common.CreateReviewAndProfessionalRequest, paymentState string) (string, int, error) {
-	paymentId, err := s.PaymentRepo.CreatePayment(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
-	if err != nil {
-		return "", 0, err
-	}
+	var paymentId string
+	var professionalId int
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		paymentId, err = store.Payments().CreatePayment(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
+		if err != nil {
+			return err
+		}
 
-	professionalId, err := s.createReviewAndProfessional(paymentId, req)
-	if err != nil {
-		return "", 0, err
-	}
+		professionalId, err = s.createReviewAndProfessional(store.Professionals(), paymentId, req)
+		return err
+	})
 
-	return paymentId, professionalId, nil
+	return paymentId, professionalId, err
 }
 
-func (s *ProfessionalService) createReviewAndProfessional(paymentId string, req common.CreateReviewAndProfessionalRequest) (int, error) {
-	if s.checkProfessionalExist(req.Professional.Phone, req.Professional.Email) {
+func (s *ProfessionalService) createReviewAndProfessional(repo common.ProfessionalRepository, paymentId string, req common.CreateReviewAndProfessionalRequest) (int, error) {
+	if s.checkProfessionalExist(repo, req.Professional.Phone, req.Professional.Email) {
 		return 0, common.ErrRecordExist
 	}
 
-	professionalId, err := s.Repo.CreateProfessional(req.Professional)
+	professionalId, err := repo.CreateProfessional(req.Professional)
 	if err != nil {
 		return 0, err
 	}
 
-	err = s.Repo.AddProfessionalProfessions(professionalId, req.Professions)
+	err = repo.AddProfessionalProfessions(professionalId, req.Professions)
 	if err != nil {
 		return 0, err
 	}
 
-	err = s.Repo.CreateReview(paymentId, professionalId, req.Review)
+	err = repo.CreateReview(paymentId, professionalId, req.Review)
 	if err != nil {
 		return 0, err
 	}
@@ -136,68 +141,97 @@ func (s *ProfessionalService) createReviewAndProfessional(paymentId string, req 
 }
 
 func (s *ContactService) CreateProfessionalContactWithPayment(req common.CreateUserProfessionalContactRequest, paymentState string) (string, error) {
-	paymentId, err := s.Repo.GetProfessionalContactPaymentId(req)
-	if err != nil && err != common.ErrNoRows {
-		return "", err
-	}
-
-	if err == common.ErrNoRows {
-		paymentId, err = s.Repo.CreatePayment(common.GenerateUniqueID(), req.UserId, "con", paymentState)
-		if err != nil {
-			return "", err
+	var paymentId string
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		contactRepo := store.Contacts()
+		paymentId, err = contactRepo.GetProfessionalContactPaymentId(req)
+		if err != nil && err != common.ErrNoRows {
+			return err
 		}
 
-		err = s.Repo.CreateProfessionalContact(paymentId, req)
-		if err != nil {
-			return "", err
+		if err == common.ErrNoRows {
+			paymentId, err = contactRepo.CreatePayment(common.GenerateUniqueID(), req.UserId, "con", paymentState)
+			if err != nil {
+				return err
+			}
+
+			return contactRepo.CreateProfessionalContact(paymentId, req)
 		}
 
-		return paymentId, nil
-	}
-
-	return paymentId, common.ErrRecordExist
+		return common.ErrRecordExist
+	})
+	return paymentId, err
 }
 
 func (s *ContactService) HasUnlockedContact(professionalId int, userId common.UserId) (bool, error) {
-	return s.Repo.HasUnlockedContact(professionalId, userId)
+	var hasContact bool
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		hasContact, err = store.Contacts().HasUnlockedContact(professionalId, userId)
+		return err
+	})
+	return hasContact, err
 }
 
 func (s *ContactService) GetUnlockedContactByPaymentId(paymentId string) ([]common.Contact, error) {
-	return s.Repo.GetUnlockedContactByPaymentId(paymentId)
+	var contacts []common.Contact
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		contacts, err = store.Contacts().GetUnlockedContactByPaymentId(paymentId)
+		return err
+	})
+	return contacts, err
 }
 
 func (s *ReviewService) CreateReviewForExistingProfessionalWithPayment(req common.CreateReviewForExistingProfessionalRequest, paymentState string, checkExistingReview bool) (string, error) {
-	if checkExistingReview {
-		userReviewed, err := s.Repo.UserReviewedProfessional(req.UserId, req.ProfessionalId)
+	var paymentId string
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		reviewRepo := store.Reviews()
+		if checkExistingReview {
+			userReviewed, err := reviewRepo.UserReviewedProfessional(req.UserId, req.ProfessionalId)
+			if err != nil {
+				return err
+			}
+			if userReviewed {
+				return common.ErrRecordExist
+			}
+		}
+
+		var err error
+		paymentId, err = store.Payments().CreatePayment(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
 		if err != nil {
-			return "", err
+			return err
 		}
-		if userReviewed {
-			return "", common.ErrRecordExist
-		}
-	}
 
-	paymentId, err := s.PaymentRepo.CreatePayment(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
-	if err != nil {
-		return "", err
-	}
+		return reviewRepo.CreateReview(paymentId, req.ProfessionalId, req.Review)
+	})
 
-	err = s.Repo.CreateReview(paymentId, req.ProfessionalId, req.Review)
-	if err != nil {
-		return "", err
-	}
-
-	return paymentId, nil
+	return paymentId, err
 }
 
 func (s *PaymentService) MakePayment(code string) error {
-	return s.Repo.MakePayment(code)
+	return s.Store.WithTransaction(func(store common.Store) error {
+		return store.Payments().MakePayment(code)
+	})
 }
 
 func (s *ProfessionService) GetProfessions(searchTitle string, lang string) ([]common.Profession, error) {
-	return s.Repo.GetProfessions(searchTitle, lang)
+	var professions []common.Profession
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		professions, err = store.Professions().GetProfessions(searchTitle, lang)
+		return err
+	})
+	return professions, err
 }
 
 func (s *ProfessionService) GetAllProfessions(lang string) ([]common.Profession, error) {
-	return s.Repo.GetAllProfessions(lang)
+	var professions []common.Profession
+	err := s.Store.WithTransaction(func(store common.Store) error {
+		var err error
+		professions, err = store.Professions().GetAllProfessions(lang)
+		return err
+	})
+	return professions, err
 }

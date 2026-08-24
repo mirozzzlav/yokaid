@@ -12,9 +12,6 @@ type Server interface {
 }
 
 type AppService interface {
-	Begin() error
-	Commit() error
-	Rollback() error
 	Professionals() ProfessionalService
 	Contacts() ContactService
 	Reviews() ReviewService
@@ -23,9 +20,8 @@ type AppService interface {
 }
 
 type Store interface {
-	Begin() error
-	Commit() error
 	Rollback() error
+	WithTransaction(fn func(store Store) error) error
 	Professionals() ProfessionalRepository
 	Contacts() ContactRepository
 	Reviews() ReviewRepository

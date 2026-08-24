@@ -14,16 +14,26 @@ func NewStore(qRunner QueryRunner) common.Store {
 	}
 }
 
-func (s *PostgresStore) Begin() error {
-	return s.QueryRunner.Begin()
-}
-
-func (s *PostgresStore) Commit() error {
-	return s.QueryRunner.Commit()
-}
-
 func (s *PostgresStore) Rollback() error {
 	return s.QueryRunner.Rollback()
+}
+
+func (s *PostgresStore) WithTransaction(fn func(store common.Store) error) error {
+	err := s.QueryRunner.Begin()
+	if err != nil {
+		return err
+	}
+
+	err = fn(s)
+	if err != nil {
+		rollbackErr := s.QueryRunner.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return s.QueryRunner.Commit()
 }
 
 func (s *PostgresStore) Professionals() common.ProfessionalRepository {

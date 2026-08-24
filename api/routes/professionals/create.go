@@ -14,15 +14,19 @@ func create(server common.Server) gin.HandlerFunc {
 		_ = ctx.BindJSON(&req)
 
 		app := server.GetAppService(ctx)
-		err := app.Begin()
-		common.CheckErrAndPanic(err)
-
-		err = server.GetValidate().Struct(req)
+		err := server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
 		paymentState := common.PaymentStates.New
 		if common.Config.PayReview == "" {
 			paymentState = common.PaymentStates.Paid
+		}
+
+		if req.Review.MediaFolderId != nil {
+			mediaResp, err := common.ConfirmMediaFolder(*req.Review.MediaFolderId)
+			if err != nil {
+				panic(mediaResp)
+			}
 		}
 
 		paymentId, _, err := app.Professionals().CreateReviewAndProfessionalWithPayment(req, paymentState)
@@ -36,16 +40,6 @@ func create(server common.Server) gin.HandlerFunc {
 				},
 			)
 		}
-		common.CheckErrAndPanic(err)
-
-		if req.Review.MediaFolderId != nil {
-			mediaResp, err := common.ConfirmMediaFolder(*req.Review.MediaFolderId)
-			if err != nil {
-				panic(mediaResp)
-			}
-		}
-
-		err = app.Commit()
 		common.CheckErrAndPanic(err)
 
 		if common.Config.PayReview == "sms" {
