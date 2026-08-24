@@ -144,20 +144,22 @@ nginxconf:
 	docker restart $(web_docker_instance)
 
 buildapi:
-	docker build -t api ./api \
-	--build-arg LOGS_TO_SCREEN=$(LOGS_TO_SCREEN) \
-	--build-arg LOGS_TO_FILE=$(LOGS_TO_FILE) \
-	--build-arg SUPPORT_MAIL=$(SUPPORT_MAIL) \
-	--build-arg APP_NAME=$(APP_NAME) \
-	--build-arg MAIL_FROM=$(MAIL_FROM) \
-	--build-arg SEND_SMS_URL=$(SEND_SMS_URL) \
-	--build-arg SEND_SMS_AUTH=$(SEND_SMS_AUTH) \
-	--build-arg SEND_MAIL_URL=$(SEND_MAIL_URL) \
-	--build-arg SEND_MAIL_AUTH=$(SEND_MAIL_AUTH) \
+	docker build -t api ./api
 
 runapi:
 	$(network_cmd); \
-	docker run -d --rm --name $(api_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(api_port_instance):$(api_port_instance) api \
+	docker run -d --rm --name $(api_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(api_port_instance):$(api_port_instance) \
+	-e LOGS_TO_SCREEN=$(LOGS_TO_SCREEN) \
+	-e LOGS_TO_FILE=$(LOGS_TO_FILE) \
+	-e SUPPORT_MAIL=$(SUPPORT_MAIL) \
+	-e APP_NAME=$(APP_NAME) \
+	-e MAIL_FROM=$(MAIL_FROM) \
+	-e SEND_SMS_URL=$(SEND_SMS_URL) \
+	-e SEND_SMS_AUTH=$(SEND_SMS_AUTH) \
+	-e SEND_MAIL_URL=$(SEND_MAIL_URL) \
+	-e SEND_MAIL_AUTH=$(SEND_MAIL_AUTH) \
+	-e STORE_DRIVER=$(STORE_DRIVER) \
+	api \
 	app -api_port=$(api_port_instance) -db_url=$(db_docker_url) \
 	-media_store_host=$(media_store_docker_instance) -media_store_port=$(media_store_port_instance) \
 	-pay_contact=$(pay_contact_arg) -pay_review=$(pay_review_arg)
