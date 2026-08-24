@@ -23,19 +23,17 @@ func getFrontendData(server common.Server) gin.HandlerFunc {
 		if !ok {
 			lang = common.Config.DefaultLanguage
 		}
-		professions, professionsModelLoader := common.ProfessionsModelLoader()
-		dbQuery := server.GetQueriesRepo().GetProfessionsQuery(common.QueryPartial{Query: ""}, lang)
-
-		err := server.GetQueryRunner(ctx).Begin()
+		app := server.GetAppService(ctx)
+		err := app.Begin()
 		common.CheckErrAndPanic(err)
 
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionsModelLoader)
+		professions, err := app.Professions().GetAllProfessions(lang)
 		common.CheckErrAndPanic(err)
 
 		validationRules, err := common.GetRequestsValidationRules()
 		common.CheckErrAndPanic(err)
 
-		err = server.GetQueryRunner(ctx).Commit()
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
 
 		common.SetOKJSONResponse(ctx, "", frontEndDataResponse{

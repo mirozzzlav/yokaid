@@ -19,8 +19,3 @@ type HttpResponseBody struct {
 	Msg  string `json:"msg"`
 	Data any    `json:"data"`
 }
-
-type QueryPartial struct {
-	Query  string
-	Params []any
-}

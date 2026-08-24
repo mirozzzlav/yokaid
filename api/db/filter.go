@@ -63,9 +63,9 @@ func getFilterConditionParts(filter string) (string, string, string, []any, erro
 	return fKey, fOperator, "?", params, nil
 }
 
-func handleFilter(filter string) (common.QueryPartial, error) {
+func handleFilter(filter string) (QueryPartial, error) {
 	if filter == "" {
-		return common.QueryPartial{Query: "", Params: []any{}}, nil
+		return QueryPartial{Query: "", Params: []any{}}, nil
 	}
 	filters := strings.Split(filter, ";")
 	var params []any
@@ -74,7 +74,7 @@ func handleFilter(filter string) (common.QueryPartial, error) {
 	for _, f := range filters {
 		fKey, fOperator, fValuePlaceholder, conditionParams, err := getFilterConditionParts(f)
 		if err != nil {
-			return common.QueryPartial{}, filterError
+			return QueryPartial{}, filterError
 		}
 
 		fSpecialSQL, isSpecialFilter := getFilterSpecialSQL(fKey, fOperator, fValuePlaceholder)
@@ -89,5 +89,5 @@ func handleFilter(filter string) (common.QueryPartial, error) {
 		params = append(params, conditionParams...)
 
 	}
-	return common.QueryPartial{Query: strings.Join(sqlPartials, " AND ") + " ", Params: params}, nil
+	return QueryPartial{Query: strings.Join(sqlPartials, " AND ") + " ", Params: params}, nil
 }

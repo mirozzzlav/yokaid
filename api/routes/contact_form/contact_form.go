@@ -13,10 +13,7 @@ func processContactForm(server common.Server) gin.HandlerFunc {
 		var req common.ContactFormRequest
 		_ = ctx.BindJSON(&req)
 
-		err := server.GetQueryRunner(ctx).Begin()
-		common.CheckErrAndPanic(err)
-
-		err = server.GetValidate().Struct(req)
+		err := server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
 		message, err := send_service.GetMailContactFormRequest(map[string]string{

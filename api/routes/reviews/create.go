@@ -13,8 +13,11 @@ func create(server common.Server) gin.HandlerFunc {
 		var req common.CreateReviewForExistingProfessionalRequest
 		_ = ctx.BindJSON(&req)
 
-		server.GetQueryRunner(ctx).Begin()
-		err := server.GetValidate().Struct(req)
+		app := server.GetAppService(ctx)
+		err := app.Begin()
+		common.CheckErrAndPanic(err)
+
+		err = server.GetValidate().Struct(req)
 		common.CheckErrAndPanic(err)
 
 		paymentState := common.PaymentStates.New
@@ -22,31 +25,17 @@ func create(server common.Server) gin.HandlerFunc {
 			paymentState = common.PaymentStates.Paid
 		}
 
-		if common.Config.PayReview != "" {
-			q := server.GetQueriesRepo().CheckUserReviewedPro(req.UserId, req.ProfessionalId)
-			_, err := server.GetQueryRunner(ctx).GetScalar(q)
-			if err != common.ErrNoRows {
-				common.CheckErrAndPanic(err)
-			}
-			if err == nil {
-				panic(
-					common.HttpResponse{
-						Code: http.StatusBadRequest,
-						Body: common.HttpResponseBody{
-							Msg: "user already reviewed pro",
-						},
+		paymentId, err := app.Reviews().CreateReviewForExistingProfessionalWithPayment(req, paymentState, common.Config.PayReview != "")
+		if err == common.ErrRecordExist {
+			panic(
+				common.HttpResponse{
+					Code: http.StatusBadRequest,
+					Body: common.HttpResponseBody{
+						Msg: "user already reviewed pro",
 					},
-				)
-			}
+				},
+			)
 		}
-
-		q := server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
-		paymentIdAny, err := server.GetQueryRunner(ctx).Exec(q)
-		common.CheckErrAndPanic(err)
-		paymentId, _ := paymentIdAny.(string)
-
-		q = server.GetQueriesRepo().CreateReviewQuery(paymentId, req.ProfessionalId, req.Review)
-		_, err = server.GetQueryRunner(ctx).Exec(q)
 		common.CheckErrAndPanic(err)
 
 		if req.Review.MediaFolderId != nil {
@@ -56,7 +45,7 @@ func create(server common.Server) gin.HandlerFunc {
 			}
 		}
 
-		err = server.GetQueryRunner(ctx).Commit()
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
 
 		if common.Config.PayReview == "sms" {
@@ -69,7 +58,7 @@ func create(server common.Server) gin.HandlerFunc {
 			phoneNr := fmt.Sprintf("+%s", common.GetNumberSanitized(string(req.UserId)))
 			send_service.SendSMS(
 				phoneNr,
-				common.Translate(common.GetLangFromSession(ctx), "verification sms", paymentId),
+				fmt.Sprintf(common.Translate(common.GetLangFromSession(ctx), "verification sms"), paymentId),
 			)
 			common.SetOKJSONResponse(
 				ctx,

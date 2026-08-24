@@ -33,7 +33,7 @@ func createDataElement(colNames []string, colValues []any) map[string]any {
 	return resultElem
 }
 
-func NewQueryRunner(ctx *gin.Context, store any) common.QueryRunner {
+func NewQueryRunner(ctx *gin.Context, store any) QueryRunner {
 
 	qrAny, qrExist := ctx.Get("queryRunner")
 	var qr queryRunner
@@ -89,7 +89,7 @@ func (qr *queryRunner) Commit() error {
 	return nil
 }
 
-func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *queryRunner) getRows(q Query, fn func(rowBytes []byte)) error {
 
 	qString, qParams := q.GetQuery()
 
@@ -130,7 +130,7 @@ func (qr *queryRunner) getRows(q common.Query, fn func(rowBytes []byte)) error {
 	return nil
 }
 
-func (qr *queryRunner) GetScalar(q common.Query) (any, error) {
+func (qr *queryRunner) GetScalar(q Query) (any, error) {
 	qString, qParams := q.GetQuery()
 	var scalar any
 	err := qr.db.QueryRow(qString, qParams...).Scan(&scalar)
@@ -145,11 +145,11 @@ func (qr *queryRunner) GetScalar(q common.Query) (any, error) {
 	return scalar, nil
 }
 
-func (qr *queryRunner) GetRows(q common.Query, fn func(rowBytes []byte)) error {
+func (qr *queryRunner) GetRows(q Query, fn func(rowBytes []byte)) error {
 	return qr.getRows(q, fn)
 }
 
-func (qr *queryRunner) Exec(q common.Query, idColumnNameParam ...string) (any, error) {
+func (qr *queryRunner) Exec(q Query, idColumnNameParam ...string) (any, error) {
 	qString, qParams := q.GetQuery()
 
 	idColumnName := "id"

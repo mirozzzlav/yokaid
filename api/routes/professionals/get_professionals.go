@@ -12,19 +12,15 @@ import (
 
 func getProfessionals(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		pros, prosModelLoader := common.ProfessionalsModelLoader()
-		var err error
 		filter, _ := ctx.Params.Get("filter")
 
-		filterQP, err := server.GetStoreHelpers(ctx).HandleFilter(filter)
-		common.CheckErrAndPanic(err)
-
 		lang := common.GetLangFromSession(ctx)
-		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(filterQP, lang, -1)
-		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
+		app := server.GetAppService(ctx)
+		err := app.Begin()
 		common.CheckErrAndPanic(err)
-		err = server.GetQueryRunner(ctx).Commit()
+		pros, err := app.Professionals().GetProfessionals(filter, lang)
+		common.CheckErrAndPanic(err)
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, "", pros)
 	}
@@ -32,21 +28,15 @@ func getProfessionals(server common.Server) gin.HandlerFunc {
 
 func searchProfessional(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		professionals, professionalsModelLoader := common.ProfessionalsModelLoader()
-		var err error
 		searchName, _ := ctx.Params.Get("searchName")
 
-		common.CheckErrAndPanic(err)
 		lang := common.GetLangFromSession(ctx)
-		dbQuery := server.GetQueriesRepo().GetProfessionalsQuery(
-			common.QueryPartial{
-				Query:  "unaccent(full_name) ILIKE unaccent(?)",
-				Params: []any{"%" + searchName + "%"},
-			}, lang, 5)
-		server.GetQueryRunner(ctx).Begin()
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, professionalsModelLoader)
+		app := server.GetAppService(ctx)
+		err := app.Begin()
 		common.CheckErrAndPanic(err)
-		err = server.GetQueryRunner(ctx).Commit()
+		professionals, err := app.Professionals().SearchProfessionals(searchName, lang)
+		common.CheckErrAndPanic(err)
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
 		common.SetOKJSONResponse(ctx, "", professionals)
 	}
@@ -90,9 +80,6 @@ func getMedia(mediaFolderIds []string) (common.HttpResponse, error) {
 
 func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var dbQuery common.Query
-		pros, prosModelLoader := common.ProfessionalsModelLoader()
-
 		professionalIdStr, paramExist := ctx.Params.Get("professionalId")
 		if !paramExist {
 			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
@@ -102,17 +89,19 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			panic(common.GetHttpResponseFromError(common.ErrBadInputs))
 		}
 
-		server.GetQueryRunner(ctx).Begin()
+		app := server.GetAppService(ctx)
+		err = app.Begin()
+		common.CheckErrAndPanic(err)
 		userId := ""
 
 		if common.Config.PayContact != "" {
 			userId, _ = ctx.Params.Get("userId")
-			dbQuery = server.GetQueriesRepo().GetProfessionalContactQuery(professionalId, common.UserId(userId), "1")
-			_, err = server.GetQueryRunner(ctx).GetScalar(dbQuery)
-			if err == common.ErrNoRows {
-				userId = ""
-			} else {
+			hasContact, err := app.Contacts().HasUnlockedContact(professionalId, common.UserId(userId))
+			if err != nil {
 				common.CheckErrAndPanic(err)
+			}
+			if !hasContact {
+				userId = ""
 			}
 		}
 
@@ -124,19 +113,18 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 			}
 		}
 		lang := common.GetLangFromSession(ctx)
-		dbQuery = server.GetQueriesRepo().GetProfessionalDetailQuery(
+		professional, err := app.Professionals().GetProfessionalDetail(
 			professionalId,
 			reviewsPage,
 			userId,
 			lang,
 		)
 
-		err = server.GetQueryRunner(ctx).GetRows(dbQuery, prosModelLoader)
 		common.CheckErrAndPanic(err)
-		err = server.GetQueryRunner(ctx).Commit()
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
-		if pros != nil && len(*pros) > 0 {
-			reviews := (*pros)[0].Reviews
+		if professional != nil {
+			reviews := professional.Reviews
 			var mediaFolderIds []string
 			for _, r := range reviews {
 				if r.MediaFolderId != nil {
@@ -162,7 +150,8 @@ func getProfessionalDetail(server common.Server) gin.HandlerFunc {
 				}
 			}
 
-			common.SetOKJSONResponse(ctx, "", (*pros)[0])
+			professional.Reviews = reviews
+			common.SetOKJSONResponse(ctx, "", professional)
 		} else {
 			common.SetOKJSONResponse(ctx, "", nil)
 		}

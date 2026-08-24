@@ -13,7 +13,8 @@ func create(server common.Server) gin.HandlerFunc {
 		var req common.CreateReviewAndProfessionalRequest
 		_ = ctx.BindJSON(&req)
 
-		err := server.GetQueryRunner(ctx).Begin()
+		app := server.GetAppService(ctx)
+		err := app.Begin()
 		common.CheckErrAndPanic(err)
 
 		err = server.GetValidate().Struct(req)
@@ -24,12 +25,7 @@ func create(server common.Server) gin.HandlerFunc {
 			paymentState = common.PaymentStates.Paid
 		}
 
-		q := server.GetQueriesRepo().CreatePaymentQuery(common.GenerateUniqueID(), req.UserId, "rev", paymentState)
-		paymentIdAny, err := server.GetQueryRunner(ctx).Exec(q)
-		common.CheckErrAndPanic(err)
-		paymentId, _ := paymentIdAny.(string)
-
-		_, err = server.GetStoreHelpers(ctx).CreateReviewAndProfessional(paymentId, req)
+		paymentId, _, err := app.Professionals().CreateReviewAndProfessionalWithPayment(req, paymentState)
 		if err == common.ErrRecordExist {
 			panic(
 				common.HttpResponse{
@@ -49,7 +45,7 @@ func create(server common.Server) gin.HandlerFunc {
 			}
 		}
 
-		err = server.GetQueryRunner(ctx).Commit()
+		err = app.Commit()
 		common.CheckErrAndPanic(err)
 
 		if common.Config.PayReview == "sms" {
@@ -62,7 +58,7 @@ func create(server common.Server) gin.HandlerFunc {
 			phoneNr := fmt.Sprintf("+%s", common.GetNumberSanitized(string(req.UserId)))
 			send_service.SendSMS(
 				phoneNr,
-				common.Translate(common.GetLangFromSession(ctx), "verification sms", paymentId),
+				fmt.Sprintf(common.Translate(common.GetLangFromSession(ctx), "verification sms"), paymentId),
 			)
 			common.SetOKJSONResponse(
 				ctx,

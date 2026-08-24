@@ -46,12 +46,12 @@ func (t *timeCustom) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type contact struct {
+type Contact struct {
 	Phone string `json:"phone"`
 	Email string `json:"email"`
 }
 
-func (contactIn *contact) UnmarshalJSON(b []byte) error {
+func (contactIn *Contact) UnmarshalJSON(b []byte) error {
 
 	var c map[string]any
 	if string(b) == "null" {
@@ -68,7 +68,7 @@ func (contactIn *contact) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type professional struct {
+type Professional struct {
 	ID           int          `json:"id"`
 	FullName     string       `json:"fullName"`
 	Rating       int          `json:"rating"`
@@ -76,13 +76,13 @@ type professional struct {
 	Location     string       `json:"location"`
 	LocationLat  float64      `json:"locationLat"`
 	LocationLng  float64      `json:"locationLng"`
-	Professions  []profession `json:"professions"`
-	Reviews      []review     `json:"reviews"`
+	Professions  []Profession `json:"professions"`
+	Reviews      []Review     `json:"reviews"`
 	ReviewsCount int          `json:"reviewsCount"`
-	Contact      *contact     `json:"contact"`
+	Contact      *Contact     `json:"contact"`
 }
 
-type review struct {
+type Review struct {
 	Id            string    `json:"id"`
 	Text          string    `json:"text"`
 	Rating        int       `json:"rating"`
@@ -90,35 +90,7 @@ type review struct {
 	MediaFolderId *string   `json:"mediaFolderId"`
 	//CreatedAt timeCustom   `json:"createdAt"`
 }
-type profession struct {
+type Profession struct {
 	Id    int    `json:"id"`
 	Title string `json:"title"`
-}
-
-func ProfessionalsModelLoader() (*[]professional, func(rowBytes []byte)) {
-	var professionals []professional
-
-	return &professionals, func(rowBytes []byte) {
-		var pro professional
-		_ = json.Unmarshal(rowBytes, &pro)
-		professionals = append(professionals, pro)
-	}
-}
-
-func ProfessionsModelLoader() (*[]profession, func(rowBytes []byte)) {
-	var professions []profession
-	return &professions, func(rowBytes []byte) {
-		var profession profession
-		_ = json.Unmarshal(rowBytes, &profession)
-		professions = append(professions, profession)
-	}
-}
-
-func ContactsModelLoader() (*[]contact, func(rowBytes []byte)) {
-	var contacts []contact
-	return &contacts, func(rowBytes []byte) {
-		var req contact
-		_ = json.Unmarshal(rowBytes, &req)
-		contacts = append(contacts, req)
-	}
 }

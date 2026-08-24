@@ -5,9 +5,9 @@ import (
 	"yokaid/api/common"
 )
 
-func (sH StoreHelpers) Insert() int {
+func (r PostgresProfessionalRepository) Insert() int {
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  "INSERT INTO users (username, full_name, email, role) VALUES (?, ?, ?, ?)",
 				Params: []any{"username", "Full Name", "test@test.com", "admin"},
@@ -15,7 +15,7 @@ func (sH StoreHelpers) Insert() int {
 		},
 	}
 
-	useridAny, err := sH.QueryRunner.Exec(q, "id")
+	useridAny, err := r.QueryRunner.Exec(q, "id")
 
 	if err != nil {
 		fmt.Println(err)
@@ -26,9 +26,9 @@ func (sH StoreHelpers) Insert() int {
 	return userId
 }
 
-func (sH StoreHelpers) Update(id int) {
+func (r PostgresProfessionalRepository) Update(id int) {
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  "UPDATE users SET full_name = 'New Full Name' WHERE id = ?",
 				Params: []any{id},
@@ -36,14 +36,14 @@ func (sH StoreHelpers) Update(id int) {
 		},
 	}
 
-	_, err := sH.QueryRunner.Exec(q)
+	_, err := r.QueryRunner.Exec(q)
 	common.CheckErrAndPanic(err)
 }
 
-func (sH StoreHelpers) Delete(id int) {
+func (r PostgresProfessionalRepository) Delete(id int) {
 
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  "DELETE FROM users WHERE id = ?",
 				Params: []any{id},
@@ -51,6 +51,6 @@ func (sH StoreHelpers) Delete(id int) {
 		},
 	}
 
-	_, err := sH.QueryRunner.Exec(q)
+	_, err := r.QueryRunner.Exec(q)
 	common.CheckErrAndPanic(err)
 }

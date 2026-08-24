@@ -33,6 +33,7 @@ type config struct {
 	SupportMail       string
 	DBDriver          string
 	DBSource          string
+	StoreDriver       string
 	AssetsFolder      string
 	AssetsRelativeUrl string
 	Logs              logsConfig
@@ -78,6 +79,14 @@ func getLogsConfig() logsConfig {
 	return logsConfig{LogsToScreen: logsToScreen, LogsToFile: logsToFile}
 }
 
+func getStoreDriver() string {
+	storeDriver := os.Getenv("STORE_DRIVER")
+	if storeDriver == "" {
+		return "postgres"
+	}
+	return storeDriver
+}
+
 var Config = func() config {
 
 	var dbUrl string
@@ -108,6 +117,7 @@ var Config = func() config {
 		SupportMail:       os.Getenv("SUPPORT_MAIL"),
 		DBDriver:          "postgres",
 		DBSource:          dbUrl,
+		StoreDriver:       getStoreDriver(),
 		AssetsFolder:      "./assets",
 		AssetsRelativeUrl: "/assets",
 		Logs:              getLogsConfig(),

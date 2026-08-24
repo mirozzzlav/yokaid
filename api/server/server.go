@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	appPkg "yokaid/api/app"
 	"yokaid/api/common"
 	dbPkg "yokaid/api/db"
 	"yokaid/api/routes"
@@ -64,12 +65,22 @@ func NewServer() (common.Server, error) {
 
 	return server, nil
 }
-func (s *server) GetQueryRunner(ctx *gin.Context) common.QueryRunner {
+func (s *server) GetQueryRunner(ctx *gin.Context) dbPkg.QueryRunner {
 	return dbPkg.NewQueryRunner(ctx, s.db)
 }
 
-func (s *server) GetStoreHelpers(ctx *gin.Context) common.StoreHelpers {
-	return dbPkg.NewStoreHelpers(s.GetQueryRunner(ctx), s.GetQueriesRepo())
+func (s *server) GetAppService(ctx *gin.Context) common.AppService {
+	return appPkg.NewAppService(s.GetStore(ctx))
+}
+
+func (s *server) GetStore(ctx *gin.Context) common.Store {
+	qRunner := s.GetQueryRunner(ctx)
+	switch common.Config.StoreDriver {
+	case "postgres":
+		return dbPkg.NewStore(qRunner)
+	default:
+		panic(fmt.Errorf("unsupported store driver %s", common.Config.StoreDriver))
+	}
 }
 
 func (s *server) initRouter() {
@@ -87,9 +98,8 @@ func (s *server) initRouter() {
 	router.Use(
 		panicMiddleware(s),
 		func(ctx *gin.Context) {
-			// init repo + store helper
-			qRunner := dbPkg.NewQueryRunner(ctx, s.db)
-			dbPkg.NewStoreHelpers(qRunner, dbPkg.QueriesRepo{})
+			// init repo + app service
+			appPkg.NewAppService(s.GetStore(ctx))
 			ctx.Next()
 		},
 		sessions.Sessions(common.Config.Session.Name, cookieStore),
@@ -118,10 +128,6 @@ func (s *server) initRouter() {
 func (s *server) Start() error {
 	// server needs an url without http/https
 	return s.router.Run(fmt.Sprintf("0.0.0.0:%s", common.Config.Port))
-}
-
-func (s *server) GetQueriesRepo() common.QueriesRepo {
-	return dbPkg.QueriesRepo{}
 }
 
 func (s *server) GetValidate() *validator.Validate {

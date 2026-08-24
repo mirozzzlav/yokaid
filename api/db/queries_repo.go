@@ -19,7 +19,7 @@ func prepareQueryString(q string) string {
 }
 
 type dbQuery struct {
-	partials []common.QueryPartial
+	partials []QueryPartial
 }
 
 func (q dbQuery) GetQuery() (string, []any) {
@@ -35,7 +35,7 @@ func (q dbQuery) GetQuery() (string, []any) {
 
 type QueriesRepo struct{}
 
-func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang string, limit int) common.Query {
+func (qr QueriesRepo) GetProfessionalsQuery(filter QueryPartial, lang string, limit int) Query {
 
 	query := fmt.Sprintf(`SELECT 
 	  professionals.id, 
@@ -66,7 +66,7 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang str
 
 	if filter.Query != "" {
 		return dbQuery{
-			partials: []common.QueryPartial{
+			partials: []QueryPartial{
 				{
 					Query:  query + " AND ",
 					Params: params,
@@ -82,7 +82,7 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang str
 	}
 
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  query,
 				Params: params,
@@ -91,7 +91,7 @@ func (qr QueriesRepo) GetProfessionalsQuery(filter common.QueryPartial, lang str
 	}
 
 }
-func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int, userId string, lang string) common.Query {
+func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int, userId string, lang string) Query {
 
 	contactObj := "NULL AS contact, "
 	var params []any = []any{lang, professionalId, professionalId, professionalId}
@@ -146,7 +146,7 @@ func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int
 	)
 
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  query,
 				Params: params,
@@ -156,10 +156,10 @@ func (qr QueriesRepo) GetProfessionalDetailQuery(professionalId, reviewsPage int
 
 }
 
-func (qr QueriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) GetProfessionalsCountQuery(filter QueryPartial) Query {
 	q := "SELECT count(id) FROM professionals WHERE "
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  q + filter.Query,
 				Params: filter.Params,
@@ -168,9 +168,9 @@ func (qr QueriesRepo) GetProfessionalsCountQuery(filter common.QueryPartial) com
 	}
 }
 
-func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryPartial) common.Query {
+func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter QueryPartial) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  "DELETE FROM password_change_requests WHERE ",
 				Params: []any{},
@@ -180,9 +180,9 @@ func (qr QueriesRepo) DeletePasswordChangeRequestsQuery(filter common.QueryParti
 	}
 }
 
-func (qr QueriesRepo) CreateProfessionalQuery(req common.CreateProfessionalRequest) common.Query {
+func (qr QueriesRepo) CreateProfessionalQuery(req common.CreateProfessionalRequest) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: `INSERT INTO 
     						professionals (full_name, phone, email, business_id, location, 
@@ -202,7 +202,7 @@ func (qr QueriesRepo) CreateProfessionalQuery(req common.CreateProfessionalReque
 	}
 }
 
-func (qr QueriesRepo) CreateProfessionalProfessionsQuery(professionalId int, professions []int) common.Query {
+func (qr QueriesRepo) CreateProfessionalProfessionsQuery(professionalId int, professions []int) Query {
 
 	var valPlaceholders []string
 	var params []any
@@ -212,7 +212,7 @@ func (qr QueriesRepo) CreateProfessionalProfessionsQuery(professionalId int, pro
 	}
 
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: "INSERT INTO professional_professions (professional_id, profession_id) VALUES" +
 					strings.Join(valPlaceholders, ","),
@@ -222,9 +222,9 @@ func (qr QueriesRepo) CreateProfessionalProfessionsQuery(professionalId int, pro
 	}
 }
 
-func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, req common.CreateReviewRequest) common.Query {
+func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, req common.CreateReviewRequest) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: `INSERT INTO reviews (id, professional_id, text, rating, media_folder_id) VALUES (?, ?, ?, ?, ?)`,
 				Params: []any{
@@ -239,7 +239,7 @@ func (qr QueriesRepo) CreateReviewQuery(paymentId string, professionalId int, re
 	}
 }
 
-func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang string) common.Query {
+func (qr QueriesRepo) GetProfessionsQuery(filter QueryPartial, lang string) Query {
 	query := "SELECT id, title->>? AS title FROM professions"
 
 	if filter.Query != "" {
@@ -247,7 +247,7 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang strin
 	}
 
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  query,
 				Params: []any{lang},
@@ -262,12 +262,12 @@ func (qr QueriesRepo) GetProfessionsQuery(filter common.QueryPartial, lang strin
 	return q
 }
 
-func (qr QueriesRepo) CreatePaymentQuery(id string, userId common.UserId, productId string, paymentState string) common.Query {
+func (qr QueriesRepo) CreatePaymentQuery(id string, userId common.UserId, productId string, paymentState string) Query {
 
 	query := `INSERT INTO payments ("id", "user_id", "product_id", "state") VALUES(?, ?, ?, ?)`
 
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query:  query,
 				Params: []any{id, userId, productId, paymentState},
@@ -277,9 +277,9 @@ func (qr QueriesRepo) CreatePaymentQuery(id string, userId common.UserId, produc
 	return q
 }
 
-func (qr QueriesRepo) CheckUserReviewedPro(userId common.UserId, professionalId int) common.Query {
+func (qr QueriesRepo) CheckUserReviewedPro(userId common.UserId, professionalId int) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: fmt.Sprintf(
 					`SELECT payments.id FROM reviews JOIN payments ON reviews.id=payments.id 
@@ -292,7 +292,7 @@ func (qr QueriesRepo) CheckUserReviewedPro(userId common.UserId, professionalId 
 	}
 }
 
-func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId common.UserId, columns ...string) common.Query {
+func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId common.UserId, columns ...string) Query {
 
 	columnsStr := "email, phone"
 	if len(columns) > 0 {
@@ -300,7 +300,7 @@ func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId com
 	}
 
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: fmt.Sprintf(`SELECT %s FROM professionals JOIN user_professional_contacts 
     					ON professionals.id = user_professional_contacts.professional_id
@@ -314,10 +314,10 @@ func (qr QueriesRepo) GetProfessionalContactQuery(professionalId int, userId com
 	return q
 }
 
-func (qr QueriesRepo) GetProfessionalContactQueryByPaymentIdQuery(paymentId string) common.Query {
+func (qr QueriesRepo) GetProfessionalContactQueryByPaymentIdQuery(paymentId string) Query {
 
 	q := dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: `SELECT email, phone FROM professionals JOIN user_professional_contacts 
     					ON professionals.id = user_professional_contacts.professional_id
@@ -330,9 +330,9 @@ func (qr QueriesRepo) GetProfessionalContactQueryByPaymentIdQuery(paymentId stri
 	return q
 }
 
-func (qr QueriesRepo) CreateProfessionalContactQuery(paymentId string, req common.CreateUserProfessionalContactRequest) common.Query {
+func (qr QueriesRepo) CreateProfessionalContactQuery(paymentId string, req common.CreateUserProfessionalContactRequest) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: `INSERT INTO user_professional_contacts (id, professional_id) VALUES (?, ?)`,
 				Params: []any{
@@ -344,9 +344,9 @@ func (qr QueriesRepo) CreateProfessionalContactQuery(paymentId string, req commo
 	}
 }
 
-func (qr QueriesRepo) MakePaymentQuery(code string) common.Query {
+func (qr QueriesRepo) MakePaymentQuery(code string) Query {
 	return dbQuery{
-		partials: []common.QueryPartial{
+		partials: []QueryPartial{
 			{
 				Query: fmt.Sprintf("UPDATE payments SET state= ? WHERE id = ? AND state != '%s'", common.PaymentStates.Paid),
 				Params: []any{
