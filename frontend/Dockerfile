@@ -10,9 +10,9 @@ RUN npm run build
 FROM nginx:stable-bookworm
 
 ENV SERVER_NAME=localhost
-ENV API_HOST=api_main
+ENV API_HOST=yokaid_api_main
 ENV API_PORT=8080
-ENV MEDIA_STORE_HOST=media_store_main
+ENV MEDIA_STORE_HOST=yokaid_media_store_main
 ENV MEDIA_STORE_PORT=9090
 
 COPY --from=builder /app/dist/ /usr/share/nginx/html/

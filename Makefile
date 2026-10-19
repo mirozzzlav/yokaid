@@ -73,16 +73,22 @@ media_store_port_instance := $(if $(media_store_port),$(media_store_port),$(defa
 store_port_instance := $(if $(store_port),$(store_port),$(default_store_port))
 store_port_arg := $(if $(store_port_instance),-p $(HOST_BIND_ADDR):$(store_port_instance):5432,)
 
-api_docker_instance := api_$(instance_id)
-media_store_docker_instance := media_store_$(instance_id)
-store_docker_instance := store_$(instance_id)
+api_docker_image := $(APP_NAME)_api:latest
+media_store_docker_image := $(APP_NAME)_media_store:latest
+store_docker_image := $(APP_NAME)_store:latest
+web_docker_image := $(APP_NAME)_web:latest
+
+api_docker_instance := $(APP_NAME)_api_$(instance_id)
+media_store_docker_instance := $(APP_NAME)_media_store_$(instance_id)
+store_docker_instance := $(APP_NAME)_store_$(instance_id)
+adminer_docker_instance := $(APP_NAME)_adminer_$(INSTANCE_ID)
 server_name_instance := $(DOMAIN)
 ifneq ($(instance_id),$(INSTANCE_ID))
 server_name_instance := $(instance_id).$(DOMAIN)
 endif
-web_docker_instance := web_$(instance_id)
+web_docker_instance := $(APP_NAME)_web_$(instance_id)
 ifneq ($(filter $(instance_id), adminer wip),)
-web_docker_instance := web_$(INSTANCE_ID)
+web_docker_instance := $(APP_NAME)_web_$(INSTANCE_ID)
 endif
 
 ifeq ($(pay_review), sms)
@@ -114,12 +120,13 @@ grantperms_cmd := docker exec $(store_docker_instance) psql -U $(DB_ROOT) -d $(d
 				 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO $(DB_APP_USER);"
 
 buildstore:
-	docker build -t store ./store
+	docker build -t $(store_docker_image) ./store
 
 runstore:
 	$(network_cmd); \
 	docker run -d --rm --name $(store_docker_instance) --network $(DOCKER_NET) $(store_port_arg) \
-  		   -e POSTGRES_USER=$(DB_ROOT) -e POSTGRES_PASSWORD=$(DB_ROOT_PASS) store
+		   --mount type=volume,source=$(store_docker_instance),target=/var/lib/postgresql/data \
+		   -e POSTGRES_USER=$(DB_ROOT) -e POSTGRES_PASSWORD=$(DB_ROOT_PASS) $(store_docker_image)
 
 initdb:
 	docker exec $(store_docker_instance) psql --username=$(DB_ROOT) --command="DROP DATABASE IF EXISTS \"$(db_name)\";"; \
@@ -136,6 +143,7 @@ nginxconf:
 	export API_HOST=$(api_docker_instance); \
 	export API_PORT=$(api_port_instance); \
 	export MEDIA_STORE_HOST=$(media_store_docker_instance); \
+	export ADMINER_HOST=$(adminer_docker_instance); \
 	export MEDIA_STORE_PORT=$(media_store_port_instance); \
 	envsubst < frontend/nginx_conf/$(nginx_conf) | sed 's|$$%|$$|g' > nginx.conf; \
 	docker cp nginx.conf $(web_docker_instance):/etc/nginx/conf.d/$(server_name).conf; \
@@ -144,7 +152,7 @@ nginxconf:
 	docker restart $(web_docker_instance)
 
 buildapi:
-	docker build -t api ./api
+	docker build -t $(api_docker_image) ./api
 
 runapi:
 	$(network_cmd); \
@@ -159,22 +167,22 @@ runapi:
 	-e SEND_MAIL_URL=$(SEND_MAIL_URL) \
 	-e SEND_MAIL_AUTH=$(SEND_MAIL_AUTH) \
 	-e STORE_DRIVER=$(STORE_DRIVER) \
-	api \
+	$(api_docker_image) \
 	app -api_port=$(api_port_instance) -db_url=$(db_docker_url) \
 	-media_store_host=$(media_store_docker_instance) -media_store_port=$(media_store_port_instance) \
 	-pay_contact=$(pay_contact_arg) -pay_review=$(pay_review_arg)
 
 
 buildmediastore:
-	docker build -t media_store ./media_store
+	docker build -t $(media_store_docker_image) ./media_store
 
 runmediastore:
 	$(network_cmd); \
-	docker run -d --rm --name $(media_store_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(media_store_port_instance):$(media_store_port_instance) media_store \
+	docker run -d --rm --name $(media_store_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):$(media_store_port_instance):$(media_store_port_instance) $(media_store_docker_image) \
 	store -port=$(media_store_port_instance)
 
 buildweb:
-	docker build -t web ./frontend
+	docker build -t $(web_docker_image) ./frontend
 
 runweb:
 	$(network_cmd); \
@@ -184,11 +192,11 @@ runweb:
 	-e API_PORT=$(api_port_instance) \
 	-e MEDIA_STORE_HOST=$(media_store_docker_instance) \
 	-e MEDIA_STORE_PORT=$(media_store_port_instance) \
-	web
+	$(web_docker_image)
 
 runadminer:
 	$(network_cmd); \
-	docker run -d --rm --name adminer --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):8088:8080 adminer
+	docker run -d --rm --name $(adminer_docker_instance) --network $(DOCKER_NET) -p $(HOST_BIND_ADDR):8088:8080 adminer
 
 dropdb:
 	docker exec $(store_docker_instance) dropdb --if-exists --username=$(DB_ROOT) $(db_name)

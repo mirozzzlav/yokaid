@@ -2,10 +2,10 @@
 
 YoKaiD is a Dockerized web app made of these services:
 
-- PostgreSQL store: `store_<instance_id>`
-- Go API: `api_<instance_id>`
-- Go media store: `media_store_<instance_id>`
-- Web container serving the React app through nginx: `web_<instance_id>`
+- PostgreSQL store: `<APP_NAME>_store_<instance_id>`
+- Go API: `<APP_NAME>_api_<instance_id>`
+- Go media store: `<APP_NAME>_media_store_<instance_id>`
+- Web container serving the React app through nginx: `<APP_NAME>_web_<instance_id>`
 
 The project is managed through the root `Makefile`. There is no Docker Compose file.
 
@@ -58,18 +58,26 @@ is the same as:
 make runapi main
 ```
 
-The instance id becomes part of the Docker container names:
+Container names use `<APP_NAME>_<service>_<instance_id>`. The following examples assume `APP_NAME=yokaid` in `.env`:
 
 ```text
 instance id: demo
-store: store_demo
-api: api_demo
-media store: media_store_demo
-web: web_demo
+store: yokaid_store_demo
+api: yokaid_api_demo
+media store: yokaid_media_store_demo
+web: yokaid_web_demo
 database: ${APP_NAME}
 ```
 
 Each instance has its own PostgreSQL container, so the database can have the same name inside every store container.
+
+Each PostgreSQL container uses a named Docker volume with the same name, such as `yokaid_store_main` or `yokaid_store_demo`, mounted at `/var/lib/postgresql/data`. `make runstore <instance_id>` creates the volume automatically if it does not exist and reuses it on subsequent starts. Database data survives stopping and removing the container, including with `--rm`.
+
+Run `make initdb <instance_id>` only when initializing or intentionally resetting the database: it drops and recreates the application database even when the volume already contains data. For an existing database, start the container with `make runstore <instance_id>` and apply migrations with `make migrateup <instance_id>`.
+
+Existing anonymous volumes are not copied into the new named volumes automatically. Back up an existing database before stopping its old container, then restore it into the new one if you need to keep its data.
+
+When upgrading from names without the app prefix, the old `store_main` volume is not automatically renamed or reused as `yokaid_store_main`. Migrate its data before switching if you need to keep it, and stop the old containers before starting the new ones on the same ports. Changing `APP_NAME` also selects different container and volume names.
 
 ## Ports
 
@@ -81,7 +89,7 @@ The default instance uses the default ports from `.env`:
 
 Docker-published ports bind to `127.0.0.1`, so they are only reachable from the host machine by default. Put a host nginx, Caddy, or another public reverse proxy in front of the web port for internet-facing deployments.
 
-Database containers are not published to the host by default. The API talks to PostgreSQL inside Docker through `store_<instance_id>:5432`.
+Database containers are not published to the host by default. The API talks to PostgreSQL inside Docker through `yokaid_store_<instance_id>:5432`.
 
 Non-default instances must receive explicit web/API/media ports when starting those services. This avoids accidentally colliding with the default stack ports.
 
@@ -101,6 +109,25 @@ Then open:
 http://localhost:8082/
 ```
 
+## Deploy To The VPS Through Git
+
+Deploy published commits from `main` in `git@github.com:mirozzzlav/yokaid.git`. Commit and push the intended changes before deployment; uncommitted local source is not deployed.
+
+On `wondercules.com`, use the existing checkout:
+
+```bash
+cd /home/miro/yokaid
+git status --short
+# Continue only after resolving any source changes shown above.
+git fetch origin main
+git merge --ff-only origin/main
+git rev-parse HEAD
+```
+
+Verify the resulting SHA matches the intended published commit before building images and replacing containers. Preserve the server's `.env`, PostgreSQL volume and existing media. For an existing database, apply migrations instead of running `make initdb`, which resets it. Report the deployed SHA after verifying HTTPS and API responses.
+
+The first transition from the earlier file-copy deployment requires reconciling its modified source files on the VPS with the published commit. Back up and review the remote diff before resolving it. Do not overwrite unrelated remote changes or clean ignored server configuration.
+
 ## Build Images
 
 From the repository root:
@@ -112,12 +139,12 @@ make buildmediastore
 make buildweb
 ```
 
-This creates these local Docker images:
+Images use `<APP_NAME>_<service>:latest`, shared by all instances of the same app. With `APP_NAME=yokaid`, this creates:
 
-- `store`
-- `api`
-- `media_store`
-- `web`
+- `yokaid_store:latest`
+- `yokaid_api:latest`
+- `yokaid_media_store:latest`
+- `yokaid_web:latest`
 
 ## Start The Main App
 
@@ -159,8 +186,8 @@ http://localhost/
 
 The web proxies:
 
-- `/api` to `api_main:${API_PORT}`
-- `/media` to `media_store_main:${MEDIA_STORE_PORT}`
+- `/api` to `yokaid_api_main:${API_PORT}`
+- `/media` to `yokaid_media_store_main:${MEDIA_STORE_PORT}`
 
 ## Start Another App Instance
 
@@ -184,8 +211,8 @@ http://localhost:8081/
 
 The test web proxies:
 
-- `/api` to `api_test:8090`
-- `/media` to `media_store_test:9190`
+- `/api` to `yokaid_api_test:8090`
+- `/media` to `yokaid_media_store_test:9190`
 
 ## App Payment Modes
 
@@ -236,7 +263,7 @@ make runapi test api_port=8090 media_store_port=9190 pay_review=verify pay_conta
 After changing payment modes, restart that API container:
 
 ```bash
-docker stop api_main
+docker stop yokaid_api_main
 make runapi pay_review=verify pay_contact=sms
 ```
 
@@ -275,10 +302,10 @@ docker ps
 Check logs:
 
 ```bash
-docker logs web_main --tail 100
-docker logs api_main --tail 100
-docker logs media_store_main --tail 100
-docker logs store_main --tail 100
+docker logs yokaid_web_main --tail 100
+docker logs yokaid_api_main --tail 100
+docker logs yokaid_media_store_main --tail 100
+docker logs yokaid_store_main --tail 100
 ```
 
 Run migrations:
@@ -301,7 +328,7 @@ Rebuild and restart the main web:
 
 ```bash
 make buildweb
-docker stop web_main
+docker stop yokaid_web_main
 make runweb
 ```
 
@@ -312,6 +339,8 @@ Start Adminer:
 ```bash
 make runadminer
 ```
+
+The Adminer container is named `<APP_NAME>_adminer_<INSTANCE_ID>` (for example `yokaid_adminer_main`).
 
 Adminer is available directly on:
 
@@ -330,13 +359,13 @@ make nginxconf adminer
 If a container name already exists, stop it first:
 
 ```bash
-docker stop web_main api_main media_store_main store_main
+docker stop yokaid_web_main yokaid_api_main yokaid_media_store_main yokaid_store_main
 ```
 
 For the `test` instance:
 
 ```bash
-docker stop web_test api_test media_store_test store_test
+docker stop yokaid_web_test yokaid_api_test yokaid_media_store_test yokaid_store_test
 ```
 
 The app containers are started with `--rm`, so stopped containers are removed automatically.
@@ -344,8 +373,8 @@ The app containers are started with `--rm`, so stopped containers are removed au
 If the web container is running but `localhost` does not work, inspect nginx config:
 
 ```bash
-docker exec web_main ls /etc/nginx/conf.d
-docker exec web_main nginx -T
+docker exec yokaid_web_main ls /etc/nginx/conf.d
+docker exec yokaid_web_main nginx -T
 ```
 
 You should see `default.conf`.
@@ -398,4 +427,4 @@ The web Dockerfile uses a multi-stage build:
 1. A temporary Node image installs dependencies and builds the React app.
 2. A clean nginx image serves only the production web files.
 
-The final `web` image does not contain `npm`, source files, or `node_modules`.
+The final `<APP_NAME>_web:latest` image does not contain `npm`, source files, or `node_modules`.
