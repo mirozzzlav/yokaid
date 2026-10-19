@@ -12,7 +12,6 @@ ehthumbs.db
 Thumbs.db
 .idea/
 .env
-.env.local
-.env.production
-.env.development
+.env.*
+!.env.example
 /media_store/media/
